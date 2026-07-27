@@ -1,0 +1,8 @@
+pydantic<3,>=2.10
+PyYAML<7,>=6.0
+jsonschema<5,>=4.23
+
+[dev]
+pytest<9,>=8.3
+pytest-cov<7,>=6
+ruff<1,>=0.9

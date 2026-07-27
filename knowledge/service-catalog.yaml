@@ -1,0 +1,10 @@
+catalog_version: 0.1.0
+status: draft
+
+services:
+  - service_id: payment-api
+    service_display_name: Payment Orchestration Service
+    criticality: high
+    environments:
+      - production
+      - staging

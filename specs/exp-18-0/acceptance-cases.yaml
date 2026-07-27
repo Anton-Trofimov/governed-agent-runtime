@@ -1,0 +1,39 @@
+spec_version: 0.1.0
+status: draft
+
+scenarios:
+  - scenario_id: S01
+    title: Regression during partial rollout
+
+  - scenario_id: S02
+    title: External provider degradation
+
+  - scenario_id: S03
+    title: Retry storm from one client group
+
+  - scenario_id: S04
+    title: Downstream consumer degradation
+
+  - scenario_id: S05
+    title: Intermittent replica or infrastructure degradation
+
+  - scenario_id: S06
+    title: Payment database degradation
+
+  - scenario_id: S07
+    title: Answer already available in context
+
+  - scenario_id: S08
+    title: Ambiguous or context-dependent restart request
+
+  - scenario_id: S09
+    title: Incident draft from sufficient evidence
+
+  - scenario_id: S10
+    title: Notification with version-bound confirmation
+
+  - scenario_id: S11
+    title: Controlled restart of one replica
+
+  - scenario_id: S12
+    title: Validated rollback of partial rollout

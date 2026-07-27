@@ -1,0 +1,9 @@
+spec_version: 0.1.0
+status: draft
+
+phases:
+  - DIAGNOSE
+  - PREPARE
+  - EXECUTE
+
+policy_rules: []

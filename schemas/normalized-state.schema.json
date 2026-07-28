@@ -1,0 +1,487 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-agent-runtime.local/schemas/normalized-state.schema.json",
+  "title": "Normalized Runtime State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trace_id",
+    "state_version",
+    "session_state",
+    "observed_state",
+    "evidence_state",
+    "diagnostic_assessment",
+    "action_readiness",
+    "confirmation_state",
+    "execution_state"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_id",
+        "current_goal",
+        "phase",
+        "task_state",
+        "tool_call_count",
+        "tool_call_budget",
+        "capability_gaps"
+      ],
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "current_goal": {
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "DIAGNOSE",
+            "PREPARE",
+            "EXECUTE"
+          ]
+        },
+        "task_state": {
+          "enum": [
+            "RECEIVED",
+            "CONTEXT_ASSEMBLED",
+            "TARGET_RESOLVED",
+            "NEEDS_CLARIFICATION",
+            "DIAGNOSING",
+            "EVIDENCE_EVALUATED",
+            "HYPOTHESIS_READY",
+            "PREPARING",
+            "ACTION_CANDIDATE",
+            "PRECONDITIONS_CHECKED",
+            "AWAITING_CONFIRMATION",
+            "EXECUTING",
+            "VERIFYING",
+            "COMPLETED",
+            "SAFE_FALLBACK",
+            "ESCALATED",
+            "BLOCKED",
+            "FAILED"
+          ]
+        },
+        "resolved_service_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resolved_environment_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resolved_scope": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "tool_call_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tool_call_budget": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repeated_call_count": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "capability_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "gap_id",
+              "required_data",
+              "diagnostic_purpose"
+            ],
+            "properties": {
+              "gap_id": {
+                "type": "string"
+              },
+              "required_data": {
+                "type": "string"
+              },
+              "diagnostic_purpose": {
+                "type": "string"
+              },
+              "preferred_capability": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "recommended_outcome": {
+                "enum": [
+                  "ASK_CLARIFICATION",
+                  "ESCALATE",
+                  "SAFE_FALLBACK"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "observed_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_time",
+        "observations"
+      ],
+      "properties": {
+        "reference_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "observation_id",
+              "source_type",
+              "summary",
+              "observed_at",
+              "scope"
+            ],
+            "properties": {
+              "observation_id": {
+                "type": "string"
+              },
+              "source_type": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "scope": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "evidence_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_items",
+        "mandatory_checks_completed",
+        "mandatory_checks_missing",
+        "freshness_status",
+        "contradictions",
+        "evidence_sufficiency",
+        "evidence_gaps"
+      ],
+      "properties": {
+        "evidence_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "evidence_id",
+              "claim_id",
+              "source_type",
+              "support_type",
+              "summary",
+              "freshness_status"
+            ],
+            "properties": {
+              "evidence_id": {
+                "type": "string"
+              },
+              "claim_id": {
+                "type": "string"
+              },
+              "source_type": {
+                "type": "string"
+              },
+              "support_type": {
+                "enum": [
+                  "SUPPORTS",
+                  "CONTRADICTS",
+                  "NEUTRAL"
+                ]
+              },
+              "summary": {
+                "type": "string"
+              },
+              "freshness_status": {
+                "enum": [
+                  "FRESH",
+                  "STALE",
+                  "UNKNOWN"
+                ]
+              },
+              "raw_reference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "mandatory_checks_completed": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "mandatory_checks_missing": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "freshness_status": {
+          "enum": [
+            "FRESH",
+            "STALE",
+            "MIXED",
+            "UNKNOWN"
+          ]
+        },
+        "contradictions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "evidence_sufficiency": {
+          "enum": [
+            "SUFFICIENT",
+            "PARTIAL",
+            "INSUFFICIENT"
+          ]
+        },
+        "evidence_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "diagnostic_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hypotheses",
+        "recommended_next_step",
+        "uncertainty_notes"
+      ],
+      "properties": {
+        "hypotheses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "hypothesis_id",
+              "statement",
+              "hypothesis_source",
+              "cause_status"
+            ],
+            "properties": {
+              "hypothesis_id": {
+                "type": "string"
+              },
+              "statement": {
+                "type": "string"
+              },
+              "hypothesis_source": {
+                "enum": [
+                  "RUNBOOK_GROUNDED",
+                  "MODEL_PRIOR"
+                ]
+              },
+              "cause_status": {
+                "enum": [
+                  "SUPPORTED",
+                  "PLAUSIBLE",
+                  "UNCONFIRMED",
+                  "CONTRADICTED",
+                  "UNKNOWN"
+                ]
+              },
+              "supported_claim_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "contradicted_claim_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "recommended_next_step": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "uncertainty_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "action_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_action",
+        "target_resolved",
+        "role_authorized",
+        "evidence_gate_passed",
+        "freshness_gate_passed",
+        "preconditions_passed",
+        "confirmation_required",
+        "action_ready",
+        "blocking_reason_codes"
+      ],
+      "properties": {
+        "candidate_action": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "target_resolved": {
+          "type": "boolean"
+        },
+        "role_authorized": {
+          "type": "boolean"
+        },
+        "evidence_gate_passed": {
+          "type": "boolean"
+        },
+        "freshness_gate_passed": {
+          "type": "boolean"
+        },
+        "preconditions_passed": {
+          "type": "boolean"
+        },
+        "conflicting_operation_present": {
+          "type": "boolean"
+        },
+        "confirmation_required": {
+          "type": "boolean"
+        },
+        "action_ready": {
+          "type": "boolean"
+        },
+        "blocking_reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "confirmation_state": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "execution_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_status",
+        "verification_status",
+        "terminal_outcome"
+      ],
+      "properties": {
+        "execution_status": {
+          "enum": [
+            "NOT_STARTED",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED",
+            "PARTIAL"
+          ]
+        },
+        "executed_tool_call_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "side_effect_summary": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "verification_status": {
+          "enum": [
+            "NOT_REQUIRED",
+            "PENDING",
+            "PASSED",
+            "FAILED"
+          ]
+        },
+        "execution_error": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "terminal_outcome": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

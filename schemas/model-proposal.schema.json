@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-agent-runtime.local/schemas/model-proposal.schema.json",
+  "title": "Model Proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "proposal_id",
+    "proposal_type",
+    "rationale",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "proposal_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "proposal_type": {
+      "enum": [
+        "CALL_TOOL",
+        "PROVIDE_ANSWER",
+        "PROVIDE_BOUNDED_HYPOTHESIS",
+        "CREATE_DRAFT",
+        "ASK_CLARIFICATION",
+        "REQUEST_CONFIRMATION",
+        "STOP_OR_ESCALATE"
+      ]
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "UNKNOWN"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "CALL_TOOL"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tool_name",
+              "arguments"
+            ],
+            "properties": {
+              "tool_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "arguments": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "PROVIDE_ANSWER"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "answer",
+              "evidence_ids"
+            ],
+            "properties": {
+              "answer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "freshness_note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "PROVIDE_BOUNDED_HYPOTHESIS"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "hypotheses"
+            ],
+            "properties": {
+              "hypotheses": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "hypothesis_id",
+                    "statement",
+                    "source",
+                    "cause_status",
+                    "evidence_ids",
+                    "missing_evidence"
+                  ],
+                  "properties": {
+                    "hypothesis_id": {
+                      "type": "string"
+                    },
+                    "statement": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "source": {
+                      "enum": [
+                        "RUNBOOK_GROUNDED",
+                        "MODEL_PRIOR"
+                      ]
+                    },
+                    "cause_status": {
+                      "enum": [
+                        "SUPPORTED",
+                        "PLAUSIBLE",
+                        "UNCONFIRMED",
+                        "CONTRADICTED",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "evidence_ids": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "missing_evidence": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "CREATE_DRAFT"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tool_name",
+              "arguments"
+            ],
+            "properties": {
+              "tool_name": {
+                "enum": [
+                  "create_incident_draft",
+                  "create_notification_draft",
+                  "create_remediation_plan"
+                ]
+              },
+              "arguments": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "ASK_CLARIFICATION"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "question",
+              "missing_fields"
+            ],
+            "properties": {
+              "question": {
+                "type": "string",
+                "minLength": 1
+              },
+              "missing_fields": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "REQUEST_CONFIRMATION"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tool_name",
+              "action_type",
+              "target",
+              "action_parameters_hash"
+            ],
+            "properties": {
+              "tool_name": {
+                "enum": [
+                  "send_notification",
+                  "restart_single_replica",
+                  "rollback_deployment"
+                ]
+              },
+              "action_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "object"
+              },
+              "action_parameters_hash": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "proposal_type": {
+            "const": "STOP_OR_ESCALATE"
+          }
+        },
+        "required": [
+          "proposal_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "outcome",
+              "summary"
+            ],
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "SAFE_FALLBACK",
+                  "ESCALATE",
+                  "STOP"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "recommended_owner_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

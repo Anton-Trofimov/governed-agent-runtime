@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-agent-runtime.local/schemas/confirmation.schema.json",
+  "title": "Action-Bound Confirmation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "confirmation_id",
+    "session_id",
+    "user_id",
+    "user_role",
+    "tool_name",
+    "action_type",
+    "target",
+    "action_parameters_hash",
+    "relevant_state_hash",
+    "evidence_snapshot_id",
+    "artifact_binding",
+    "created_at",
+    "expires_at",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "confirmation_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_role": {
+      "type": "string"
+    },
+    "tool_name": {
+      "enum": [
+        "send_notification",
+        "restart_single_replica",
+        "rollback_deployment"
+      ]
+    },
+    "action_type": {
+      "type": "string"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "environment_id",
+        "deployment_target_id"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string"
+        },
+        "environment_id": {
+          "type": "string"
+        },
+        "deployment_target_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "replica_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deployment_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target_version_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "audience_group_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "action_parameters_hash": {
+      "type": "string"
+    },
+    "relevant_state_hash": {
+      "type": "string"
+    },
+    "evidence_snapshot_id": {
+      "type": "string"
+    },
+    "artifact_binding": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "binding_type",
+            "remediation_plan_id",
+            "remediation_plan_version"
+          ],
+          "properties": {
+            "binding_type": {
+              "const": "REMEDIATION_PLAN"
+            },
+            "remediation_plan_id": {
+              "type": "string"
+            },
+            "remediation_plan_version": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "binding_type",
+            "draft_id",
+            "draft_version"
+          ],
+          "properties": {
+            "binding_type": {
+              "const": "NOTIFICATION_DRAFT"
+            },
+            "draft_id": {
+              "type": "string"
+            },
+            "draft_version": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "confirmed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "consumed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "status": {
+      "enum": [
+        "NOT_REQUIRED",
+        "PENDING",
+        "VALID",
+        "REJECTED",
+        "EXPIRED",
+        "INVALIDATED",
+        "CONSUMED"
+      ]
+    }
+  }
+}

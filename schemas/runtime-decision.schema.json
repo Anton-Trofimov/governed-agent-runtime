@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-agent-runtime.local/schemas/runtime-decision.schema.json",
+  "title": "Runtime Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "proposal_id",
+    "decision",
+    "reason_codes",
+    "gate_results",
+    "next_state",
+    "tool_execution_allowed",
+    "confirmation_request_required",
+    "decided_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "decision_id": {
+      "type": "string"
+    },
+    "proposal_id": {
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "ALLOW",
+        "PROVIDE_ANSWER",
+        "ASK_CLARIFICATION",
+        "REQUIRE_CONFIRMATION",
+        "REPLACE_WITH_SAFER_PATH",
+        "BLOCK",
+        "SAFE_FALLBACK",
+        "ESCALATE"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "message": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "gate_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "gate_id",
+          "status",
+          "reason_code"
+        ],
+        "properties": {
+          "gate_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASSED",
+              "FAILED",
+              "SKIPPED",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "reason_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "details": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "next_state": {
+      "enum": [
+        "RECEIVED",
+        "CONTEXT_ASSEMBLED",
+        "TARGET_RESOLVED",
+        "NEEDS_CLARIFICATION",
+        "DIAGNOSING",
+        "EVIDENCE_EVALUATED",
+        "HYPOTHESIS_READY",
+        "PREPARING",
+        "ACTION_CANDIDATE",
+        "PRECONDITIONS_CHECKED",
+        "AWAITING_CONFIRMATION",
+        "EXECUTING",
+        "VERIFYING",
+        "COMPLETED",
+        "SAFE_FALLBACK",
+        "ESCALATED",
+        "BLOCKED",
+        "FAILED"
+      ]
+    },
+    "safer_path": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "tool_execution_allowed": {
+      "type": "boolean"
+    },
+    "confirmation_request_required": {
+      "type": "boolean"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

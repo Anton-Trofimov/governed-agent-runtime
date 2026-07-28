@@ -150,6 +150,51 @@ Records the full execution history:
 - latency;
 - token and cost data where applicable.
 
+#### Deterministic decision-application trace contract
+
+For the current Exp 18.0 runtime slice, a successfully evaluated proposal and
+applied runtime decision must produce append-only trace events in this order:
+
+1. `PROPOSAL_CREATED`;
+2. one `GATE_EVALUATED` event for each recorded gate result, preserving policy
+   order;
+3. `RUNTIME_DECISION`;
+4. `STATE_UPDATED` after successful decision application.
+
+`RUNTIME_DECISION` records the authoritative runtime decision, including the
+proposal reference, decision type, reason codes, declared next state, tool
+execution permission and confirmation requirement.
+
+`STATE_UPDATED` records:
+
+- the runtime decision and proposal references;
+- the applied rule type and rule identifier;
+- previous and new state versions;
+- previous and new task states;
+- previous and new phases;
+- previous and new action-readiness values;
+- previous and new terminal outcomes.
+
+Normal lifecycle transitions use:
+
+- `application_rule_type: STATE_TRANSITION`;
+- a transition identifier such as `T015` or `T033`.
+
+Recoverable decision application uses:
+
+- `application_rule_type: DECISION_APPLICATION_RULE`;
+- `application_rule_id: DA001`;
+- the matched lifecycle disposition.
+
+A `STATE_UPDATED` event may be emitted only after the runtime has validated and
+successfully applied the decision. An unsupported or ambiguous transition must
+not be represented as a successful state update.
+
+Decision application and trace recording do not execute tools. The absence of
+`TOOL_CALL_STARTED`, `TOOL_RESULT_RECEIVED`, `EXECUTION_STARTED` and
+`EXECUTION_COMPLETED` events means that no tool execution occurred in this
+runtime step.
+
 ### 9. Evaluation harness
 
 Evaluates runtime and model behavior against hidden acceptance data.

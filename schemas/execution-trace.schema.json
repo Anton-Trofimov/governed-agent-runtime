@@ -141,8 +141,239 @@
             },
             "additionalProperties": false
           }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "event_type": {
+                  "const": "RUNTIME_DECISION"
+                }
+              },
+              "required": [
+                "event_type"
+              ]
+            },
+            "then": {
+              "properties": {
+                "payload": {
+                  "$ref": "#/$defs/runtimeDecisionPayload"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "event_type": {
+                  "const": "STATE_UPDATED"
+                }
+              },
+              "required": [
+                "event_type"
+              ]
+            },
+            "then": {
+              "properties": {
+                "payload": {
+                  "$ref": "#/$defs/stateUpdatedPayload"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "runtimeDecisionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "proposal_id",
+        "decision",
+        "reason_codes",
+        "next_state",
+        "tool_execution_allowed",
+        "confirmation_request_required"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string"
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "decision": {
+          "enum": [
+            "ALLOW",
+            "PROVIDE_ANSWER",
+            "ASK_CLARIFICATION",
+            "REQUIRE_CONFIRMATION",
+            "REPLACE_WITH_SAFER_PATH",
+            "BLOCK",
+            "SAFE_FALLBACK",
+            "ESCALATE"
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "next_state": {
+          "type": "string"
+        },
+        "safer_path": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "tool_execution_allowed": {
+          "type": "boolean"
+        },
+        "confirmation_request_required": {
+          "type": "boolean"
         }
       }
+    },
+    "stateUpdatedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "proposal_id",
+        "application_rule_type",
+        "application_rule_id",
+        "lifecycle_disposition",
+        "previous_state_version",
+        "new_state_version",
+        "previous_task_state",
+        "new_task_state",
+        "previous_phase",
+        "new_phase",
+        "action_ready_before",
+        "action_ready_after",
+        "terminal_outcome_before",
+        "terminal_outcome_after"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string"
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "application_rule_type": {
+          "enum": [
+            "STATE_TRANSITION",
+            "DECISION_APPLICATION_RULE"
+          ]
+        },
+        "application_rule_id": {
+          "type": "string"
+        },
+        "lifecycle_disposition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "previous_state_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_state_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "previous_task_state": {
+          "type": "string"
+        },
+        "new_task_state": {
+          "type": "string"
+        },
+        "previous_phase": {
+          "type": "string"
+        },
+        "new_phase": {
+          "type": "string"
+        },
+        "action_ready_before": {
+          "type": "boolean"
+        },
+        "action_ready_after": {
+          "type": "boolean"
+        },
+        "terminal_outcome_before": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "terminal_outcome_after": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "application_rule_type": {
+                "const": "STATE_TRANSITION"
+              }
+            },
+            "required": [
+              "application_rule_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "application_rule_id": {
+                "pattern": "^T[0-9]{3}$"
+              },
+              "lifecycle_disposition": {
+                "const": null
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "application_rule_type": {
+                "const": "DECISION_APPLICATION_RULE"
+              }
+            },
+            "required": [
+              "application_rule_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "application_rule_id": {
+                "pattern": "^DA[0-9]{3}$"
+              },
+              "lifecycle_disposition": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

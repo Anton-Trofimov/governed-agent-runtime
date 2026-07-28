@@ -64,6 +64,8 @@ gate_order:
     purpose: Validate proposal type and structured arguments.
     failure_decision: BLOCK
     reason_code: INVALID_PROPOSAL_SCHEMA
+    lifecycle_disposition: RECOVERABLE_PROPOSAL_REJECTION
+    next_state_rule: RETAIN_CURRENT_STATE
 
   - gate_id: G02_TARGET_RESOLUTION
     purpose: Resolve service, environment and required action scope.
@@ -109,6 +111,15 @@ gate_order:
     purpose: Ensure that the action can be completely traced.
     failure_decision: BLOCK
     reason_code: AUDIT_DATA_INCOMPLETE
+
+safer_path_lifecycle_rules:
+  - rule_id: SP001
+    condition: replacement_tool_category_is_preparation
+    decision: REPLACE_WITH_SAFER_PATH
+    next_state: PREPARING
+    resulting_phase: PREPARE
+    tool_execution_allowed: false
+    action_ready_effect: MUST_REMAIN_FALSE
 
 policy_rules:
   - rule_id: P001

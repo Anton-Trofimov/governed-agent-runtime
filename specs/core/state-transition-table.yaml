@@ -8,6 +8,26 @@ principles:
   - Not every task traverses every state.
   - Terminal states cannot transition back into execution.
   - Clarification may return the task to target resolution or diagnosis.
+  - A recoverable proposal rejection retains the current task state and phase.
+  - Replacing a premature operational action with a preparation path does not
+    execute the original action or the replacement tool.
+
+lifecycle_dispositions:
+  RECOVERABLE_PROPOSAL_REJECTION:
+    description: >
+      The current proposal is rejected, but the governed task remains active
+      and may receive another proposal.
+    task_state_effect: RETAIN_CURRENT
+    phase_effect: RETAIN_CURRENT
+    terminal_state: null
+    tool_execution_allowed: false
+    repeat_proposal_allowed: true
+
+decision_application_rules:
+  - rule_id: DA001
+    decision: BLOCK
+    reason_code: INVALID_PROPOSAL_SCHEMA
+    lifecycle_disposition: RECOVERABLE_PROPOSAL_REJECTION
 
 states:
   - state_id: RECEIVED
@@ -157,6 +177,7 @@ transitions:
     from: HYPOTHESIS_READY
     to: PREPARING
     trigger: operational_artifact_required
+    resulting_phase: PREPARE
 
   - transition_id: T016
     from: HYPOTHESIS_READY
@@ -242,6 +263,16 @@ transitions:
     from: DIAGNOSING
     to: ESCALATED
     trigger: tool_budget_exhausted_without_safe_resolution
+
+  - transition_id: T033
+    from: ACTION_CANDIDATE
+    to: PREPARING
+    trigger: premature_operational_action_replaced_with_preparation_path
+    resulting_phase: PREPARE
+    invariants:
+      - action_ready_remains_false
+      - original_operational_action_not_executed
+      - replacement_tool_not_executed_by_transition
 
 global_failure_transitions:
   - from_categories:

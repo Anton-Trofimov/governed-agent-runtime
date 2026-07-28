@@ -77,6 +77,7 @@ Observed facts do not contain inferred root causes.
 
 | Field | Type | Source | Meaning |
 |---|---|---|---|
+| `claims` | array | evidence engine | Explicit claims evaluated against normalized evidence |
 | `evidence_items` | array | evidence engine | Evidence linked to claims |
 | `mandatory_checks_completed` | array | runtime | Required checks that passed |
 | `mandatory_checks_missing` | array | runtime | Required checks not yet completed |

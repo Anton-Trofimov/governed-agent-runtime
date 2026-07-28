@@ -199,6 +199,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "claims",
         "evidence_items",
         "mandatory_checks_completed",
         "mandatory_checks_missing",
@@ -296,6 +297,45 @@
           "type": "array",
           "items": {
             "type": "object"
+          }
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "claim_id",
+              "statement",
+              "status",
+              "evidence_ids"
+            ],
+            "properties": {
+              "claim_id": {
+                "type": "string"
+              },
+              "statement": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "SUPPORTED",
+                  "PARTIAL",
+                  "CONTRADICTED",
+                  "UNKNOWN"
+                ]
+              },
+              "scope": {
+                "type": "object"
+              },
+              "evidence_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }

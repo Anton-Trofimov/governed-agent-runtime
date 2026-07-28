@@ -84,6 +84,7 @@ def build_normalized_state(
             "observations": observations,
         },
         "evidence_state": {
+            "claims": [],
             "evidence_items": [],
             "mandatory_checks_completed": [],
             "mandatory_checks_missing": [],

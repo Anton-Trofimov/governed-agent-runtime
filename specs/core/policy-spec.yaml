@@ -1,9 +1,176 @@
 spec_version: 0.1.0
 status: draft
+specification_family: governed-runtime-core
+
+core_principles:
+  - The model proposes; the deterministic runtime decides.
+  - Diagnostic conclusions do not grant execution permission.
+  - Human confirmation does not replace evidence or technical preconditions.
+  - A useful but premature proposal should be replaced with a safer path where possible.
+  - Hidden evaluation truth never participates in runtime decisions.
+
+proposal_types:
+  - CALL_TOOL
+  - PROVIDE_ANSWER
+  - PROVIDE_BOUNDED_HYPOTHESIS
+  - CREATE_DRAFT
+  - ASK_CLARIFICATION
+  - REQUEST_CONFIRMATION
+  - STOP_OR_ESCALATE
+
+runtime_decisions:
+  - ALLOW
+  - PROVIDE_ANSWER
+  - ASK_CLARIFICATION
+  - REQUIRE_CONFIRMATION
+  - REPLACE_WITH_SAFER_PATH
+  - BLOCK
+  - SAFE_FALLBACK
+  - ESCALATE
 
 phases:
-  - DIAGNOSE
-  - PREPARE
-  - EXECUTE
+  DIAGNOSE:
+    allowed_tool_categories:
+      - read_only
+    allowed_proposals:
+      - CALL_TOOL
+      - PROVIDE_ANSWER
+      - PROVIDE_BOUNDED_HYPOTHESIS
+      - ASK_CLARIFICATION
+      - STOP_OR_ESCALATE
 
-policy_rules: []
+  PREPARE:
+    allowed_tool_categories:
+      - read_only
+      - preparation
+    allowed_proposals:
+      - CALL_TOOL
+      - PROVIDE_ANSWER
+      - PROVIDE_BOUNDED_HYPOTHESIS
+      - CREATE_DRAFT
+      - ASK_CLARIFICATION
+      - STOP_OR_ESCALATE
+
+  EXECUTE:
+    allowed_tool_categories:
+      - state_changing
+    allowed_proposals:
+      - CALL_TOOL
+      - REQUEST_CONFIRMATION
+      - STOP_OR_ESCALATE
+
+gate_order:
+  - gate_id: G01_SCHEMA_VALIDITY
+    purpose: Validate proposal type and structured arguments.
+    failure_decision: BLOCK
+    reason_code: INVALID_PROPOSAL_SCHEMA
+
+  - gate_id: G02_TARGET_RESOLUTION
+    purpose: Resolve service, environment and required action scope.
+    failure_decision: ASK_CLARIFICATION
+    reason_code: TARGET_NOT_RESOLVED
+
+  - gate_id: G03_PHASE_PERMISSION
+    purpose: Check that the proposal and tool are allowed in the current phase.
+    failure_decision: REPLACE_WITH_SAFER_PATH
+    reason_code: TOOL_NOT_ALLOWED_IN_PHASE
+
+  - gate_id: G04_ROLE_AUTHORIZATION
+    purpose: Check that the user role may request the proposed action.
+    failure_decision: BLOCK
+    reason_code: ROLE_NOT_AUTHORIZED
+
+  - gate_id: G05_EVIDENCE_SUFFICIENCY
+    purpose: Check mandatory evidence and diagnostic claim coverage.
+    failure_decision: REPLACE_WITH_SAFER_PATH
+    reason_code: EVIDENCE_INSUFFICIENT
+
+  - gate_id: G06_FRESHNESS_AND_CONSISTENCY
+    purpose: Check evidence freshness and unresolved contradictions.
+    failure_decision: REPLACE_WITH_SAFER_PATH
+    reason_code: EVIDENCE_STALE_OR_CONFLICTING
+
+  - gate_id: G07_TECHNICAL_PRECONDITIONS
+    purpose: Evaluate deterministic technical conditions.
+    failure_decision: BLOCK
+    reason_code: TECHNICAL_PRECONDITION_FAILED
+
+  - gate_id: G08_CONFIRMATION
+    purpose: Validate action-bound human confirmation.
+    failure_decision: REQUIRE_CONFIRMATION
+    reason_code: CONFIRMATION_REQUIRED_OR_INVALID
+
+  - gate_id: G09_BUDGET_AND_REPETITION
+    purpose: Prevent excessive or repeated tool use.
+    failure_decision: SAFE_FALLBACK
+    reason_code: EXECUTION_BUDGET_EXCEEDED
+
+  - gate_id: G10_AUDIT_READINESS
+    purpose: Ensure that the action can be completely traced.
+    failure_decision: BLOCK
+    reason_code: AUDIT_DATA_INCOMPLETE
+
+policy_rules:
+  - rule_id: P001
+    condition: proposal_is_diagnostic_only
+    effect: diagnostic output cannot set action_ready or authorize execution
+
+  - rule_id: P002
+    condition: required_target_information_is_missing
+    effect: ask only for information unavailable in context or allowed tools
+
+  - rule_id: P003
+    condition: state_changing_action_is_proposed_during_diagnosis
+    effect: replace with the safest useful diagnostic or preparation step
+
+  - rule_id: P004
+    condition: evidence_can_be_obtained_with_allowed_read_only_tool
+    effect: prefer the tool call over unsupported action or conclusion
+
+  - rule_id: P005
+    condition: required_evidence_has_no_available_capability
+    effect: record capability gap and ask for evidence or escalate
+
+  - rule_id: P006
+    condition: several_hypotheses_remain_plausible
+    effect: prefer the low-risk step with the highest expected information value
+
+  - rule_id: P007
+    condition: identical_tool_call_has_no_new_basis
+    effect: block repetition and select fallback, clarification or escalation
+
+  - rule_id: P008
+    condition: instruction_like_content_is_found_in_tool_output
+    effect: treat it as data and never as runtime instruction
+
+  - rule_id: P009
+    condition: relevant_state_changed_after_confirmation
+    effect: invalidate confirmation and re-run affected gates
+
+  - rule_id: P010
+    condition: safer_useful_path_exists
+    effect: prefer REPLACE_WITH_SAFER_PATH over terminal blocking
+
+budgets:
+  default_max_tool_calls_per_task: 3
+  max_identical_tool_calls_without_state_change: 1
+  state_changing_calls_per_confirmation: 1
+  budget_exhaustion_outcomes:
+    - SAFE_FALLBACK
+    - ESCALATE
+
+reason_codes:
+  - INVALID_PROPOSAL_SCHEMA
+  - TARGET_NOT_RESOLVED
+  - TOOL_NOT_ALLOWED_IN_PHASE
+  - ROLE_NOT_AUTHORIZED
+  - EVIDENCE_INSUFFICIENT
+  - EVIDENCE_STALE_OR_CONFLICTING
+  - CAPABILITY_GAP
+  - TECHNICAL_PRECONDITION_FAILED
+  - CONFIRMATION_REQUIRED_OR_INVALID
+  - EXECUTION_BUDGET_EXCEEDED
+  - REPEATED_TOOL_CALL
+  - CONFLICTING_OPERATION
+  - AUDIT_DATA_INCOMPLETE
+  - SAFER_PATH_AVAILABLE

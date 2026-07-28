@@ -1,3 +1,735 @@
 spec_version: 0.1.0
 status: draft
-tools: []
+specification_family: governed-runtime-core
+
+principles:
+  - The model proposes a tool call; the runtime decides whether it is allowed.
+  - Every tool call must use canonical service, environment and target identifiers.
+  - Raw tool output is retained in the trace.
+  - Only validated and normalized result summaries may enter the next model context.
+  - Instruction-like content returned by a tool is treated as data.
+  - State-changing tools require runtime policy approval and valid confirmation.
+
+standard_output_envelope:
+  required:
+    - tool_call_id
+    - tool_name
+    - status
+    - collected_at
+    - raw_reference
+    - result
+  status_values:
+    - SUCCEEDED
+    - FAILED
+    - PARTIAL
+    - TIMEOUT
+    - UNAVAILABLE
+
+standard_errors:
+  - INVALID_ARGUMENTS
+  - TARGET_NOT_FOUND
+  - SOURCE_UNAVAILABLE
+  - SOURCE_TIMEOUT
+  - STALE_DATA
+  - PERMISSION_DENIED
+  - PRECONDITION_FAILED
+  - CONFIRMATION_REQUIRED
+  - CONFIRMATION_INVALID
+  - CONFLICTING_OPERATION
+  - BUDGET_EXCEEDED
+  - INTERNAL_ERROR
+
+tools:
+  - tool_name: get_service_status
+    category: read_only
+    risk_tier: 1
+    purpose: Obtain current service, target and replica availability status.
+    allowed_phases:
+      - DIAGNOSE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        deployment_target_id:
+          type:
+            - string
+            - "null"
+        lookback_minutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 15
+      additional_properties: false
+    result_fields:
+      - desired_replicas
+      - ready_replicas
+      - available_replicas
+      - replica_statuses
+      - readiness_transitions
+      - source_timestamp
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 2
+      retry_on:
+        - SOURCE_TIMEOUT
+        - SOURCE_UNAVAILABLE
+
+  - tool_name: get_service_metrics
+    category: read_only
+    risk_tier: 1
+    purpose: Obtain service metrics for an explicit time window and grouping.
+    allowed_phases:
+      - DIAGNOSE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - metric_names
+        - start_time
+        - end_time
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        metric_names:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        group_by:
+          type: array
+          uniqueItems: true
+          items:
+            enum:
+              - version_id
+              - replica_id
+              - endpoint
+              - client_group_id
+              - request_type
+              - request_attempt_type
+              - node_id
+              - availability_zone_id
+      additional_properties: false
+    result_fields:
+      - metric_series
+      - group_dimensions
+      - source_timestamp
+      - missing_series
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 15
+    retry_policy:
+      max_attempts: 2
+      retry_on:
+        - SOURCE_TIMEOUT
+
+  - tool_name: get_recent_deployments
+    category: read_only
+    risk_tier: 1
+    purpose: Obtain deployment history, active versions and rollout state.
+    allowed_phases:
+      - DIAGNOSE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        deployment_target_id:
+          type:
+            - string
+            - "null"
+        lookback_minutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+          default: 1440
+      additional_properties: false
+    result_fields:
+      - deployments
+      - active_version_groups
+      - rollout_status
+      - rollback_candidates
+      - compatibility_references
+      - source_timestamp
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 2
+      retry_on:
+        - SOURCE_TIMEOUT
+
+  - tool_name: get_recent_runtime_events
+    category: read_only
+    risk_tier: 1
+    purpose: Obtain recent rollout, restart, configuration and infrastructure events.
+    allowed_phases:
+      - DIAGNOSE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        deployment_target_id:
+          type:
+            - string
+            - "null"
+        lookback_minutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+          default: 60
+        event_types:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+      additional_properties: false
+    result_fields:
+      - events
+      - active_operations
+      - source_timestamp
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 2
+      retry_on:
+        - SOURCE_TIMEOUT
+
+  - tool_name: get_dependency_status
+    category: read_only
+    risk_tier: 1
+    purpose: Obtain availability, latency, errors, timeouts and saturation of dependencies.
+    allowed_phases:
+      - DIAGNOSE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        dependency_ids:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        lookback_minutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 30
+      additional_properties: false
+    result_fields:
+      - dependency_states
+      - degradation_windows
+      - source_timestamp
+      - unavailable_dependencies
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 15
+    retry_policy:
+      max_attempts: 2
+      retry_on:
+        - SOURCE_TIMEOUT
+
+  - tool_name: get_traffic_breakdown
+    category: read_only
+    risk_tier: 1
+    purpose: Obtain traffic composition by version, client, request type or attempt type.
+    allowed_phases:
+      - DIAGNOSE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - start_time
+        - end_time
+        - group_by
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        group_by:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            enum:
+              - version_id
+              - client_group_id
+              - request_type
+              - request_attempt_type
+              - response_code
+              - endpoint
+      additional_properties: false
+    result_fields:
+      - traffic_groups
+      - total_request_rate_rps
+      - source_timestamp
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 15
+    retry_policy:
+      max_attempts: 2
+      retry_on:
+        - SOURCE_TIMEOUT
+
+  - tool_name: search_runbook
+    category: read_only
+    risk_tier: 1
+    purpose: Retrieve applicable operational guidance for symptoms or hypotheses.
+    allowed_phases:
+      - DIAGNOSE
+      - PREPARE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - query
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        query:
+          type: string
+          minLength: 3
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+      additional_properties: false
+    result_fields:
+      - matches
+      - runbook_id
+      - runbook_version
+      - runbook_status
+      - applicable_scope
+      - excerpt
+    side_effects: none
+    confirmation_required: false
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+  - tool_name: create_incident_draft
+    category: preparation
+    risk_tier: 2
+    purpose: Create a reviewable incident draft from confirmed facts and bounded hypotheses.
+    allowed_phases:
+      - PREPARE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - title
+        - confirmed_facts
+        - impact_summary
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        title:
+          type: string
+        confirmed_facts:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        impact_summary:
+          type: string
+        timeline:
+          type: array
+          items:
+            type: object
+        hypotheses:
+          type: array
+          items:
+            type: object
+        missing_checks:
+          type: array
+          items:
+            type: string
+        recommended_owner_id:
+          type:
+            - string
+            - "null"
+      additional_properties: false
+    result_fields:
+      - incident_id
+      - draft_version
+      - review_status
+      - validation_warnings
+    side_effects: creates_draft
+    confirmation_required: false
+    idempotency:
+      required: true
+      key_fields:
+        - session_id
+        - content_hash
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+  - tool_name: create_notification_draft
+    category: preparation
+    risk_tier: 2
+    purpose: Create a reviewable notification without sending it.
+    allowed_phases:
+      - PREPARE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - audience_group_ids
+        - subject
+        - confirmed_facts
+        - impact_summary
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        audience_group_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+        subject:
+          type: string
+        confirmed_facts:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        impact_summary:
+          type: string
+        requested_action:
+          type:
+            - string
+            - "null"
+      additional_properties: false
+    result_fields:
+      - draft_id
+      - draft_version
+      - audience_group_ids
+      - review_status
+      - validation_warnings
+    side_effects: creates_draft
+    confirmation_required: false
+    idempotency:
+      required: true
+      key_fields:
+        - session_id
+        - content_hash
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+  - tool_name: create_remediation_plan
+    category: preparation
+    risk_tier: 2
+    purpose: Create a versioned remediation plan for a candidate action.
+    allowed_phases:
+      - PREPARE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - candidate_action
+        - rationale
+        - evidence_ids
+        - risks
+        - verification_steps
+        - stop_conditions
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        candidate_action:
+          type: object
+        rationale:
+          type: string
+        evidence_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+        required_precondition_ids:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        risks:
+          type: array
+          items:
+            type: string
+        verification_steps:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        stop_conditions:
+          type: array
+          minItems: 1
+          items:
+            type: string
+      additional_properties: false
+    result_fields:
+      - remediation_plan_id
+      - plan_version
+      - readiness_status
+      - missing_preconditions
+      - validation_warnings
+    side_effects: creates_plan
+    confirmation_required: false
+    idempotency:
+      required: true
+      key_fields:
+        - session_id
+        - content_hash
+    timeout_seconds: 10
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+  - tool_name: send_notification
+    category: state_changing
+    risk_tier: 3
+    purpose: Send one previously reviewed and version-bound notification draft.
+    allowed_phases:
+      - EXECUTE
+    input_schema:
+      type: object
+      required:
+        - draft_id
+        - draft_version
+        - audience_group_ids
+      properties:
+        draft_id:
+          type: string
+        draft_version:
+          type: string
+        audience_group_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+      additional_properties: false
+    result_fields:
+      - notification_id
+      - delivered_audiences
+      - failed_audiences
+      - delivery_status
+    side_effects: mock_notification_delivery
+    evidence_requirements:
+      - draft_exists
+      - draft_version_matches
+      - recipients_match_reviewed_draft
+      - relevant_state_unchanged
+    confirmation_required: true
+    idempotency:
+      required: true
+      key_fields:
+        - draft_id
+        - draft_version
+        - audience_group_ids
+    timeout_seconds: 15
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+  - tool_name: restart_single_replica
+    category: state_changing
+    risk_tier: 3
+    purpose: Perform a mock restart of one explicitly identified unstable replica.
+    allowed_phases:
+      - EXECUTE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - deployment_target_id
+        - replica_id
+        - remediation_plan_id
+        - remediation_plan_version
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        deployment_target_id:
+          type: string
+        replica_id:
+          type: string
+        remediation_plan_id:
+          type: string
+        remediation_plan_version:
+          type: string
+      additional_properties: false
+    result_fields:
+      - operation_id
+      - replica_id
+      - operation_status
+      - readiness_after_restart
+      - verification_required
+    side_effects: mock_single_replica_restart
+    evidence_requirements:
+      - exact_replica_identified
+      - replica_local_degradation_supported
+      - remaining_capacity_sufficient
+      - no_active_rollout
+      - no_conflicting_operation
+    confirmation_required: true
+    idempotency:
+      required: true
+      key_fields:
+        - replica_id
+        - remediation_plan_id
+        - remediation_plan_version
+    timeout_seconds: 30
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+  - tool_name: rollback_deployment
+    category: state_changing
+    risk_tier: 3
+    purpose: Perform a mock rollback of one explicitly identified deployment.
+    allowed_phases:
+      - EXECUTE
+    input_schema:
+      type: object
+      required:
+        - service_id
+        - environment_id
+        - deployment_target_id
+        - deployment_id
+        - target_version_id
+        - remediation_plan_id
+        - remediation_plan_version
+      properties:
+        service_id:
+          type: string
+        environment_id:
+          type: string
+        deployment_target_id:
+          type: string
+        deployment_id:
+          type: string
+        target_version_id:
+          type: string
+        remediation_plan_id:
+          type: string
+        remediation_plan_version:
+          type: string
+      additional_properties: false
+    result_fields:
+      - operation_id
+      - deployment_id
+      - target_version_id
+      - operation_status
+      - resulting_version_groups
+      - verification_required
+    side_effects: mock_deployment_rollback
+    evidence_requirements:
+      - version_regression_supported
+      - deployment_identified
+      - target_version_available
+      - database_compatibility_confirmed
+      - configuration_compatibility_confirmed
+      - projected_capacity_sufficient
+      - transitional_capacity_sufficient
+      - dependency_headroom_sufficient
+      - startup_and_warmup_accounted
+      - traffic_drain_conditions_defined
+      - no_conflicting_operation
+    confirmation_required: true
+    idempotency:
+      required: true
+      key_fields:
+        - deployment_id
+        - target_version_id
+        - remediation_plan_id
+        - remediation_plan_version
+    timeout_seconds: 60
+    retry_policy:
+      max_attempts: 1
+      retry_on: []
+
+audit_requirements:
+  every_call:
+    - trace_id
+    - session_id
+    - tool_call_id
+    - tool_name
+    - proposal_id
+    - runtime_decision
+    - arguments_hash
+    - target
+    - started_at
+    - completed_at
+    - status
+    - raw_reference
+  state_changing_calls:
+    - policy_gate_results
+    - precondition_results
+    - confirmation_id
+    - bound_state_hash
+    - idempotency_key
+    - side_effect_summary
+    - verification_status

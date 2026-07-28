@@ -1,3 +1,173 @@
 spec_version: 0.1.0
 status: draft
-actions: {}
+specification_family: governed-runtime-core
+
+principles:
+  - Preconditions are evaluated by deterministic runtime logic.
+  - The model may reference a precondition but cannot mark it as passed.
+  - Confirmation is requested only after all pre-confirmation gates pass.
+  - A failed critical precondition blocks execution.
+  - Relevant state is revalidated immediately before execution.
+
+actions:
+  send_notification:
+    tool_name: send_notification
+    preconditions:
+      - precondition_id: NOTIFICATION_DRAFT_EXISTS
+        description: The referenced notification draft exists.
+        critical: true
+
+      - precondition_id: NOTIFICATION_DRAFT_VERSION_MATCHES
+        description: The requested draft version matches the reviewed version.
+        critical: true
+
+      - precondition_id: NOTIFICATION_RECIPIENTS_MATCH
+        description: Recipients match the reviewed draft.
+        critical: true
+
+      - precondition_id: NOTIFICATION_STATE_UNCHANGED
+        description: Relevant incident state has not materially changed.
+        critical: true
+
+      - precondition_id: NOTIFICATION_ROLE_AUTHORIZED
+        description: The user role may send the notification.
+        critical: true
+
+      - precondition_id: NOTIFICATION_CONFIRMATION_VALID
+        description: Confirmation is valid and bound to the exact draft and recipients.
+        critical: true
+
+  restart_single_replica:
+    tool_name: restart_single_replica
+    preconditions:
+      - precondition_id: RESTART_TARGET_RESOLVED
+        description: Service, environment, deployment target and replica are explicit.
+        critical: true
+
+      - precondition_id: RESTART_REPLICA_DEGRADATION_SUPPORTED
+        description: Evidence supports a replica-local degradation.
+        critical: true
+
+      - precondition_id: RESTART_REMAINING_CAPACITY_SUFFICIENT
+        description: Remaining ready replicas can safely carry projected traffic.
+        critical: true
+
+      - precondition_id: RESTART_NO_ACTIVE_ROLLOUT
+        description: No active rollout makes replica replacement unsafe or ambiguous.
+        critical: true
+
+      - precondition_id: RESTART_NO_CONFLICTING_OPERATION
+        description: No restart, rollback or infrastructure operation conflicts.
+        critical: true
+
+      - precondition_id: RESTART_PLAN_CURRENT
+        description: The remediation plan matches the current state and action parameters.
+        critical: true
+
+      - precondition_id: RESTART_CONFIRMATION_VALID
+        description: Confirmation is valid and bound to the exact replica and plan version.
+        critical: true
+
+      - precondition_id: RESTART_VERIFICATION_DEFINED
+        description: Post-restart readiness and error verification is defined.
+        critical: true
+
+  rollback_deployment:
+    tool_name: rollback_deployment
+    preconditions:
+      - precondition_id: ROLLBACK_TARGET_RESOLVED
+        description: Service, environment, target and deployment are explicit.
+        critical: true
+
+      - precondition_id: ROLLBACK_REGRESSION_SUPPORTED
+        description: Evidence supports degradation associated with the new version.
+        critical: true
+
+      - precondition_id: ROLLBACK_TARGET_VERSION_AVAILABLE
+        description: The previous compatible artifact is available.
+        critical: true
+
+      - precondition_id: ROLLBACK_DATABASE_COMPATIBLE
+        description: Database changes are backward-compatible with the target version.
+        critical: true
+
+      - precondition_id: ROLLBACK_CONFIGURATION_COMPATIBLE
+        description: Active configuration is compatible with the target version.
+        critical: true
+
+      - precondition_id: ROLLBACK_PROJECTED_CAPACITY_SUFFICIENT
+        description: The resulting stable version group can carry projected traffic.
+        critical: true
+
+      - precondition_id: ROLLBACK_TRANSITIONAL_CAPACITY_SUFFICIENT
+        description: Capacity remains sufficient during traffic shift and warm-up.
+        critical: true
+
+      - precondition_id: ROLLBACK_DEPENDENCY_HEADROOM_SUFFICIENT
+        description: Dependencies can support the projected rollback traffic.
+        critical: true
+
+      - precondition_id: ROLLBACK_WARMUP_ACCOUNTED
+        description: Startup and warm-up duration are included in the plan.
+        critical: true
+
+      - precondition_id: ROLLBACK_TRAFFIC_DRAIN_DEFINED
+        description: Traffic drain and switch conditions are explicit.
+        critical: true
+
+      - precondition_id: ROLLBACK_MAX_UNAVAILABLE_RESPECTED
+        description: The transition respects maximum unavailable capacity.
+        critical: true
+
+      - precondition_id: ROLLBACK_NO_CONFLICTING_OPERATION
+        description: No rollout, restart or rollback conflicts with the action.
+        critical: true
+
+      - precondition_id: ROLLBACK_PLAN_CURRENT
+        description: The remediation plan matches current deployment state.
+        critical: true
+
+      - precondition_id: ROLLBACK_CONFIRMATION_VALID
+        description: Confirmation is bound to the deployment, target version and plan.
+        critical: true
+
+      - precondition_id: ROLLBACK_VERIFICATION_DEFINED
+        description: Post-rollback health and regression verification is defined.
+        critical: true
+
+runtime_calculations:
+  capacity:
+    inputs:
+      - current_request_rate_rps
+      - validated_safe_rps_per_replica
+      - ready_replicas
+      - replicas_removed_during_transition
+      - minimum_headroom
+    outputs:
+      - projected_rps_per_replica
+      - projected_headroom
+      - capacity_sufficient
+
+  confirmation_revalidation:
+    invalidate_on:
+      - target_change
+      - parameter_change
+      - deployment_change
+      - material_load_change
+      - draft_or_plan_version_change
+      - evidence_expiration
+      - conflicting_operation
+      - confirmation_expiration
+
+failure_handling:
+  failed_critical_precondition:
+    runtime_decision: BLOCK
+    reason_code: TECHNICAL_PRECONDITION_FAILED
+
+  missing_obtainable_evidence:
+    runtime_decision: REPLACE_WITH_SAFER_PATH
+    reason_code: EVIDENCE_INSUFFICIENT
+
+  unavailable_required_capability:
+    runtime_decision: ESCALATE
+    reason_code: CAPABILITY_GAP

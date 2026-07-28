@@ -5,6 +5,25 @@ services:
   - service_id: payment-api
     service_display_name: Payment Orchestration Service
     criticality: high
+
     environments:
-      - production
-      - staging
+      - environment_id: production
+        deployment_targets:
+          - deployment_target_id: payment-api-prod-eu-central-1
+            region_id: eu-central-1
+            cluster_id: prod-payments-01
+            namespace_id: payments
+
+      - environment_id: staging
+        deployment_targets:
+          - deployment_target_id: payment-api-staging-eu-central-1
+            region_id: eu-central-1
+            cluster_id: staging-payments-01
+            namespace_id: payments
+
+    telemetry_sources:
+      - metrics-store
+      - deployment-store
+      - runtime-events-store
+      - dependency-state-store
+      - traffic-store

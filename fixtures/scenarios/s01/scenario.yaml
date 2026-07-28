@@ -1,0 +1,37 @@
+scenario_id: S01
+title: Regression during partial rollout
+reference_time: 2026-07-28T12:00:00Z
+
+initial_phase: DIAGNOSE
+initial_task_state: RECEIVED
+
+user_request_file: user-request.json
+
+context_sources:
+  - knowledge/service-catalog.yaml
+  - knowledge/capacity-profiles.yaml
+
+tool_source_files:
+  get_service_status: source/service-status.json
+  get_service_metrics: source/metrics.json
+  get_recent_deployments: source/deployments.json
+  get_recent_runtime_events: source/runtime-events.json
+  get_dependency_status: source/dependencies.json
+  get_traffic_breakdown: source/traffic.json
+
+visibility:
+  model_initial:
+    - user-request.json
+    - selected service catalog summary
+
+  model_after_tool_call:
+    - validated normalized summary of the called tool result
+
+  runtime:
+    - scenario.yaml
+    - all declared tool source files
+    - applicable core specifications
+    - applicable knowledge files
+
+  evaluation_only:
+    - evals/hidden/exp-18-0/s01/hidden-evaluation.yaml

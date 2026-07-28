@@ -1,0 +1,44 @@
+{
+  "source_id": "deployments-s01",
+  "source_timestamp": "2026-07-28T12:00:00Z",
+  "service_id": "payment-api",
+  "environment_id": "production",
+  "deployment_target_id": "payment-api-prod-eu-central-1",
+  "deployments": [
+    {
+      "deployment_id": "deployment-payment-api-20260728-1140",
+      "started_at": "2026-07-28T11:40:00Z",
+      "status": "PAUSED",
+      "rollout_strategy": "CANARY_THEN_ROLLING",
+      "previous_version_id": "2.4.1",
+      "new_version_id": "2.4.2",
+      "pause_reason": "NEW_VERSION_ERROR_THRESHOLD_EXCEEDED"
+    }
+  ],
+  "active_version_groups": [
+    {
+      "version_id": "2.4.1",
+      "replica_count": 3,
+      "traffic_percent": 60
+    },
+    {
+      "version_id": "2.4.2",
+      "replica_count": 2,
+      "traffic_percent": 40
+    }
+  ],
+  "rollout_status": "PAUSED_FOR_VALIDATION",
+  "rollback_candidates": [
+    {
+      "version_id": "2.4.1",
+      "artifact_available": true
+    }
+  ],
+  "compatibility_references": {
+    "database_compatibility_status": "UNKNOWN",
+    "configuration_compatibility_status": "CONFIRMED",
+    "startup_seconds": 90,
+    "warmup_seconds": 60,
+    "max_unavailable_replicas": 1
+  }
+}

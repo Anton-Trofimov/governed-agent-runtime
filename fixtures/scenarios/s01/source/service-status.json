@@ -1,0 +1,53 @@
+{
+  "source_id": "service-status-s01",
+  "source_timestamp": "2026-07-28T12:00:00Z",
+  "service_id": "payment-api",
+  "environment_id": "production",
+  "deployment_target_id": "payment-api-prod-eu-central-1",
+  "desired_replicas": 5,
+  "ready_replicas": 5,
+  "available_replicas": 5,
+  "replica_statuses": [
+    {
+      "replica_id": "payment-api-241-a",
+      "version_id": "2.4.1",
+      "readiness": "READY",
+      "availability": "AVAILABLE",
+      "node_id": "node-a1",
+      "availability_zone_id": "eu-central-1a"
+    },
+    {
+      "replica_id": "payment-api-241-b",
+      "version_id": "2.4.1",
+      "readiness": "READY",
+      "availability": "AVAILABLE",
+      "node_id": "node-b1",
+      "availability_zone_id": "eu-central-1b"
+    },
+    {
+      "replica_id": "payment-api-241-c",
+      "version_id": "2.4.1",
+      "readiness": "READY",
+      "availability": "AVAILABLE",
+      "node_id": "node-c1",
+      "availability_zone_id": "eu-central-1c"
+    },
+    {
+      "replica_id": "payment-api-242-d",
+      "version_id": "2.4.2",
+      "readiness": "READY",
+      "availability": "AVAILABLE",
+      "node_id": "node-a2",
+      "availability_zone_id": "eu-central-1a"
+    },
+    {
+      "replica_id": "payment-api-242-e",
+      "version_id": "2.4.2",
+      "readiness": "READY",
+      "availability": "AVAILABLE",
+      "node_id": "node-b2",
+      "availability_zone_id": "eu-central-1b"
+    }
+  ],
+  "readiness_transitions": []
+}

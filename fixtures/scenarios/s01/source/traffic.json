@@ -1,0 +1,41 @@
+{
+  "source_id": "traffic-s01",
+  "source_timestamp": "2026-07-28T12:00:00Z",
+  "service_id": "payment-api",
+  "environment_id": "production",
+  "window": {
+    "start_time": "2026-07-28T11:55:00Z",
+    "end_time": "2026-07-28T12:00:00Z"
+  },
+  "total_request_rate_rps": 500,
+  "traffic_groups": [
+    {
+      "group_by": {
+        "version_id": "2.4.1"
+      },
+      "request_rate_rps": 300,
+      "traffic_percent": 60
+    },
+    {
+      "group_by": {
+        "version_id": "2.4.2"
+      },
+      "request_rate_rps": 200,
+      "traffic_percent": 40
+    },
+    {
+      "group_by": {
+        "request_attempt_type": "initial"
+      },
+      "request_rate_rps": 480,
+      "traffic_percent": 96
+    },
+    {
+      "group_by": {
+        "request_attempt_type": "retry"
+      },
+      "request_rate_rps": 20,
+      "traffic_percent": 4
+    }
+  ]
+}

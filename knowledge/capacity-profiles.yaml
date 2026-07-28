@@ -1,3 +1,19 @@
 capacity_profile_version: 0.1.0
 status: draft
-profiles: []
+
+profiles:
+  - profile_id: payment-api-production-standard
+    service_id: payment-api
+    environment_id: production
+    deployment_target_id: payment-api-prod-eu-central-1
+
+    validated_safe_rps_per_replica: 140
+    max_tested_rps_per_replica: 160
+    minimum_headroom_percent: 15
+
+    startup_seconds: 90
+    warmup_seconds: 60
+    max_unavailable_replicas: 1
+
+    validation_source_id: load-test-payment-api-2026-07-15
+    profile_status: VALIDATED

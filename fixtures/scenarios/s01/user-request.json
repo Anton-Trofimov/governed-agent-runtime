@@ -1,0 +1,13 @@
+{
+  "schema_version": "0.1.0",
+  "request_id": "request-s01-001",
+  "session_id": "session-s01-001",
+  "user_id": "user-on-call-001",
+  "user_role": "on_call_engineer",
+  "submitted_at": "2026-07-28T12:00:00Z",
+  "message": "The payment-api 5xx rate increased during the production rollout. The rollout is paused. Diagnose the most likely cause and propose the safest next step.",
+  "known_context": {
+    "service_id": "payment-api",
+    "environment_id": "production"
+  }
+}

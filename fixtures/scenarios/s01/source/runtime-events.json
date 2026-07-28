@@ -1,0 +1,23 @@
+{
+  "source_id": "runtime-events-s01",
+  "source_timestamp": "2026-07-28T12:00:00Z",
+  "service_id": "payment-api",
+  "environment_id": "production",
+  "events": [
+    {
+      "event_id": "event-s01-rollout-started",
+      "event_type": "ROLLOUT_STARTED",
+      "occurred_at": "2026-07-28T11:40:00Z",
+      "deployment_id": "deployment-payment-api-20260728-1140",
+      "version_id": "2.4.2"
+    },
+    {
+      "event_id": "event-s01-rollout-paused",
+      "event_type": "ROLLOUT_PAUSED",
+      "occurred_at": "2026-07-28T11:52:00Z",
+      "deployment_id": "deployment-payment-api-20260728-1140",
+      "reason": "NEW_VERSION_ERROR_THRESHOLD_EXCEEDED"
+    }
+  ],
+  "active_operations": []
+}

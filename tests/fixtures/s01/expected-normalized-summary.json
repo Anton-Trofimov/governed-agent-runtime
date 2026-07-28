@@ -1,0 +1,12 @@
+{
+  "scenario_id": "S01",
+  "expected_observation_counts": {
+    "get_service_status": 8,
+    "get_service_metrics": 6,
+    "get_recent_deployments": 6,
+    "get_recent_runtime_events": 2,
+    "get_dependency_status": 3,
+    "get_traffic_breakdown": 5
+  },
+  "expected_total_observations": 30
+}

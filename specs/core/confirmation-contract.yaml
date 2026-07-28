@@ -35,8 +35,6 @@ required_bindings:
   - action_parameters_hash
   - relevant_state_hash
   - evidence_snapshot_id
-  - remediation_plan_id
-  - remediation_plan_version
   - created_at
   - expires_at
 
@@ -46,7 +44,29 @@ optional_bindings:
   - target_version_id
   - draft_id
   - draft_version
+  - remediation_plan_id
+  - remediation_plan_version
   - audience_group_ids
+
+action_specific_bindings:
+  send_notification:
+    required:
+      - draft_id
+      - draft_version
+      - audience_group_ids
+
+  restart_single_replica:
+    required:
+      - remediation_plan_id
+      - remediation_plan_version
+      - replica_id
+
+  rollback_deployment:
+    required:
+      - remediation_plan_id
+      - remediation_plan_version
+      - deployment_id
+      - target_version_id
 
 confirmation_request:
   required_user_visible_fields:

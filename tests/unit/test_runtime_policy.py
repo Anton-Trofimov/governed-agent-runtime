@@ -194,6 +194,11 @@ def test_invalid_proposal_is_blocked_at_schema_gate() -> None:
 
     assert decision["decision"] == "BLOCK"
     assert decision["reason_codes"] == ["INVALID_PROPOSAL_SCHEMA"]
+    assert (
+        decision["next_state"]
+        == state["session_state"]["task_state"]
+    )
+    assert decision["tool_execution_allowed"] is False
     assert decision["gate_results"][0]["gate_id"] == "G01_SCHEMA_VALIDITY"
     assert decision["gate_results"][0]["status"] == "FAILED"
 
@@ -220,3 +225,41 @@ def test_policy_evaluation_does_not_mutate_state() -> None:
     evaluate(state, proposal)
 
     assert state == original
+
+
+def test_other_block_decision_keeps_blocked_next_state() -> None:
+    state = build_s01_state()
+    state["session_state"]["phase"] = "EXECUTE"
+    state["session_state"]["task_state"] = "ACTION_CANDIDATE"
+
+    proposal = {
+        "schema_version": "0.1.0",
+        "proposal_id": "proposal-s01-unauthorized-rollback",
+        "proposal_type": "CALL_TOOL",
+        "rationale": "Attempt rollback without an authorized role.",
+        "created_at": state["updated_at"],
+        "payload": {
+            "tool_name": "rollback_deployment",
+            "arguments": {
+                "service_id": "payment-api",
+                "environment_id": "production",
+                "deployment_target_id": (
+                    "payment-api-prod-eu-central-1"
+                ),
+                "deployment_id": (
+                    "deployment-payment-api-20260728-1140"
+                ),
+                "target_version_id": "2.4.1",
+                "remediation_plan_id": "plan-s01-001",
+                "remediation_plan_version": "1",
+            },
+        },
+    }
+
+    decision = evaluate(state, proposal)
+    validate_decision(decision)
+
+    assert decision["decision"] == "BLOCK"
+    assert decision["reason_codes"] == ["ROLE_NOT_AUTHORIZED"]
+    assert decision["next_state"] == "BLOCKED"
+    assert decision["tool_execution_allowed"] is False

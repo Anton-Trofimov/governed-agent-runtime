@@ -32,6 +32,7 @@ def evaluate_proposal(
             failed_gate_id="G01_SCHEMA_VALIDITY",
             decision="BLOCK",
             reason_code="INVALID_PROPOSAL_SCHEMA",
+            next_state=state["session_state"]["task_state"],
             details={"message": schema_error},
         )
 
@@ -385,14 +386,11 @@ def _phase_allows_proposal(
     if proposal["proposal_type"] not in phase_policy["allowed_proposals"]:
         return False
 
-    if (
+    return not (
         tool_contract is not None
         and tool_contract["category"]
         not in phase_policy["allowed_tool_categories"]
-    ):
-        return False
-
-    return True
+    )
 
 
 def _successful_outcome(
@@ -469,6 +467,7 @@ def _failure_decision(
     failed_gate_id: str,
     decision: str,
     reason_code: str,
+    next_state: str | None = None,
     safer_path: dict[str, Any] | None = None,
     details: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -486,19 +485,20 @@ def _failure_decision(
     if safer_path is not None:
         reason_codes.append("SAFER_PATH_AVAILABLE")
 
-    next_state = {
-        "ASK_CLARIFICATION": "NEEDS_CLARIFICATION",
-        "REPLACE_WITH_SAFER_PATH": (
-            "PREPARING"
-            if safer_path
-            and safer_path.get("tool_name") == "create_remediation_plan"
-            else "DIAGNOSING"
-        ),
-        "BLOCK": "BLOCKED",
-        "SAFE_FALLBACK": "SAFE_FALLBACK",
-        "REQUIRE_CONFIRMATION": "AWAITING_CONFIRMATION",
-        "ESCALATE": "ESCALATED",
-    }[decision]
+    if next_state is None:
+        next_state = {
+            "ASK_CLARIFICATION": "NEEDS_CLARIFICATION",
+            "REPLACE_WITH_SAFER_PATH": (
+                "PREPARING"
+                if safer_path
+                and safer_path.get("tool_name") == "create_remediation_plan"
+                else "DIAGNOSING"
+            ),
+            "BLOCK": "BLOCKED",
+            "SAFE_FALLBACK": "SAFE_FALLBACK",
+            "REQUIRE_CONFIRMATION": "AWAITING_CONFIRMATION",
+            "ESCALATE": "ESCALATED",
+        }[decision]
 
     return _decision(
         state,

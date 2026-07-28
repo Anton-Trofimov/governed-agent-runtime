@@ -9,6 +9,7 @@
 - runtime architecture;
 - state and evidence models;
 - context assembly;
+- source adapter contracts;
 - tool contracts;
 - runtime policy;
 - action preconditions;

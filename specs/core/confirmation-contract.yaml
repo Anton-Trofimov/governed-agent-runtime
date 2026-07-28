@@ -1,4 +1,147 @@
 spec_version: 0.1.0
 status: draft
-required_bindings: []
-invalidation_rules: []
+specification_family: governed-runtime-core
+
+purpose: >
+  Define how human confirmation is created, presented, validated and invalidated
+  for state-changing actions.
+
+principles:
+  - Confirmation is requested only after all pre-confirmation gates pass.
+  - Confirmation authorizes one exact action, not a general class of actions.
+  - Confirmation does not replace evidence, authorization or technical preconditions.
+  - Relevant state must be revalidated immediately before execution.
+  - One confirmation permits at most one state-changing tool call.
+
+confirmation_statuses:
+  - NOT_REQUIRED
+  - PENDING
+  - VALID
+  - REJECTED
+  - EXPIRED
+  - INVALIDATED
+  - CONSUMED
+
+required_bindings:
+  - confirmation_id
+  - session_id
+  - user_id
+  - user_role
+  - tool_name
+  - action_type
+  - service_id
+  - environment_id
+  - deployment_target_id
+  - action_parameters_hash
+  - relevant_state_hash
+  - evidence_snapshot_id
+  - remediation_plan_id
+  - remediation_plan_version
+  - created_at
+  - expires_at
+
+optional_bindings:
+  - replica_id
+  - deployment_id
+  - target_version_id
+  - draft_id
+  - draft_version
+  - audience_group_ids
+
+confirmation_request:
+  required_user_visible_fields:
+    - action_summary
+    - target_summary
+    - rationale
+    - evidence_summary
+    - expected_effect
+    - affected_scope
+    - estimated_duration
+    - key_risks
+    - stop_conditions
+    - verification_steps
+    - expiration_time
+
+  prohibited_content:
+    - hidden_evaluation_truth
+    - internal_policy_implementation
+    - credentials
+    - unrestricted_tool_arguments
+
+validation_sequence:
+  - confirmation_record_exists
+  - confirmation_status_is_valid
+  - confirming_user_matches
+  - user_role_still_authorized
+  - tool_name_matches
+  - target_matches
+  - action_parameters_hash_matches
+  - remediation_plan_version_matches
+  - relevant_state_hash_matches
+  - evidence_is_still_fresh
+  - confirmation_not_expired
+  - no_conflicting_operation
+  - confirmation_not_previously_consumed
+
+invalidation_rules:
+  - rule_id: CINV01
+    condition: target_changed
+    resulting_status: INVALIDATED
+    reason_code: CONFIRMATION_TARGET_CHANGED
+
+  - rule_id: CINV02
+    condition: action_parameters_changed
+    resulting_status: INVALIDATED
+    reason_code: CONFIRMATION_PARAMETERS_CHANGED
+
+  - rule_id: CINV03
+    condition: remediation_plan_changed
+    resulting_status: INVALIDATED
+    reason_code: CONFIRMATION_PLAN_CHANGED
+
+  - rule_id: CINV04
+    condition: relevant_operational_state_changed_materially
+    resulting_status: INVALIDATED
+    reason_code: CONFIRMATION_STATE_CHANGED
+
+  - rule_id: CINV05
+    condition: required_evidence_became_stale
+    resulting_status: INVALIDATED
+    reason_code: CONFIRMATION_EVIDENCE_STALE
+
+  - rule_id: CINV06
+    condition: conflicting_operation_started
+    resulting_status: INVALIDATED
+    reason_code: CONFIRMATION_CONFLICTING_OPERATION
+
+  - rule_id: CINV07
+    condition: expiration_time_passed
+    resulting_status: EXPIRED
+    reason_code: CONFIRMATION_EXPIRED
+
+  - rule_id: CINV08
+    condition: user_rejected_action
+    resulting_status: REJECTED
+    reason_code: CONFIRMATION_REJECTED
+
+consumption:
+  consume_when: state_changing_tool_execution_starts
+  resulting_status: CONSUMED
+  reusable: false
+
+runtime_outcomes:
+  missing_confirmation:
+    decision: REQUIRE_CONFIRMATION
+    reason_code: CONFIRMATION_REQUIRED_OR_INVALID
+
+  invalid_confirmation:
+    decision: REQUIRE_CONFIRMATION
+    reason_code: CONFIRMATION_REQUIRED_OR_INVALID
+
+  rejected_confirmation:
+    decision: SAFE_FALLBACK
+    reason_code: CONFIRMATION_REJECTED
+
+  valid_confirmation:
+    decision: ALLOW
+    next_step: revalidate_preconditions_and_execute

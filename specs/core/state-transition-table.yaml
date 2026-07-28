@@ -1,5 +1,258 @@
 spec_version: 0.1.0
 status: draft
-states: []
-transitions: []
-terminal_outcomes: []
+specification_family: governed-runtime-core
+
+principles:
+  - The runtime owns all task-state transitions.
+  - The model may propose a next step but cannot directly change task state.
+  - Not every task traverses every state.
+  - Terminal states cannot transition back into execution.
+  - Clarification may return the task to target resolution or diagnosis.
+
+states:
+  - state_id: RECEIVED
+    category: active
+    description: User request has been received.
+
+  - state_id: CONTEXT_ASSEMBLED
+    category: active
+    description: Initial controlled context package has been created.
+
+  - state_id: TARGET_RESOLVED
+    category: active
+    description: Required service, environment and scope are resolved.
+
+  - state_id: NEEDS_CLARIFICATION
+    category: waiting
+    description: Required information must be supplied by the user.
+
+  - state_id: DIAGNOSING
+    category: active
+    description: Read-only evidence collection or assessment is active.
+
+  - state_id: EVIDENCE_EVALUATED
+    category: active
+    description: Evidence sufficiency, freshness and contradictions were evaluated.
+
+  - state_id: HYPOTHESIS_READY
+    category: active
+    description: One or more bounded hypotheses are available.
+
+  - state_id: PREPARING
+    category: active
+    description: A draft or remediation artifact is being prepared.
+
+  - state_id: ACTION_CANDIDATE
+    category: active
+    description: A concrete candidate action has been proposed.
+
+  - state_id: PRECONDITIONS_CHECKED
+    category: active
+    description: Pre-confirmation policy and technical checks completed.
+
+  - state_id: AWAITING_CONFIRMATION
+    category: waiting
+    description: Exact action-bound human confirmation is required.
+
+  - state_id: EXECUTING
+    category: active
+    description: An allowed mock state-changing tool is executing.
+
+  - state_id: VERIFYING
+    category: active
+    description: Post-action result and service state are being checked.
+
+  - state_id: COMPLETED
+    category: terminal
+    description: Task completed with a governed successful outcome.
+
+  - state_id: SAFE_FALLBACK
+    category: terminal
+    description: A safe useful result was returned without unsafe execution.
+
+  - state_id: ESCALATED
+    category: terminal
+    description: Task was transferred to a human or specialist owner.
+
+  - state_id: BLOCKED
+    category: terminal
+    description: Runtime policy prevented the proposed path.
+
+  - state_id: FAILED
+    category: terminal
+    description: Task ended because of an unrecoverable technical failure.
+
+transitions:
+  - transition_id: T001
+    from: RECEIVED
+    to: CONTEXT_ASSEMBLED
+    trigger: context_package_valid
+
+  - transition_id: T002
+    from: CONTEXT_ASSEMBLED
+    to: TARGET_RESOLVED
+    trigger: target_information_sufficient
+
+  - transition_id: T003
+    from: CONTEXT_ASSEMBLED
+    to: NEEDS_CLARIFICATION
+    trigger: required_target_information_missing
+
+  - transition_id: T004
+    from: NEEDS_CLARIFICATION
+    to: TARGET_RESOLVED
+    trigger: user_supplied_required_target_information
+
+  - transition_id: T005
+    from: NEEDS_CLARIFICATION
+    to: DIAGNOSING
+    trigger: user_supplied_required_diagnostic_information
+
+  - transition_id: T006
+    from: TARGET_RESOLVED
+    to: DIAGNOSING
+    trigger: diagnosis_required
+
+  - transition_id: T007
+    from: TARGET_RESOLVED
+    to: COMPLETED
+    trigger: answer_available_in_current_context
+
+  - transition_id: T008
+    from: DIAGNOSING
+    to: EVIDENCE_EVALUATED
+    trigger: diagnostic_step_completed
+
+  - transition_id: T009
+    from: EVIDENCE_EVALUATED
+    to: DIAGNOSING
+    trigger: additional_obtainable_evidence_required
+
+  - transition_id: T010
+    from: EVIDENCE_EVALUATED
+    to: NEEDS_CLARIFICATION
+    trigger: user_provided_evidence_required
+
+  - transition_id: T011
+    from: EVIDENCE_EVALUATED
+    to: HYPOTHESIS_READY
+    trigger: bounded_hypothesis_supported
+
+  - transition_id: T012
+    from: EVIDENCE_EVALUATED
+    to: SAFE_FALLBACK
+    trigger: useful_safe_result_available_without_action
+
+  - transition_id: T013
+    from: EVIDENCE_EVALUATED
+    to: ESCALATED
+    trigger: capability_gap_or_specialist_required
+
+  - transition_id: T014
+    from: HYPOTHESIS_READY
+    to: DIAGNOSING
+    trigger: hypothesis_requires_additional_validation
+
+  - transition_id: T015
+    from: HYPOTHESIS_READY
+    to: PREPARING
+    trigger: operational_artifact_required
+
+  - transition_id: T016
+    from: HYPOTHESIS_READY
+    to: COMPLETED
+    trigger: diagnostic_answer_is_sufficient
+
+  - transition_id: T017
+    from: HYPOTHESIS_READY
+    to: ESCALATED
+    trigger: hypothesis_cannot_be_safely_validated
+
+  - transition_id: T018
+    from: PREPARING
+    to: COMPLETED
+    trigger: draft_is_terminal_requested_outcome
+
+  - transition_id: T019
+    from: PREPARING
+    to: ACTION_CANDIDATE
+    trigger: remediation_plan_contains_candidate_action
+
+  - transition_id: T020
+    from: ACTION_CANDIDATE
+    to: PRECONDITIONS_CHECKED
+    trigger: preconfirmation_gates_evaluated
+
+  - transition_id: T021
+    from: PRECONDITIONS_CHECKED
+    to: AWAITING_CONFIRMATION
+    trigger: all_preconfirmation_gates_passed
+
+  - transition_id: T022
+    from: PRECONDITIONS_CHECKED
+    to: DIAGNOSING
+    trigger: safer_diagnostic_path_available
+
+  - transition_id: T023
+    from: PRECONDITIONS_CHECKED
+    to: BLOCKED
+    trigger: critical_precondition_failed
+
+  - transition_id: T024
+    from: AWAITING_CONFIRMATION
+    to: EXECUTING
+    trigger: confirmation_valid_and_state_revalidated
+
+  - transition_id: T025
+    from: AWAITING_CONFIRMATION
+    to: PRECONDITIONS_CHECKED
+    trigger: confirmation_invalidated_by_state_change
+
+  - transition_id: T026
+    from: AWAITING_CONFIRMATION
+    to: SAFE_FALLBACK
+    trigger: user_rejected_action
+
+  - transition_id: T027
+    from: EXECUTING
+    to: VERIFYING
+    trigger: tool_execution_completed
+
+  - transition_id: T028
+    from: EXECUTING
+    to: FAILED
+    trigger: unrecoverable_execution_failure
+
+  - transition_id: T029
+    from: VERIFYING
+    to: COMPLETED
+    trigger: verification_passed
+
+  - transition_id: T030
+    from: VERIFYING
+    to: ESCALATED
+    trigger: verification_failed_and_human_intervention_required
+
+  - transition_id: T031
+    from: DIAGNOSING
+    to: SAFE_FALLBACK
+    trigger: tool_budget_exhausted_with_safe_summary
+
+  - transition_id: T032
+    from: DIAGNOSING
+    to: ESCALATED
+    trigger: tool_budget_exhausted_without_safe_resolution
+
+global_failure_transitions:
+  - from_categories:
+      - active
+      - waiting
+    to: FAILED
+    trigger: unrecoverable_runtime_failure
+
+terminal_states:
+  - COMPLETED
+  - SAFE_FALLBACK
+  - ESCALATED
+  - BLOCKED
+  - FAILED

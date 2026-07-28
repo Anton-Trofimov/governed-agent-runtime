@@ -92,7 +92,7 @@ Evidence sufficiency does not authorize execution.
 | Field | Type | Source | Meaning |
 |---|---|---|---|
 | `hypotheses` | array | model or deterministic logic | Candidate explanations |
-| `hypothesis_source` | enum | proposal | `RUNBOOK_GROUNDED` or `MODEL_PRIOR` |
+| `hypothesis_source` | enum | proposal/runtime | `DETERMINISTIC_RULE`, `RUNBOOK_GROUNDED` or `MODEL_PRIOR` |
 | `supported_claim_ids` | array | evidence engine | Claims supported by evidence |
 | `contradicted_claim_ids` | array | evidence engine | Claims contradicted by evidence |
 | `cause_status` | enum | runtime/evaluation | `SUPPORTED`, `PLAUSIBLE`, `UNCONFIRMED`, `CONTRADICTED` or `UNKNOWN` |

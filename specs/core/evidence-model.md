@@ -173,6 +173,18 @@ Single-replica restart may require:
 - sufficient capacity after removal;
 - no active rollout or conflicting operation.
 
+## Deterministic-rule hypothesis
+
+A deterministic-rule hypothesis is produced from explicit runtime rules applied
+to normalized observations.
+
+It must:
+
+- reference the claims and evidence that triggered the rule;
+- remain separate from authorization and action readiness;
+- expose missing checks and contradictions;
+- be reproducible from the same normalized state.
+
 ## Runbook-grounded hypothesis
 
 A runbook-grounded hypothesis requires:

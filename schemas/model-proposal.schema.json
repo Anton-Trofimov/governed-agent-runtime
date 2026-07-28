@@ -171,6 +171,7 @@
                     },
                     "source": {
                       "enum": [
+                        "DETERMINISTIC_RULE",
                         "RUNBOOK_GROUNDED",
                         "MODEL_PRIOR"
                       ]

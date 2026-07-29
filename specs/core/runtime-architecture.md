@@ -322,6 +322,41 @@ Supported decisions:
 
 A safer-path decision should preserve useful progress where possible.
 
+### Transition-aware phase permission
+
+G03 evaluates proposals against the current runtime phase by default.
+
+An exception is allowed only when an explicit
+`transition_aware_phase_rules` entry binds all of the following:
+
+- current phase;
+- current task state;
+- proposal type;
+- tool category;
+- decision next state;
+- lifecycle transition;
+- resulting permission phase.
+
+For `PH001`, a `CREATE_DRAFT` proposal using a preparation tool may be
+authorized while the task is in `HYPOTHESIS_READY` and phase `DIAGNOSE`.
+
+The governed path is:
+
+- before decision application: `HYPOTHESIS_READY / DIAGNOSE`;
+- decision application uses `T015`;
+- after decision application: `PREPARING / PREPARE`.
+
+The runtime must not mutate phase before policy evaluation.
+
+An `ALLOW` decision under a transition-aware phase rule does not permit the
+tool adapter to run immediately. Tool execution may start only after the
+decision has been applied and the current state satisfies:
+
+- `task_state = PREPARING`;
+- `phase = PREPARE`.
+
+The tool adapter must revalidate these conditions before execution.
+
 ## Runtime phases
 
 ### DIAGNOSE

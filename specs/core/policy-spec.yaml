@@ -59,6 +59,21 @@ phases:
       - REQUEST_CONFIRMATION
       - STOP_OR_ESCALATE
 
+transition_aware_phase_rules:
+  - rule_id: PH001
+    purpose: >
+      Allow a governed proposal to enter the preparation phase through an
+      explicit lifecycle transition without mutating phase before policy
+      evaluation.
+    current_phase: DIAGNOSE
+    current_task_state: HYPOTHESIS_READY
+    proposal_type: CREATE_DRAFT
+    tool_category: preparation
+    decision_next_state: PREPARING
+    transition_id: T015
+    permission_phase: PREPARE
+    tool_execution_after_transition_only: true
+
 gate_order:
   - gate_id: G01_SCHEMA_VALIDITY
     purpose: Validate proposal type and structured arguments.

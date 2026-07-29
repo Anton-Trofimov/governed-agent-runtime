@@ -220,7 +220,6 @@ def assert_trace_event_order(
 
 def test_t015_trace_records_validated_state_transition() -> None:
     state = build_s01_state()
-    state["session_state"]["phase"] = "PREPARE"
 
     proposal = remediation_plan_proposal(state)
     decision = evaluate(state, proposal)
@@ -260,7 +259,7 @@ def test_t015_trace_records_validated_state_transition() -> None:
     assert payload["application_rule_id"] == "T015"
     assert payload["previous_task_state"] == "HYPOTHESIS_READY"
     assert payload["new_task_state"] == "PREPARING"
-    assert payload["previous_phase"] == "PREPARE"
+    assert payload["previous_phase"] == "DIAGNOSE"
     assert payload["new_phase"] == "PREPARE"
     assert payload["new_state_version"] == (
         payload["previous_state_version"] + 1

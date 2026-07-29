@@ -383,14 +383,83 @@ def _phase_allows_proposal(
     phase = state["session_state"]["phase"]
     phase_policy = policy["phases"][phase]
 
-    if proposal["proposal_type"] not in phase_policy["allowed_proposals"]:
+    proposal_allowed = (
+        proposal["proposal_type"]
+        in phase_policy["allowed_proposals"]
+    )
+    tool_category_allowed = (
+        tool_contract is None
+        or tool_contract["category"]
+        in phase_policy["allowed_tool_categories"]
+    )
+
+    if proposal_allowed and tool_category_allowed:
+        return True
+
+    return _matches_transition_aware_phase_rule(
+        state,
+        proposal,
+        tool_contract,
+        policy,
+    )
+
+
+def _matches_transition_aware_phase_rule(
+    state: Mapping[str, Any],
+    proposal: Mapping[str, Any],
+    tool_contract: Mapping[str, Any] | None,
+    policy: Mapping[str, Any],
+) -> bool:
+    if tool_contract is None:
         return False
 
-    return not (
-        tool_contract is not None
-        and tool_contract["category"]
-        not in phase_policy["allowed_tool_categories"]
-    )
+    session = state["session_state"]
+    tool_category = tool_contract["category"]
+
+    next_state_by_category = {
+        "read_only": "DIAGNOSING",
+        "preparation": "PREPARING",
+        "state_changing": "EXECUTING",
+    }
+
+    try:
+        decision_next_state = next_state_by_category[tool_category]
+    except KeyError:
+        return False
+
+    for rule in policy.get(
+        "transition_aware_phase_rules",
+        [],
+    ):
+        transition_id = rule.get("transition_id")
+
+        if not isinstance(transition_id, str) or not transition_id:
+            continue
+
+        if not rule.get(
+            "tool_execution_after_transition_only",
+            False,
+        ):
+            continue
+
+        if rule["permission_phase"] not in tool_contract[
+            "allowed_phases"
+        ]:
+            continue
+
+        if (
+            rule["current_phase"] == session["phase"]
+            and rule["current_task_state"]
+            == session["task_state"]
+            and rule["proposal_type"]
+            == proposal["proposal_type"]
+            and rule["tool_category"] == tool_category
+            and rule["decision_next_state"]
+            == decision_next_state
+        ):
+            return True
+
+    return False
 
 
 def _successful_outcome(

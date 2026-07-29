@@ -73,7 +73,6 @@ def build_s01_state() -> dict:
     )
 
     updated = apply_evidence_assessment(state, assessment)
-    updated["session_state"]["phase"] = "PREPARE"
 
     return updated
 

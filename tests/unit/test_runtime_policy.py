@@ -123,11 +123,8 @@ def test_premature_rollback_is_replaced_with_safer_path() -> None:
     assert failed_gate["gate_id"] == "G05_EVIDENCE_SUFFICIENCY"
 
 
-def test_remediation_plan_is_allowed_with_partial_evidence() -> None:
-    state = build_s01_state()
-    state["session_state"]["phase"] = "PREPARE"
-
-    proposal = {
+def remediation_plan_proposal(state: dict) -> dict:
+    return {
         "schema_version": "0.1.0",
         "proposal_id": "proposal-s01-remediation-plan",
         "proposal_type": "CREATE_DRAFT",
@@ -168,6 +165,14 @@ def test_remediation_plan_is_allowed_with_partial_evidence() -> None:
         },
     }
 
+
+def test_remediation_plan_is_allowed_through_ph001() -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+
+    assert state["session_state"]["task_state"] == "HYPOTHESIS_READY"
+    assert state["session_state"]["phase"] == "DIAGNOSE"
+
     decision = evaluate(state, proposal)
     validate_decision(decision)
 
@@ -175,6 +180,45 @@ def test_remediation_plan_is_allowed_with_partial_evidence() -> None:
     assert decision["next_state"] == "PREPARING"
     assert decision["tool_execution_allowed"] is True
     assert decision["reason_codes"] == []
+
+    # Policy evaluation must not mutate phase before T015 is applied.
+    assert state["session_state"]["phase"] == "DIAGNOSE"
+
+
+def test_ph001_requires_hypothesis_ready_task_state() -> None:
+    state = build_s01_state()
+    state["session_state"]["task_state"] = "DIAGNOSING"
+
+    decision = evaluate(
+        state,
+        remediation_plan_proposal(state),
+    )
+    validate_decision(decision)
+
+    assert decision["decision"] == "REPLACE_WITH_SAFER_PATH"
+    assert "TOOL_NOT_ALLOWED_IN_PHASE" in decision["reason_codes"]
+    assert decision["tool_execution_allowed"] is False
+
+    failed_gate = next(
+        item
+        for item in decision["gate_results"]
+        if item["status"] == "FAILED"
+    )
+
+    assert failed_gate["gate_id"] == "G03_PHASE_PERMISSION"
+
+
+def test_ph001_requires_create_draft_proposal() -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+    proposal["proposal_type"] = "CALL_TOOL"
+
+    decision = evaluate(state, proposal)
+    validate_decision(decision)
+
+    assert decision["decision"] == "REPLACE_WITH_SAFER_PATH"
+    assert "TOOL_NOT_ALLOWED_IN_PHASE" in decision["reason_codes"]
+    assert decision["tool_execution_allowed"] is False
 
 
 def test_invalid_proposal_is_blocked_at_schema_gate() -> None:

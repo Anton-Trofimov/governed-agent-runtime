@@ -200,7 +200,6 @@ def test_recoverable_invalid_proposal_retains_state_and_phase() -> None:
 
 def test_allowed_remediation_plan_transitions_to_preparing() -> None:
     state = build_s01_state()
-    state["session_state"]["phase"] = "PREPARE"
     original = deepcopy(state)
 
     decision = evaluate(

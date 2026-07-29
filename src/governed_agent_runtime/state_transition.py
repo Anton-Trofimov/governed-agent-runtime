@@ -12,6 +12,22 @@ def apply_runtime_decision(
     transition_spec: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Apply one validated decision without executing a tool."""
+    updated, _ = apply_runtime_decision_with_record(
+        state,
+        decision,
+        transition_spec=transition_spec,
+    )
+
+    return updated
+
+
+def apply_runtime_decision_with_record(
+    state: Mapping[str, Any],
+    decision: Mapping[str, Any],
+    *,
+    transition_spec: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Apply a decision and return the authoritative rule record."""
     current_state = state["session_state"]["task_state"]
     next_state = decision["next_state"]
 
@@ -21,12 +37,22 @@ def apply_runtime_decision(
     )
 
     if application_rule is not None:
-        return _apply_lifecycle_disposition(
+        updated = _apply_lifecycle_disposition(
             state,
             decision,
             application_rule,
             transition_spec,
         )
+
+        return updated, {
+            "application_rule_type": (
+                "DECISION_APPLICATION_RULE"
+            ),
+            "application_rule_id": application_rule["rule_id"],
+            "lifecycle_disposition": application_rule[
+                "lifecycle_disposition"
+            ],
+        }
 
     transition = _find_transition(
         current_state,
@@ -48,7 +74,11 @@ def apply_runtime_decision(
     if "action_ready_remains_false" in invariants:
         updated["action_readiness"]["action_ready"] = False
 
-    return updated
+    return updated, {
+        "application_rule_type": "STATE_TRANSITION",
+        "application_rule_id": transition["transition_id"],
+        "lifecycle_disposition": None,
+    }
 
 
 def _find_decision_application_rule(

@@ -180,6 +180,44 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "event_type": {
+                  "const": "TOOL_CALL_STARTED"
+                }
+              },
+              "required": [
+                "event_type"
+              ]
+            },
+            "then": {
+              "properties": {
+                "payload": {
+                  "$ref": "#/$defs/toolCallStartedPayload"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "event_type": {
+                  "const": "TOOL_RESULT_RECEIVED"
+                }
+              },
+              "required": [
+                "event_type"
+              ]
+            },
+            "then": {
+              "properties": {
+                "payload": {
+                  "$ref": "#/$defs/toolResultReceivedPayload"
+                }
+              }
+            }
           }
         ]
       }
@@ -374,6 +412,176 @@
           }
         }
       ]
+    },
+    "toolCallStartedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "session_id",
+        "tool_call_id",
+        "tool_name",
+        "tool_category",
+        "proposal_id",
+        "decision_id",
+        "runtime_decision",
+        "arguments_hash",
+        "arguments",
+        "target",
+        "idempotency_key",
+        "started_at"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "tool_call_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "tool_category": {
+          "enum": [
+            "read_only",
+            "preparation",
+            "state_changing"
+          ]
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "decision_id": {
+          "type": "string"
+        },
+        "runtime_decision": {
+          "enum": [
+            "ALLOW",
+            "PROVIDE_ANSWER",
+            "ASK_CLARIFICATION",
+            "REQUIRE_CONFIRMATION",
+            "REPLACE_WITH_SAFER_PATH",
+            "BLOCK",
+            "SAFE_FALLBACK",
+            "ESCALATE"
+          ]
+        },
+        "arguments_hash": {
+          "type": "string"
+        },
+        "arguments": {
+          "type": "object"
+        },
+        "target": {
+          "type": "object"
+        },
+        "idempotency_key": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "toolResultReceivedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "session_id",
+        "tool_call_id",
+        "tool_name",
+        "proposal_id",
+        "decision_id",
+        "runtime_decision",
+        "arguments_hash",
+        "completed_at",
+        "status",
+        "raw_reference",
+        "result",
+        "errors"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "tool_call_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "decision_id": {
+          "type": "string"
+        },
+        "runtime_decision": {
+          "enum": [
+            "ALLOW",
+            "PROVIDE_ANSWER",
+            "ASK_CLARIFICATION",
+            "REQUIRE_CONFIRMATION",
+            "REPLACE_WITH_SAFER_PATH",
+            "BLOCK",
+            "SAFE_FALLBACK",
+            "ESCALATE"
+          ]
+        },
+        "arguments_hash": {
+          "type": "string"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "enum": [
+            "SUCCEEDED",
+            "FAILED",
+            "PARTIAL",
+            "TIMEOUT",
+            "UNAVAILABLE"
+          ]
+        },
+        "raw_reference": {
+          "type": "string"
+        },
+        "result": {
+          "type": "object"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

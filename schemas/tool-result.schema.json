@@ -73,5 +73,68 @@
         }
       }
     }
-  }
+  },
+  "$defs": {
+    "remediationPlanResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "remediation_plan_id",
+        "plan_version",
+        "readiness_status",
+        "missing_preconditions",
+        "validation_warnings"
+      ],
+      "properties": {
+        "remediation_plan_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plan_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "readiness_status": {
+          "enum": [
+            "PRECONDITIONS_PENDING",
+            "READY_FOR_PRECONDITION_EVALUATION"
+          ]
+        },
+        "missing_preconditions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation_warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "create_remediation_plan"
+          }
+        },
+        "required": [
+          "tool_name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "result": {
+            "$ref": "#/$defs/remediationPlanResult"
+          }
+        }
+      }
+    }
+  ]
 }

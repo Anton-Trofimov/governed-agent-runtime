@@ -147,7 +147,12 @@ version changes.
 | `execution_error` | object/null | tool adapter | Structured failure |
 | `terminal_outcome` | enum/null | runtime | Final governed outcome |
 
-## Terminal outcomes
+## Governed outcomes and task terminality
+
+Governed outcomes describe useful user-visible or evaluation-visible results.
+They do not all imply that the task has entered a terminal lifecycle state.
+
+Supported governed outcomes include:
 
 - `COMPLETED`
 - `ANSWERED`
@@ -159,6 +164,24 @@ version changes.
 - `ESCALATED`
 - `BLOCKED`
 - `FAILED`
+
+Task terminality is determined by `session_state.task_state` and the state
+transition table.
+
+In particular:
+
+- `CLARIFICATION_REQUESTED` may correspond to the waiting state
+  `NEEDS_CLARIFICATION`;
+- `CONFIRMATION_REQUIRED` may correspond to the waiting state
+  `AWAITING_CONFIRMATION`;
+- `DRAFT_CREATED` is terminal through `T018` when the draft is the requested
+  final outcome;
+- `DRAFT_CREATED` is intermediate through `T019` when a remediation plan
+  contains a candidate action.
+
+`execution_state.terminal_outcome` is set only when the task enters a terminal
+task state. Creating an intermediate remediation plan does not set a terminal
+outcome.
 
 ## Required invariant
 

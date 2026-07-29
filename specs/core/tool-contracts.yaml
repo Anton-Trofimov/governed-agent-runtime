@@ -544,6 +544,24 @@ tools:
     retry_policy:
       max_attempts: 1
       retry_on: []
+    deterministic_mock:
+      id_strategy: SHA256_SESSION_ID_AND_CANONICAL_ARGUMENTS
+      tool_call_id_prefix: tool-call
+      artifact_id_prefix: remediation-plan
+      fixed_plan_version: "1"
+      readiness_status:
+        missing_preconditions: PRECONDITIONS_PENDING
+        no_missing_preconditions: READY_FOR_PRECONDITION_EVALUATION
+      successful_result:
+        transition_id: T019
+        next_state: ACTION_CANDIDATE
+        resulting_phase: PREPARE
+      state_effects:
+        tool_call_count: INCREMENT_BY_ONE
+        candidate_action: RECORD_PLAN_REFERENCE
+        action_ready: MUST_REMAIN_FALSE
+        execution_state: RETAIN_CURRENT
+        terminal_outcome: RETAIN_CURRENT
 
   - tool_name: send_notification
     category: state_changing

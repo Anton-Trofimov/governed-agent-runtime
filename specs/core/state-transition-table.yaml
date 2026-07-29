@@ -198,6 +198,14 @@ transitions:
     from: PREPARING
     to: ACTION_CANDIDATE
     trigger: remediation_plan_contains_candidate_action
+    resulting_phase: PREPARE
+    invariants:
+      - remediation_plan_result_schema_valid
+      - candidate_action_contains_plan_reference
+      - tool_call_count_increments_once
+      - action_ready_remains_false
+      - execution_state_unchanged
+      - terminal_outcome_remains_null
 
   - transition_id: T020
     from: ACTION_CANDIDATE

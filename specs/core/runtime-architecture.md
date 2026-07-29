@@ -195,6 +195,45 @@ Decision application and trace recording do not execute tools. The absence of
 `EXECUTION_COMPLETED` events means that no tool execution occurred in this
 runtime step.
 
+#### Deterministic preparation-tool execution contract
+
+In the current S01 vertical, `create_remediation_plan` may be invoked only when:
+
+- the proposal is schema-valid;
+- the runtime decision is `ALLOW`;
+- `tool_execution_allowed` is `true`;
+- the current runtime phase is `PREPARE`;
+- the tool arguments satisfy the registered input contract.
+
+A successful deterministic mock invocation:
+
+1. derives the idempotency key from the session identifier and canonical tool
+   arguments;
+2. creates a stable tool-call identifier and remediation-plan identifier;
+3. returns a schema-valid `Tool Result Envelope`;
+4. records `TOOL_CALL_STARTED`;
+5. records `TOOL_RESULT_RECEIVED`;
+6. normalizes a compact remediation-plan reference into the candidate action;
+7. increments the tool-call counter exactly once;
+8. applies transition `T019` from `PREPARING` to `ACTION_CANDIDATE`;
+9. records the resulting `STATE_UPDATED` event.
+
+The plan result distinguishes artifact creation from action readiness:
+
+- `PRECONDITIONS_PENDING` means that the plan exists but one or more required
+  action preconditions remain unresolved;
+- `READY_FOR_PRECONDITION_EVALUATION` means that the plan may proceed to the
+  deterministic precondition-evaluation stage.
+
+Preparation-tool invocation does not perform the candidate operational action.
+It must not create `EXECUTION_STARTED` or `EXECUTION_COMPLETED` events, modify
+the operational execution state, set `action_ready` to true, or set a terminal
+outcome.
+
+For S01, successful remediation-plan creation may be evaluated as the governed
+outcome `DRAFT_CREATED`, while the active task continues through
+`ACTION_CANDIDATE`.
+
 ### 9. Evaluation harness
 
 Evaluates runtime and model behavior against hidden acceptance data.

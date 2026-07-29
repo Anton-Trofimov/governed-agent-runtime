@@ -223,3 +223,159 @@ def _validate_application(
     raise ValueError(
         f"Unsupported application rule type: {rule_type}"
     )
+
+
+
+def append_preparation_tool_execution(
+    trace: Mapping[str, Any],
+    state_before: Mapping[str, Any],
+    proposal: Mapping[str, Any],
+    decision: Mapping[str, Any],
+    execution: Mapping[str, Any],
+    state_after: Mapping[str, Any],
+    *,
+    application_record: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Append preparation-tool and resulting state-update events."""
+    _validate_preparation_trace_application(
+        trace,
+        state_before,
+        decision,
+        execution,
+        state_after,
+        application_record,
+    )
+
+    updated_trace = deepcopy(dict(trace))
+    events = updated_trace["events"]
+
+    tool_result = execution["tool_result"]
+    trace_id = state_before["trace_id"]
+    session_id = state_before["session_state"]["session_id"]
+
+    _append_event(
+        events,
+        trace_id=trace_id,
+        event_type="TOOL_CALL_STARTED",
+        occurred_at=execution["started_at"],
+        payload={
+            "trace_id": trace_id,
+            "session_id": session_id,
+            "tool_call_id": tool_result["tool_call_id"],
+            "tool_name": tool_result["tool_name"],
+            "tool_category": execution["tool_category"],
+            "proposal_id": proposal["proposal_id"],
+            "decision_id": decision["decision_id"],
+            "runtime_decision": decision["decision"],
+            "arguments_hash": execution["arguments_hash"],
+            "arguments": deepcopy(execution["arguments"]),
+            "target": deepcopy(execution["target"]),
+            "idempotency_key": execution["idempotency_key"],
+            "started_at": execution["started_at"],
+        },
+    )
+
+    _append_event(
+        events,
+        trace_id=trace_id,
+        event_type="TOOL_RESULT_RECEIVED",
+        occurred_at=execution["completed_at"],
+        payload={
+            "trace_id": trace_id,
+            "session_id": session_id,
+            "tool_call_id": tool_result["tool_call_id"],
+            "tool_name": tool_result["tool_name"],
+            "proposal_id": proposal["proposal_id"],
+            "decision_id": decision["decision_id"],
+            "runtime_decision": decision["decision"],
+            "arguments_hash": execution["arguments_hash"],
+            "completed_at": execution["completed_at"],
+            "status": tool_result["status"],
+            "raw_reference": tool_result["raw_reference"],
+            "result": deepcopy(tool_result["result"]),
+            "errors": deepcopy(tool_result["errors"]),
+        },
+    )
+
+    _append_event(
+        events,
+        trace_id=trace_id,
+        event_type="STATE_UPDATED",
+        occurred_at=execution["completed_at"],
+        payload=_state_updated_payload(
+            state_before,
+            decision,
+            state_after,
+            application_record,
+        ),
+    )
+
+    updated_trace["terminal_outcome"] = state_after[
+        "execution_state"
+    ]["terminal_outcome"]
+
+    return updated_trace
+
+
+def _validate_preparation_trace_application(
+    trace: Mapping[str, Any],
+    state_before: Mapping[str, Any],
+    decision: Mapping[str, Any],
+    execution: Mapping[str, Any],
+    state_after: Mapping[str, Any],
+    application_record: Mapping[str, Any],
+) -> None:
+    if trace["trace_id"] != state_before["trace_id"]:
+        raise ValueError(
+            "Trace does not match preparation-tool state"
+        )
+
+    if (
+        trace["session_id"]
+        != state_before["session_state"]["session_id"]
+    ):
+        raise ValueError(
+            "Trace does not match preparation-tool session"
+        )
+
+    if decision["decision"] != "ALLOW":
+        raise ValueError(
+            "Preparation trace requires an ALLOW decision"
+        )
+
+    if (
+        state_after["state_version"]
+        != state_before["state_version"] + 1
+    ):
+        raise ValueError(
+            "Preparation state version must increment by one"
+        )
+
+    if (
+        state_after["session_state"]["task_state"]
+        != execution["next_state"]
+    ):
+        raise ValueError(
+            "Preparation state does not match execution next state"
+        )
+
+    if (
+        application_record["application_rule_type"]
+        != "STATE_TRANSITION"
+    ):
+        raise ValueError(
+            "Preparation result requires a state transition record"
+        )
+
+    if (
+        application_record["application_rule_id"]
+        != execution["transition_id"]
+    ):
+        raise ValueError(
+            "Preparation trace transition does not match execution"
+        )
+
+    if application_record["lifecycle_disposition"] is not None:
+        raise ValueError(
+            "Preparation transition cannot use lifecycle disposition"
+        )

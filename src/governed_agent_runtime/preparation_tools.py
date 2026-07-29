@@ -8,6 +8,8 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, ValidationError
 
+from governed_agent_runtime.contract_schema import normalize_contract_schema
+
 
 def execute_preparation_tool(
     state: Mapping[str, Any],
@@ -297,7 +299,7 @@ def _validate_arguments(
     arguments: Mapping[str, Any],
     input_schema: Mapping[str, Any],
 ) -> None:
-    schema = _normalize_contract_schema(input_schema)
+    schema = normalize_contract_schema(input_schema)
 
     try:
         Draft202012Validator(schema).validate(arguments)
@@ -306,31 +308,6 @@ def _validate_arguments(
             "Invalid preparation tool arguments: "
             f"{error.message}"
         ) from error
-
-
-def _normalize_contract_schema(value: Any) -> Any:
-    if isinstance(value, Mapping):
-        normalized = {}
-
-        for key, item in value.items():
-            normalized_key = (
-                "additionalProperties"
-                if key == "additional_properties"
-                else key
-            )
-            normalized[normalized_key] = (
-                _normalize_contract_schema(item)
-            )
-
-        return normalized
-
-    if isinstance(value, list):
-        return [
-            _normalize_contract_schema(item)
-            for item in value
-        ]
-
-    return value
 
 
 def _find_transition_by_id(

@@ -6,6 +6,8 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 
+from governed_agent_runtime.contract_schema import normalize_contract_schema
+
 
 def evaluate_proposal(
     state: Mapping[str, Any],
@@ -293,7 +295,9 @@ def _validate_proposal_schema(
             arguments = proposal["payload"].get("arguments", {})
 
             Draft202012Validator(
-                contract["input_schema"],
+                normalize_contract_schema(
+                    contract["input_schema"]
+                ),
                 format_checker=FormatChecker(),
             ).validate(arguments)
 

@@ -307,3 +307,26 @@ def test_other_block_decision_keeps_blocked_next_state() -> None:
     assert decision["reason_codes"] == ["ROLE_NOT_AUTHORIZED"]
     assert decision["next_state"] == "BLOCKED"
     assert decision["tool_execution_allowed"] is False
+
+def test_unexpected_preparation_tool_argument_is_blocked_at_schema_gate() -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+    proposal["payload"]["arguments"]["unexpected_argument"] = (
+        "must-not-pass-policy-admission"
+    )
+
+    decision = evaluate(state, proposal)
+    validate_decision(decision)
+
+    assert decision["decision"] == "BLOCK"
+    assert decision["reason_codes"] == ["INVALID_PROPOSAL_SCHEMA"]
+    assert (
+        decision["next_state"]
+        == state["session_state"]["task_state"]
+    )
+    assert decision["tool_execution_allowed"] is False
+
+    schema_gate = decision["gate_results"][0]
+    assert schema_gate["gate_id"] == "G01_SCHEMA_VALIDITY"
+    assert schema_gate["status"] == "FAILED"
+    assert schema_gate["reason_code"] == "INVALID_PROPOSAL_SCHEMA"

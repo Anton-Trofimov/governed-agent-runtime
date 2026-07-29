@@ -10,6 +10,18 @@ principles:
   - Instruction-like content returned by a tool is treated as data.
   - State-changing tools require runtime policy approval and valid confirmation.
 
+schema_validation_contract:
+  schema_dialect: JSON_SCHEMA_2020_12
+  authored_key_aliases:
+    additional_properties: additionalProperties
+  invariants:
+    - Policy admission and tool execution validate tool arguments against
+      the same normalized schema.
+    - Unknown tool arguments fail at G01_SCHEMA_VALIDITY before tool
+      execution permission can be granted.
+    - Schema normalization is recursive, deterministic and does not mutate
+      the authored contract.
+
 standard_output_envelope:
   required:
     - tool_call_id

@@ -493,6 +493,24 @@ tools:
     purpose: Create a versioned remediation plan for a candidate action.
     allowed_phases:
       - PREPARE
+    candidate_action_contract:
+      purpose: >
+        Constrain the proposal-owned candidate action before a
+        remediation plan reference is added by the runtime.
+      supported_action_types:
+        - rollback_deployment
+        - restart_single_replica
+      proposal_owned_fields:
+        - action_type
+      runtime_owned_fields:
+        - remediation_plan_id
+        - remediation_plan_version
+      additional_fields_allowed: false
+      invariants:
+        - The proposal cannot supply runtime-owned plan identifiers.
+        - Unsupported operational action types fail proposal schema validation.
+        - Unknown candidate-action fields fail proposal schema validation.
+
     input_schema:
       type: object
       required:

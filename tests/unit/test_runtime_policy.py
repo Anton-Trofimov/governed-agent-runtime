@@ -330,3 +330,53 @@ def test_unexpected_preparation_tool_argument_is_blocked_at_schema_gate() -> Non
     assert schema_gate["gate_id"] == "G01_SCHEMA_VALIDITY"
     assert schema_gate["status"] == "FAILED"
     assert schema_gate["reason_code"] == "INVALID_PROPOSAL_SCHEMA"
+
+def assert_invalid_candidate_action_is_blocked(
+    state: dict,
+    proposal: dict,
+) -> None:
+    decision = evaluate(state, proposal)
+    validate_decision(decision)
+
+    assert decision["decision"] == "BLOCK"
+    assert decision["reason_codes"] == ["INVALID_PROPOSAL_SCHEMA"]
+    assert (
+        decision["next_state"]
+        == state["session_state"]["task_state"]
+    )
+    assert decision["tool_execution_allowed"] is False
+
+    schema_gate = decision["gate_results"][0]
+    assert schema_gate["gate_id"] == "G01_SCHEMA_VALIDITY"
+    assert schema_gate["status"] == "FAILED"
+    assert schema_gate["reason_code"] == "INVALID_PROPOSAL_SCHEMA"
+
+
+def test_unsupported_candidate_action_type_is_blocked_at_schema_gate() -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+    proposal["payload"]["arguments"]["candidate_action"] = {
+        "action_type": "unsupported_operational_action"
+    }
+
+    assert_invalid_candidate_action_is_blocked(state, proposal)
+
+
+def test_unknown_candidate_action_field_is_blocked_at_schema_gate() -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+    proposal["payload"]["arguments"]["candidate_action"][
+        "model_selected_priority"
+    ] = "CRITICAL"
+
+    assert_invalid_candidate_action_is_blocked(state, proposal)
+
+
+def test_runtime_owned_plan_reference_is_blocked_at_schema_gate() -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+    candidate_action = proposal["payload"]["arguments"]["candidate_action"]
+    candidate_action["remediation_plan_id"] = "model-supplied-plan"
+    candidate_action["remediation_plan_version"] = "999"
+
+    assert_invalid_candidate_action_is_blocked(state, proposal)

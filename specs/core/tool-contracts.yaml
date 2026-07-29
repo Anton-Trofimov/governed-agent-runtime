@@ -529,6 +529,14 @@ tools:
           type: string
         candidate_action:
           type: object
+          required:
+            - action_type
+          properties:
+            action_type:
+              enum:
+                - rollback_deployment
+                - restart_single_replica
+          additional_properties: false
         rationale:
           type: string
         evidence_ids:

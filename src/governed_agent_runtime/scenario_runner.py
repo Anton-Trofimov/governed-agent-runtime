@@ -91,6 +91,7 @@ def run_s01_preparation_path(
         policy=policy,
         tool_contracts=tool_contracts,
         proposal_schema=proposal_schema,
+        transition_spec=transition_spec,
     )
 
     state_after_decision, decision_application_record = (

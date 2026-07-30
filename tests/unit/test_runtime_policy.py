@@ -51,16 +51,30 @@ def build_s01_state() -> dict:
     return apply_evidence_assessment(state, assessment)
 
 
-def evaluate(state: dict, proposal: dict) -> dict:
+def evaluate(
+    state: dict,
+    proposal: dict,
+    *,
+    policy_override: dict | None = None,
+) -> dict:
+    policy = (
+        policy_override
+        if policy_override is not None
+        else load_yaml(ROOT / "specs/core/policy-spec.yaml")
+    )
+
     return evaluate_proposal(
         state,
         proposal,
-        policy=load_yaml(ROOT / "specs/core/policy-spec.yaml"),
+        policy=policy,
         tool_contracts=load_yaml(
             ROOT / "specs/core/tool-contracts.yaml"
         ),
         proposal_schema=json.loads(
             (ROOT / "schemas/model-proposal.schema.json").read_text()
+        ),
+        transition_spec=load_yaml(
+            ROOT / "specs/core/state-transition-table.yaml"
         ),
     )
 
@@ -380,3 +394,51 @@ def test_runtime_owned_plan_reference_is_blocked_at_schema_gate() -> None:
     candidate_action["remediation_plan_version"] = "999"
 
     assert_invalid_candidate_action_is_blocked(state, proposal)
+
+def assert_invalid_ph001_transition_is_rejected(
+    transition_id: str,
+) -> None:
+    state = build_s01_state()
+    proposal = remediation_plan_proposal(state)
+    policy = load_yaml(ROOT / "specs/core/policy-spec.yaml")
+
+    rule = next(
+        item
+        for item in policy["transition_aware_phase_rules"]
+        if item["rule_id"] == "PH001"
+    )
+    rule["transition_id"] = transition_id
+
+    decision = evaluate(
+        state,
+        proposal,
+        policy_override=policy,
+    )
+    validate_decision(decision)
+
+    assert decision["decision"] == "REPLACE_WITH_SAFER_PATH"
+    assert "TOOL_NOT_ALLOWED_IN_PHASE" in decision[
+        "reason_codes"
+    ]
+    assert "SAFER_PATH_AVAILABLE" in decision[
+        "reason_codes"
+    ]
+    assert decision["next_state"] == "DIAGNOSING"
+    assert decision["safer_path"]["proposal_type"] == "CALL_TOOL"
+    assert decision["tool_execution_allowed"] is False
+
+    failed_gate = next(
+        item
+        for item in decision["gate_results"]
+        if item["status"] == "FAILED"
+    )
+
+    assert failed_gate["gate_id"] == "G03_PHASE_PERMISSION"
+
+
+def test_ph001_rejects_unknown_transition_reference() -> None:
+    assert_invalid_ph001_transition_is_rejected("T999")
+
+
+def test_ph001_rejects_transition_for_different_source_state() -> None:
+    assert_invalid_ph001_transition_is_rejected("T033")

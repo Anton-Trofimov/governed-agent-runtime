@@ -66,6 +66,9 @@ def evaluate(state: dict, proposal: dict) -> dict:
         proposal_schema=json.loads(
             (ROOT / "schemas/model-proposal.schema.json").read_text()
         ),
+        transition_spec=load_yaml(
+            ROOT / "specs/core/state-transition-table.yaml"
+        ),
     )
 
 
@@ -359,4 +362,3 @@ def test_terminal_transition_records_terminal_outcome() -> None:
         updated["execution_state"]["terminal_outcome"]
         == "COMPLETED"
     )
-

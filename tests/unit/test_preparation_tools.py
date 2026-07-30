@@ -133,6 +133,9 @@ def evaluate(state: dict, proposal: dict) -> dict:
         proposal_schema=load_json(
             ROOT / "schemas/model-proposal.schema.json"
         ),
+        transition_spec=load_yaml(
+            ROOT / "specs/core/state-transition-table.yaml"
+        ),
     )
 
 

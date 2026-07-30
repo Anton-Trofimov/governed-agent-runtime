@@ -16,6 +16,7 @@ def evaluate_proposal(
     policy: Mapping[str, Any],
     tool_contracts: Mapping[str, Any],
     proposal_schema: Mapping[str, Any],
+    transition_spec: Mapping[str, Any],
 ) -> dict[str, Any]:
     gate_results: list[dict[str, Any]] = []
 
@@ -65,6 +66,7 @@ def evaluate_proposal(
         proposal,
         tool_contract,
         policy,
+        transition_spec,
     ):
         return _failure_decision(
             state,
@@ -383,6 +385,7 @@ def _phase_allows_proposal(
     proposal: Mapping[str, Any],
     tool_contract: Mapping[str, Any] | None,
     policy: Mapping[str, Any],
+    transition_spec: Mapping[str, Any],
 ) -> bool:
     phase = state["session_state"]["phase"]
     phase_policy = policy["phases"][phase]
@@ -405,6 +408,7 @@ def _phase_allows_proposal(
         proposal,
         tool_contract,
         policy,
+        transition_spec,
     )
 
 
@@ -413,6 +417,7 @@ def _matches_transition_aware_phase_rule(
     proposal: Mapping[str, Any],
     tool_contract: Mapping[str, Any] | None,
     policy: Mapping[str, Any],
+    transition_spec: Mapping[str, Any],
 ) -> bool:
     if tool_contract is None:
         return False
@@ -438,6 +443,25 @@ def _matches_transition_aware_phase_rule(
         transition_id = rule.get("transition_id")
 
         if not isinstance(transition_id, str) or not transition_id:
+            continue
+
+        matching_transitions = [
+            transition
+            for transition in transition_spec["transitions"]
+            if transition.get("transition_id") == transition_id
+        ]
+
+        if len(matching_transitions) != 1:
+            continue
+
+        transition = matching_transitions[0]
+
+        if (
+            transition.get("from") != session["task_state"]
+            or transition.get("to") != decision_next_state
+            or transition.get("resulting_phase")
+            != rule["permission_phase"]
+        ):
             continue
 
         if not rule.get(

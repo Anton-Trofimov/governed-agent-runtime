@@ -82,6 +82,9 @@ def evaluate(state: dict, proposal: dict) -> dict:
                 ROOT / "schemas/model-proposal.schema.json"
             ).read_text(encoding="utf-8")
         ),
+        transition_spec=load_yaml(
+            ROOT / "specs/core/state-transition-table.yaml"
+        ),
     )
 
 

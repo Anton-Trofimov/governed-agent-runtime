@@ -297,6 +297,21 @@ transitions:
       - original_operational_action_not_executed
       - replacement_tool_not_executed_by_transition
 
+
+  - transition_id: T034
+    from: HYPOTHESIS_READY
+    to: SAFE_FALLBACK
+    trigger: tool_budget_exhausted_with_bounded_hypothesis
+    decision_requirements:
+      decision: SAFE_FALLBACK
+      tool_execution_allowed: false
+      confirmation_request_required: false
+      required_reason_codes:
+        - EXECUTION_BUDGET_EXCEEDED
+      safer_path: null
+    invariants:
+      - action_ready_remains_false
+
 global_failure_transitions:
   - from_categories:
       - active

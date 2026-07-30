@@ -713,17 +713,17 @@ def _evidence_from_observation(
         "support_type": support_type,
         "summary": summary,
         "freshness_status": _freshness(
-            observation["collected_at"],
+            observation["observed_at"],
             reference_time,
         ),
         "raw_reference": observation["raw_reference"],
     }
 
 
-def _freshness(collected_at: str, reference_time: str) -> str:
-    collected = _parse_datetime(collected_at)
+def _freshness(observed_at: str, reference_time: str) -> str:
+    observed = _parse_datetime(observed_at)
     reference = _parse_datetime(reference_time)
-    age_seconds = abs((reference - collected).total_seconds())
+    age_seconds = abs((reference - observed).total_seconds())
 
     return "FRESH" if age_seconds <= 300 else "STALE"
 

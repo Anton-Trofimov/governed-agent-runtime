@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import yaml
@@ -161,3 +162,42 @@ def test_missing_version_metrics_produces_insufficient_evidence() -> None:
         "VERSION_SPECIFIC_ERROR_METRICS"
         in assessment["mandatory_checks_missing"]
     )
+
+def test_freshness_uses_observed_time_not_collection_time() -> None:
+    bundle, observations, capacity_profile = build_s01_inputs()
+
+    reference_time = datetime.fromisoformat(
+        bundle.scenario["reference_time"].replace(
+            "Z",
+            "+00:00",
+        )
+    )
+    stale_observed_at = (
+        reference_time - timedelta(seconds=301)
+    ).isoformat().replace("+00:00", "Z")
+
+    for observation in observations:
+        observation["observed_at"] = stale_observed_at
+        observation["collected_at"] = bundle.scenario[
+            "reference_time"
+        ]
+
+    assessment = evaluate_s01_evidence(
+        observations,
+        capacity_profile,
+        reference_time=bundle.scenario["reference_time"],
+    )
+
+    observation_evidence = [
+        item
+        for item in assessment["evidence_items"]
+        if item["source_type"] != "CAPACITY_PROFILE"
+    ]
+
+    assert observation_evidence
+    assert {
+        item["freshness_status"]
+        for item in observation_evidence
+    } == {"STALE"}
+
+    assert assessment["freshness_status"] == "MIXED"

@@ -200,3 +200,19 @@ reason_codes:
   - CONFLICTING_OPERATION
   - AUDIT_DATA_INCOMPLETE
   - SAFER_PATH_AVAILABLE
+
+transition_aware_phase_validation:
+  transition_source: specs/core/state-transition-table.yaml
+
+  requirements:
+    - rule transition_id resolves to exactly one transition
+    - transition from matches the current task state
+    - transition to matches the decision next state
+    - transition resulting_phase matches the permission phase
+    - tool permission is not granted when any requirement fails
+
+  failure_behavior:
+    gate_id: G03_PHASE_PERMISSION
+    decision: REPLACE_WITH_SAFER_PATH
+    reason_code: TOOL_NOT_ALLOWED_IN_PHASE
+    tool_execution_allowed: false

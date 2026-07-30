@@ -215,4 +215,5 @@ transition_aware_phase_validation:
     gate_id: G03_PHASE_PERMISSION
     decision: REPLACE_WITH_SAFER_PATH
     reason_code: TOOL_NOT_ALLOWED_IN_PHASE
+    next_state: DIAGNOSING
     tool_execution_allowed: false

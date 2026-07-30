@@ -16,6 +16,36 @@ It is not part of:
 Historical reviews remain under `reports/`. Normative requirements remain under
 `specs/`.
 
+## Freshness and update cadence
+
+This file is a milestone checkpoint, not a live development ledger.
+
+It is updated after material stages, such as:
+
+- completion of a hardening or implementation block;
+- a new review verdict;
+- a baseline freeze or unfreeze decision;
+- transition to a new experiment stage;
+- a material change in open findings or next steps.
+
+It may not include:
+
+- uncommitted work;
+- intermediate RED tests;
+- small fixes made inside the current block;
+- final adjustments that have not yet reached a milestone checkpoint.
+
+Before relying on this file, coding agents should also inspect:
+
+- `git status`;
+- recent Git history;
+- the latest normative specifications;
+- the current regression result;
+- the latest relevant review report.
+
+When this file conflicts with normative specifications, schemas, tests or the
+current repository state, those sources take precedence.
+
 ## Current checkpoint
 
 - Date: 2026-07-30

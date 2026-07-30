@@ -329,3 +329,34 @@ def test_t033_requires_preparation_safer_path() -> None:
 
     with pytest.raises(ValueError, match="transition semantics"):
         apply(state, decision)
+
+def test_terminal_transition_records_terminal_outcome() -> None:
+    state = build_s01_state()
+    state["session_state"]["task_state"] = "PREPARING"
+    state["session_state"]["phase"] = "PREPARE"
+
+    decision = {
+        "schema_version": "0.1.0",
+        "decision_id": "decision-terminal-completed",
+        "proposal_id": "proposal-terminal-completed",
+        "decision": "ALLOW",
+        "reason_codes": [],
+        "message": None,
+        "gate_results": [],
+        "next_state": "COMPLETED",
+        "safer_path": None,
+        "tool_execution_allowed": False,
+        "confirmation_request_required": False,
+        "decided_at": state["updated_at"],
+    }
+
+    updated = apply(state, decision)
+
+    validate_state(updated)
+
+    assert updated["session_state"]["task_state"] == "COMPLETED"
+    assert (
+        updated["execution_state"]["terminal_outcome"]
+        == "COMPLETED"
+    )
+

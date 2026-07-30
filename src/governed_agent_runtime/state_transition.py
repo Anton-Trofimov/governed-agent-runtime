@@ -79,6 +79,12 @@ def apply_runtime_decision_with_record(
     if "action_ready_remains_false" in invariants:
         updated["action_readiness"]["action_ready"] = False
 
+    _record_terminal_outcome(
+        updated,
+        next_state,
+        transition_spec,
+    )
+
     return updated, {
         "application_rule_type": "STATE_TRANSITION",
         "application_rule_id": transition["transition_id"],
@@ -165,6 +171,37 @@ def _apply_lifecycle_disposition(
     updated["state_version"] += 1
 
     return updated
+
+
+
+def _record_terminal_outcome(
+    state: dict[str, Any],
+    next_state: str,
+    transition_spec: Mapping[str, Any],
+) -> None:
+    terminal_states = set(
+        transition_spec.get("terminal_states", [])
+    )
+
+    if next_state not in terminal_states:
+        return
+
+    outcome_by_state = transition_spec.get(
+        "terminal_outcome_by_state",
+        {},
+    )
+
+    try:
+        terminal_outcome = outcome_by_state[next_state]
+    except KeyError as error:
+        raise ValueError(
+            "Missing terminal outcome mapping for "
+            f"terminal state {next_state}"
+        ) from error
+
+    state["execution_state"]["terminal_outcome"] = (
+        terminal_outcome
+    )
 
 
 def _validate_transition_semantics(

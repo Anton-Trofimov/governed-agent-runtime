@@ -217,3 +217,20 @@ transition_aware_phase_validation:
     reason_code: TOOL_NOT_ALLOWED_IN_PHASE
     next_state: DIAGNOSING
     tool_execution_allowed: false
+
+budget_exhaustion_state_handling:
+  deterministic_exp_18_0:
+    hypothesis_ready_with_bounded_result:
+      current_task_state: HYPOTHESIS_READY
+      condition: tool_call_budget_exhausted
+      decision: SAFE_FALLBACK
+      reason_code: EXECUTION_BUDGET_EXCEEDED
+      next_state: SAFE_FALLBACK
+      transition_id: T034
+      tool_execution_allowed: false
+      terminal_outcome: SAFE_FALLBACK
+
+  scope_limitations:
+    - This rule covers the current S01 path where a bounded hypothesis exists.
+    - Budget exhaustion from every active state is not defined by this rule.
+    - Escalation when no safe result exists remains a separate lifecycle path.

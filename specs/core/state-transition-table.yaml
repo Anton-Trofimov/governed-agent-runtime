@@ -178,6 +178,12 @@ transitions:
     to: PREPARING
     trigger: operational_artifact_required
     resulting_phase: PREPARE
+    decision_requirements:
+      decision: ALLOW
+      tool_execution_allowed: true
+      confirmation_request_required: false
+      safer_path: null
+      reason_codes_empty: true
 
   - transition_id: T016
     from: HYPOTHESIS_READY
@@ -277,6 +283,15 @@ transitions:
     to: PREPARING
     trigger: premature_operational_action_replaced_with_preparation_path
     resulting_phase: PREPARE
+    decision_requirements:
+      decision: REPLACE_WITH_SAFER_PATH
+      tool_execution_allowed: false
+      confirmation_request_required: false
+      required_reason_codes:
+        - SAFER_PATH_AVAILABLE
+      safer_path:
+        proposal_type: CREATE_DRAFT
+        tool_name: create_remediation_plan
     invariants:
       - action_ready_remains_false
       - original_operational_action_not_executed

@@ -404,4 +404,3 @@ def test_preparation_trace_retains_complete_tool_result_envelope(
     ] = "MUTATED_AFTER_TRACE"
 
     assert payload["tool_result"] == recorded_tool_result
-

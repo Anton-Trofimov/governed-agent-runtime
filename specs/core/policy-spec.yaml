@@ -234,3 +234,31 @@ budget_exhaustion_state_handling:
     - This rule covers the current S01 path where a bounded hypothesis exists.
     - Budget exhaustion from every active state is not defined by this rule.
     - Escalation when no safe result exists remains a separate lifecycle path.
+
+successful_proposal_lifecycle_routing:
+  hypothesis_ready:
+    ask_clarification:
+      proposal_type: ASK_CLARIFICATION
+      decision: ASK_CLARIFICATION
+      next_state: NEEDS_CLARIFICATION
+      transition_id: T035
+      lifecycle_disposition: WAITING_FOR_USER_INPUT
+      terminal_outcome: null
+      tool_execution_allowed: false
+
+    bounded_safe_stop:
+      proposal_type: STOP_OR_ESCALATE
+      accepted_payload_outcomes:
+        - SAFE_FALLBACK
+        - STOP
+      decision: SAFE_FALLBACK
+      next_state: SAFE_FALLBACK
+      transition_id: T036
+      lifecycle_disposition: TERMINAL_SAFE_FALLBACK
+      terminal_outcome: SAFE_FALLBACK
+      tool_execution_allowed: false
+
+  constraints:
+    - T034 remains reserved for execution budget exhaustion.
+    - Clarification is a waiting lifecycle state, not a terminal outcome.
+    - A successful proposal path has empty runtime reason codes.

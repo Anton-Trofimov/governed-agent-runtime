@@ -312,6 +312,36 @@ transitions:
     invariants:
       - action_ready_remains_false
 
+
+  - transition_id: T035
+    from: HYPOTHESIS_READY
+    to: NEEDS_CLARIFICATION
+    trigger: clarification_required_for_missing_user_input
+    resulting_phase: DIAGNOSE
+    decision_requirements:
+      decision: ASK_CLARIFICATION
+      tool_execution_allowed: false
+      confirmation_request_required: false
+      safer_path: null
+      reason_codes_empty: true
+    invariants:
+      - action_ready_remains_false
+      - terminal_outcome_remains_null
+
+  - transition_id: T036
+    from: HYPOTHESIS_READY
+    to: SAFE_FALLBACK
+    trigger: bounded_safe_stop_requested
+    decision_requirements:
+      decision: SAFE_FALLBACK
+      tool_execution_allowed: false
+      confirmation_request_required: false
+      safer_path: null
+      reason_codes_empty: true
+    invariants:
+      - action_ready_remains_false
+      - terminal_outcome_is_safe_fallback
+
 global_failure_transitions:
   - from_categories:
       - active

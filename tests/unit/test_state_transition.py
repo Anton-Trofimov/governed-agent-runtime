@@ -263,3 +263,69 @@ def test_unsupported_transition_is_rejected() -> None:
 
     with pytest.raises(ValueError, match="transition"):
         apply(state, decision)
+
+def build_t033_state() -> dict:
+    state = build_s01_state()
+    state["session_state"]["phase"] = "EXECUTE"
+    state["session_state"]["task_state"] = "ACTION_CANDIDATE"
+    state["action_readiness"]["role_authorized"] = True
+    return state
+
+
+def test_t015_rejects_non_allow_decision() -> None:
+    state = build_s01_state()
+    decision = evaluate(state, remediation_plan_proposal(state))
+
+    decision["decision"] = "REPLACE_WITH_SAFER_PATH"
+    decision["reason_codes"] = ["SAFER_PATH_AVAILABLE"]
+    decision["safer_path"] = {
+        "proposal_type": "CREATE_DRAFT",
+        "tool_name": "create_remediation_plan",
+    }
+    decision["tool_execution_allowed"] = False
+
+    with pytest.raises(ValueError, match="transition semantics"):
+        apply(state, decision)
+
+
+def test_t015_requires_tool_execution_permission() -> None:
+    state = build_s01_state()
+    decision = evaluate(state, remediation_plan_proposal(state))
+    decision["tool_execution_allowed"] = False
+
+    with pytest.raises(ValueError, match="transition semantics"):
+        apply(state, decision)
+
+
+def test_t033_requires_safer_path_replacement_decision() -> None:
+    state = build_t033_state()
+    decision = evaluate(state, rollback_proposal(state))
+
+    decision["decision"] = "ALLOW"
+    decision["reason_codes"] = []
+    decision["safer_path"] = None
+    decision["tool_execution_allowed"] = True
+
+    with pytest.raises(ValueError, match="transition semantics"):
+        apply(state, decision)
+
+
+def test_t033_forbids_tool_execution_permission() -> None:
+    state = build_t033_state()
+    decision = evaluate(state, rollback_proposal(state))
+    decision["tool_execution_allowed"] = True
+
+    with pytest.raises(ValueError, match="transition semantics"):
+        apply(state, decision)
+
+
+def test_t033_requires_preparation_safer_path() -> None:
+    state = build_t033_state()
+    decision = evaluate(state, rollback_proposal(state))
+    decision["safer_path"] = {
+        "proposal_type": "CALL_TOOL",
+        "tool_name": "get_service_metrics",
+    }
+
+    with pytest.raises(ValueError, match="transition semantics"):
+        apply(state, decision)

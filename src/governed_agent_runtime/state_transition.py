@@ -60,6 +60,11 @@ def apply_runtime_decision_with_record(
         transition_spec,
     )
 
+    _validate_transition_semantics(
+        decision,
+        transition,
+    )
+
     updated = deepcopy(dict(state))
     updated["state_version"] += 1
     updated["session_state"]["task_state"] = next_state
@@ -160,6 +165,65 @@ def _apply_lifecycle_disposition(
     updated["state_version"] += 1
 
     return updated
+
+
+def _validate_transition_semantics(
+    decision: Mapping[str, Any],
+    transition: Mapping[str, Any],
+) -> None:
+    requirements = transition.get("decision_requirements")
+
+    if requirements is None:
+        return
+
+    mismatches: list[str] = []
+
+    for field in (
+        "decision",
+        "tool_execution_allowed",
+        "confirmation_request_required",
+    ):
+        if (
+            field in requirements
+            and decision.get(field) != requirements[field]
+        ):
+            mismatches.append(field)
+
+    if requirements.get("reason_codes_empty") is True:
+        if decision.get("reason_codes") != []:
+            mismatches.append("reason_codes_empty")
+
+    required_reason_codes = set(
+        requirements.get("required_reason_codes", [])
+    )
+    actual_reason_codes = set(
+        decision.get("reason_codes", [])
+    )
+
+    if not required_reason_codes.issubset(
+        actual_reason_codes
+    ):
+        mismatches.append("required_reason_codes")
+
+    if "safer_path" in requirements:
+        expected_safer_path = requirements["safer_path"]
+        actual_safer_path = decision.get("safer_path")
+
+        if expected_safer_path is None:
+            if actual_safer_path is not None:
+                mismatches.append("safer_path")
+        elif not isinstance(actual_safer_path, Mapping) or any(
+            actual_safer_path.get(key) != value
+            for key, value in expected_safer_path.items()
+        ):
+            mismatches.append("safer_path")
+
+    if mismatches:
+        raise ValueError(
+            "Invalid transition semantics for "
+            f"{transition['transition_id']}: "
+            f"{', '.join(mismatches)}"
+        )
 
 
 def _find_transition(

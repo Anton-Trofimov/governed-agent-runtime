@@ -14,6 +14,7 @@ from governed_agent_runtime.execution_trace import (
 )
 from governed_agent_runtime.runtime_policy import evaluate_proposal
 from governed_agent_runtime.scenario_loader import load_scenario_bundle
+from governed_agent_runtime.scenario_runner import run_s01_preparation_path
 from governed_agent_runtime.state_builder import (
     build_normalized_state,
     normalize_selected_sources,
@@ -362,3 +363,45 @@ def test_da001_trace_records_recoverable_rejection() -> None:
     assert runtime_event["payload"]["next_state"] == (
         state["session_state"]["task_state"]
     )
+
+def test_preparation_trace_retains_complete_tool_result_envelope(
+) -> None:
+    outcome = run_s01_preparation_path(ROOT)
+
+    result_event = next(
+        event
+        for event in outcome["trace"]["events"]
+        if event["event_type"] == "TOOL_RESULT_RECEIVED"
+    )
+
+    payload = result_event["payload"]
+    executed_tool_result = outcome["tool_execution"]["tool_result"]
+
+    assert "tool_result" in payload
+    assert payload["tool_result"] == executed_tool_result
+    assert payload["tool_result"] is not executed_tool_result
+
+    assert payload["tool_result"]["schema_version"] == "0.1.0"
+    assert "collected_at" in payload["tool_result"]
+    assert "source_timestamp" in payload["tool_result"]
+
+    for field in (
+        "tool_call_id",
+        "tool_name",
+        "status",
+        "raw_reference",
+        "result",
+        "errors",
+    ):
+        assert payload[field] == payload["tool_result"][field]
+
+    validate_trace(outcome["trace"])
+
+    recorded_tool_result = deepcopy(payload["tool_result"])
+
+    outcome["tool_execution"]["tool_result"]["result"][
+        "readiness_status"
+    ] = "MUTATED_AFTER_TRACE"
+
+    assert payload["tool_result"] == recorded_tool_result
+

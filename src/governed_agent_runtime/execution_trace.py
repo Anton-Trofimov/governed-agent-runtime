@@ -290,6 +290,7 @@ def append_preparation_tool_execution(
             "runtime_decision": decision["decision"],
             "arguments_hash": execution["arguments_hash"],
             "completed_at": execution["completed_at"],
+            "tool_result": deepcopy(tool_result),
             "status": tool_result["status"],
             "raw_reference": tool_result["raw_reference"],
             "result": deepcopy(tool_result["result"]),

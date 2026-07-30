@@ -503,7 +503,8 @@
         "status",
         "raw_reference",
         "result",
-        "errors"
+        "errors",
+        "tool_result"
       ],
       "properties": {
         "trace_id": {
@@ -551,6 +552,83 @@
             "TIMEOUT",
             "UNAVAILABLE"
           ]
+        },
+        "raw_reference": {
+          "type": "string"
+        },
+        "result": {
+          "type": "object"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "tool_result": {
+          "$ref": "#/$defs/toolResultEnvelope"
+        }
+      }
+    },
+    "toolResultEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "tool_call_id",
+        "tool_name",
+        "status",
+        "collected_at",
+        "raw_reference",
+        "result",
+        "errors"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0"
+        },
+        "tool_call_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "SUCCEEDED",
+            "FAILED",
+            "PARTIAL",
+            "TIMEOUT",
+            "UNAVAILABLE"
+          ]
+        },
+        "collected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_timestamp": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
         },
         "raw_reference": {
           "type": "string"

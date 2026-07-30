@@ -398,3 +398,84 @@ def test_budget_exhaustion_from_hypothesis_ready_reaches_safe_fallback(
         "NOT_STARTED"
     )
 
+def test_clarification_from_hypothesis_ready_enters_waiting_state(
+) -> None:
+    state = build_s01_state()
+
+    proposal = {
+        "schema_version": "0.1.0",
+        "proposal_id": "proposal-s01-clarification",
+        "proposal_type": "ASK_CLARIFICATION",
+        "rationale": "User input is required before continuing.",
+        "payload": {
+            "question": (
+                "Which deployment target should be investigated?"
+            ),
+            "missing_fields": ["deployment_target"],
+        },
+    }
+
+    decision = evaluate(state, proposal)
+
+    assert decision["decision"] == "ASK_CLARIFICATION"
+    assert decision["reason_codes"] == []
+    assert decision["next_state"] == "NEEDS_CLARIFICATION"
+    assert decision["tool_execution_allowed"] is False
+    assert decision["confirmation_request_required"] is False
+
+    updated = apply(state, decision)
+
+    validate_state(updated)
+
+    assert (
+        updated["session_state"]["task_state"]
+        == "NEEDS_CLARIFICATION"
+    )
+    assert updated["session_state"]["phase"] == "DIAGNOSE"
+    assert updated["execution_state"]["terminal_outcome"] is None
+    assert updated["action_readiness"]["action_ready"] is False
+
+
+def test_non_budget_safe_stop_from_hypothesis_ready_is_terminal(
+) -> None:
+    state = build_s01_state()
+
+    proposal = {
+        "schema_version": "0.1.0",
+        "proposal_id": "proposal-s01-safe-stop",
+        "proposal_type": "STOP_OR_ESCALATE",
+        "rationale": (
+            "A bounded safe result is available without further tools."
+        ),
+        "payload": {
+            "outcome": "SAFE_FALLBACK",
+            "summary": (
+                "Preserve the bounded hypothesis and stop safely."
+            ),
+        },
+    }
+
+    decision = evaluate(state, proposal)
+
+    assert decision["decision"] == "SAFE_FALLBACK"
+    assert decision["reason_codes"] == []
+    assert decision["next_state"] == "SAFE_FALLBACK"
+    assert decision["tool_execution_allowed"] is False
+    assert decision["confirmation_request_required"] is False
+
+    updated = apply(state, decision)
+
+    validate_state(updated)
+
+    assert (
+        updated["session_state"]["task_state"]
+        == "SAFE_FALLBACK"
+    )
+    assert (
+        updated["execution_state"]["terminal_outcome"]
+        == "SAFE_FALLBACK"
+    )
+    assert updated["execution_state"]["execution_status"] == (
+        "NOT_STARTED"
+    )
+    assert updated["action_readiness"]["action_ready"] is False

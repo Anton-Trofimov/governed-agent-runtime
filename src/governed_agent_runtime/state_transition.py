@@ -57,6 +57,7 @@ def apply_runtime_decision_with_record(
     transition = _find_transition(
         current_state,
         next_state,
+        decision,
         transition_spec,
     )
 
@@ -226,9 +227,11 @@ def _validate_transition_semantics(
         ):
             mismatches.append(field)
 
-    if requirements.get("reason_codes_empty") is True:
-        if decision.get("reason_codes") != []:
-            mismatches.append("reason_codes_empty")
+    if (
+        requirements.get("reason_codes_empty") is True
+        and decision.get("reason_codes") != []
+    ):
+        mismatches.append("reason_codes_empty")
 
     required_reason_codes = set(
         requirements.get("required_reason_codes", [])
@@ -266,19 +269,58 @@ def _validate_transition_semantics(
 def _find_transition(
     current_state: str,
     next_state: str,
+    decision: Mapping[str, Any],
     transition_spec: Mapping[str, Any],
 ) -> Mapping[str, Any]:
-    matches = [
+    candidates = [
         transition
         for transition in transition_spec["transitions"]
         if transition["from"] == current_state
         and transition["to"] == next_state
     ]
 
-    if len(matches) != 1:
+    if not candidates:
         raise ValueError(
             "Unsupported or ambiguous transition: "
-            f"{current_state} -> {next_state}; found {len(matches)}"
+            f"{current_state} -> {next_state}; found 0"
         )
 
-    return matches[0]
+    semantic_matches = [
+        transition
+        for transition in candidates
+        if _transition_matches_decision(
+            decision,
+            transition,
+        )
+    ]
+
+    if len(semantic_matches) == 1:
+        return semantic_matches[0]
+
+    if len(candidates) == 1:
+        _validate_transition_semantics(
+            decision,
+            candidates[0],
+        )
+
+    raise ValueError(
+        "Unsupported or ambiguous transition: "
+        f"{current_state} -> {next_state}; "
+        f"found {len(semantic_matches)} semantic matches "
+        f"from {len(candidates)} candidates"
+    )
+
+
+def _transition_matches_decision(
+    decision: Mapping[str, Any],
+    transition: Mapping[str, Any],
+) -> bool:
+    try:
+        _validate_transition_semantics(
+            decision,
+            transition,
+        )
+    except ValueError:
+        return False
+
+    return True

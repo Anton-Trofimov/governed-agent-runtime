@@ -80,6 +80,26 @@ A status snapshot may be fresh but insufficient when the issue is intermittent.
 
 Higher-risk actions require stricter freshness than read-only diagnosis.
 
+
+### Deterministic Exp 18.0 freshness contract
+
+For the deterministic Exp 18.0 baseline:
+
+- `observed_at` is the authoritative timestamp for evidence age;
+- `collected_at` records when the runtime obtained the observation and is
+  retained for provenance, collection-latency analysis and audit;
+- recently collecting an old observation must not make that observation fresh;
+- freshness is evaluated relative to the normalized-state `reference_time`;
+- evidence with an age of 300 seconds or less is `FRESH`;
+- evidence older than 300 seconds is `STALE`;
+- missing or invalid `observed_at` is a normalization or contract failure and
+  must not silently fall back to `collected_at`;
+- aggregate freshness remains `FRESH`, `STALE`, `MIXED` or `UNKNOWN` according
+  to the statuses of the evidence items.
+
+Source-specific and risk-specific thresholds may be introduced in a later
+runtime version. They are outside the deterministic Exp 18.0 baseline.
+
 ## Evidence reliability
 
 ### AUTHORITATIVE

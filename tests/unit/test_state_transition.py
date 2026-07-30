@@ -362,3 +362,39 @@ def test_terminal_transition_records_terminal_outcome() -> None:
         updated["execution_state"]["terminal_outcome"]
         == "COMPLETED"
     )
+
+def test_budget_exhaustion_from_hypothesis_ready_reaches_safe_fallback(
+) -> None:
+    state = build_s01_state()
+    state["session_state"]["tool_call_count"] = state[
+        "session_state"
+    ]["tool_call_budget"]
+
+    decision = evaluate(
+        state,
+        remediation_plan_proposal(state),
+    )
+
+    assert decision["decision"] == "SAFE_FALLBACK"
+    assert decision["reason_codes"] == [
+        "EXECUTION_BUDGET_EXCEEDED"
+    ]
+    assert decision["next_state"] == "SAFE_FALLBACK"
+    assert decision["tool_execution_allowed"] is False
+
+    updated = apply(state, decision)
+
+    validate_state(updated)
+
+    assert (
+        updated["session_state"]["task_state"]
+        == "SAFE_FALLBACK"
+    )
+    assert (
+        updated["execution_state"]["terminal_outcome"]
+        == "SAFE_FALLBACK"
+    )
+    assert updated["execution_state"]["execution_status"] == (
+        "NOT_STARTED"
+    )
+

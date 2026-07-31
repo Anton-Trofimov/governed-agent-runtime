@@ -4,11 +4,60 @@ import hashlib
 import json
 from collections.abc import Mapping
 from copy import deepcopy
+from datetime import datetime
 from typing import Any
 
 from jsonschema import Draft202012Validator, ValidationError
 
 from governed_agent_runtime.contract_schema import normalize_contract_schema
+
+
+def _validate_tool_result_envelope(
+    tool_result: Mapping[str, Any],
+    tool_result_schema: Mapping[str, Any],
+    *,
+    error_context: str,
+) -> None:
+    try:
+        Draft202012Validator(tool_result_schema).validate(
+            tool_result
+        )
+    except ValidationError as error:
+        raise ValueError(
+            f"{error_context} failed schema validation: "
+            f"{error.message}"
+        ) from error
+
+    for field_name in (
+        "collected_at",
+        "source_timestamp",
+    ):
+        value = tool_result[field_name]
+
+        if value is None and field_name == "source_timestamp":
+            continue
+
+        if not isinstance(value, str):
+            raise ValueError(
+                f"{error_context} failed timestamp validation: "
+                f"{field_name} must be a timezone-aware "
+                "ISO 8601 string"
+            )
+
+        try:
+            parsed = datetime.fromisoformat(value)
+        except ValueError as error:
+            raise ValueError(
+                f"{error_context} failed timestamp validation: "
+                f"{field_name} must be a timezone-aware "
+                "ISO 8601 string"
+            ) from error
+
+        if parsed.utcoffset() is None:
+            raise ValueError(
+                f"{error_context} failed timestamp validation: "
+                f"{field_name} must include a timezone offset"
+            )
 
 
 def execute_preparation_tool(
@@ -114,15 +163,11 @@ def execute_preparation_tool(
         "errors": [],
     }
 
-    try:
-        Draft202012Validator(tool_result_schema).validate(
-            tool_result
-        )
-    except ValidationError as error:
-        raise ValueError(
-            "Generated preparation tool result failed schema "
-            f"validation: {error.message}"
-        ) from error
+    _validate_tool_result_envelope(
+        tool_result,
+        tool_result_schema,
+        error_context="Generated preparation tool result",
+    )
 
     successful_result = mock_contract["successful_result"]
 
@@ -155,15 +200,13 @@ def apply_preparation_tool_result(
     """Normalize a successful preparation result and apply its transition."""
     tool_result = execution["tool_result"]
 
-    try:
-        Draft202012Validator(tool_result_schema).validate(
-            tool_result
-        )
-    except ValidationError as error:
-        raise ValueError(
-            "Preparation tool result failed application-boundary "
-            f"schema validation: {error.message}"
-        ) from error
+    _validate_tool_result_envelope(
+        tool_result,
+        tool_result_schema,
+        error_context=(
+            "Preparation tool result at application boundary"
+        ),
+    )
 
     if tool_result["status"] != "SUCCEEDED":
         raise ValueError(

@@ -392,3 +392,32 @@ def test_application_rejects_schema_invalid_tool_result_envelope(
 
     assert state == state_before
 
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        ("collected_at", "not-a-date"),
+        ("source_timestamp", "2026-07-28T12:00:00"),
+    ],
+)
+def test_application_rejects_invalid_tool_result_timestamps(
+    field_name: str,
+    invalid_value: str,
+) -> None:
+    state, proposal, decision, _ = prepare_allowed_tool_call()
+    execution = execute(state, proposal, decision)
+
+    execution["tool_result"][field_name] = invalid_value
+    state_before = deepcopy(state)
+
+    with pytest.raises(
+        ValueError,
+        match="timestamp|timezone",
+    ):
+        apply_result(
+            state,
+            proposal,
+            execution,
+        )
+
+    assert state == state_before
+

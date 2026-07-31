@@ -284,6 +284,19 @@ def _normalize_service_metrics(
     observations = []
 
     for index, series in enumerate(source["metric_series"], start=1):
+        for point_index, point in enumerate(
+            series["points"],
+            start=1,
+        ):
+            _validate_aware_timestamp(
+                point.get("timestamp"),
+                field_name=(
+                    f"{source['source_id']}."
+                    f"metric_series[{index - 1}]."
+                    f"points[{point_index - 1}].timestamp"
+                ),
+            )
+
         scope = _base_scope(source)
         scope.update(series.get("dimensions", {}))
 

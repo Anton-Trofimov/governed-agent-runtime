@@ -7,6 +7,7 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 from governed_agent_runtime.evidence_engine import (
+    _latest_metric,
     apply_evidence_assessment,
     evaluate_s01_evidence,
 )
@@ -267,4 +268,35 @@ def test_reassessment_replaces_only_evidence_owned_blockers(
     ] is True
     assert fresh_state["action_readiness"]["action_ready"] is False
     assert stale_state == before_fresh_reassessment
+
+def test_latest_metric_uses_chronological_timestamp_order(
+) -> None:
+    observations = [
+        {
+            "fact_type": "METRIC_SERIES",
+            "metric_name": "payment_api_http_5xx_rate",
+            "scope": {
+                "version_id": "2.4.2",
+            },
+            "value": [
+                {
+                    "timestamp": "2026-07-28T11:30:00-02:00",
+                    "value": 0.5,
+                },
+                {
+                    "timestamp": "2026-07-28T12:00:00Z",
+                    "value": 0.2,
+                },
+            ],
+        }
+    ]
+
+    latest = _latest_metric(
+        observations,
+        "payment_api_http_5xx_rate",
+        version_id="2.4.2",
+    )
+
+    assert latest is not None
+    assert latest["latest_value"] == 0.5
 

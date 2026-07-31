@@ -123,6 +123,17 @@ def test_target_mismatch_is_rejected() -> None:
             ("events", 0, "occurred_at"),
             "not-a-timestamp",
         ),
+        (
+            "get_service_metrics",
+            (
+                "metric_series",
+                0,
+                "points",
+                0,
+                "timestamp",
+            ),
+            "not-a-timestamp",
+        ),
     ],
 )
 def test_invalid_timestamps_used_by_normalized_observations_are_rejected(

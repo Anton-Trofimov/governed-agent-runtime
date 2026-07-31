@@ -682,7 +682,9 @@ def _latest_metric(
         ):
             latest_point = max(
                 observation["value"],
-                key=lambda point: point["timestamp"],
+                key=lambda point: datetime.fromisoformat(
+                    point["timestamp"]
+                ),
             )
             return {
                 "observation": observation,

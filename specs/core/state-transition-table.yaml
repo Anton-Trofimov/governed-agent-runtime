@@ -137,6 +137,7 @@ transitions:
     from: TARGET_RESOLVED
     to: COMPLETED
     trigger: answer_available_in_current_context
+    terminal_outcome: ANSWERED
 
   - transition_id: T008
     from: DIAGNOSING
@@ -189,6 +190,7 @@ transitions:
     from: HYPOTHESIS_READY
     to: COMPLETED
     trigger: diagnostic_answer_is_sufficient
+    terminal_outcome: ANSWERED
 
   - transition_id: T017
     from: HYPOTHESIS_READY
@@ -199,6 +201,7 @@ transitions:
     from: PREPARING
     to: COMPLETED
     trigger: draft_is_terminal_requested_outcome
+    terminal_outcome: DRAFT_CREATED
 
   - transition_id: T019
     from: PREPARING

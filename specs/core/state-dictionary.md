@@ -183,6 +183,25 @@ In particular:
 task state. Creating an intermediate remediation plan does not set a terminal
 outcome.
 
+### Transition-specific terminal outcomes
+
+A terminal lifecycle state and a governed product outcome are separate
+concepts.
+
+When a transition declares `terminal_outcome`, that value is authoritative for
+the completed path.
+
+Current mappings include:
+
+- `T007` and `T016` -> `ANSWERED`;
+- `T018` -> `DRAFT_CREATED`.
+
+When a terminal transition does not declare a more specific outcome, the
+runtime may use the generic state-level terminal mapping.
+
+The runtime must determine the terminal outcome from the selected and validated
+transition, not only from its destination state.
+
 ## Required invariant
 
 The following sequence must remain explicit:

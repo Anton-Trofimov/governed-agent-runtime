@@ -168,10 +168,7 @@ def test_freshness_uses_observed_time_not_collection_time() -> None:
     bundle, observations, capacity_profile = build_s01_inputs()
 
     reference_time = datetime.fromisoformat(
-        bundle.scenario["reference_time"].replace(
-            "Z",
-            "+00:00",
-        )
+        bundle.scenario["reference_time"]
     )
     stale_observed_at = (
         reference_time - timedelta(seconds=301)

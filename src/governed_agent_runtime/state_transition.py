@@ -83,6 +83,7 @@ def apply_runtime_decision_with_record(
     _record_terminal_outcome(
         updated,
         next_state,
+        transition,
         transition_spec,
     )
 
@@ -178,6 +179,7 @@ def _apply_lifecycle_disposition(
 def _record_terminal_outcome(
     state: dict[str, Any],
     next_state: str,
+    transition: Mapping[str, Any],
     transition_spec: Mapping[str, Any],
 ) -> None:
     terminal_states = set(
@@ -187,18 +189,21 @@ def _record_terminal_outcome(
     if next_state not in terminal_states:
         return
 
-    outcome_by_state = transition_spec.get(
-        "terminal_outcome_by_state",
-        {},
-    )
+    if "terminal_outcome" in transition:
+        terminal_outcome = transition["terminal_outcome"]
+    else:
+        outcome_by_state = transition_spec.get(
+            "terminal_outcome_by_state",
+            {},
+        )
 
-    try:
-        terminal_outcome = outcome_by_state[next_state]
-    except KeyError as error:
-        raise ValueError(
-            "Missing terminal outcome mapping for "
-            f"terminal state {next_state}"
-        ) from error
+        try:
+            terminal_outcome = outcome_by_state[next_state]
+        except KeyError as error:
+            raise ValueError(
+                "Missing terminal outcome mapping for "
+                f"terminal state {next_state}"
+            ) from error
 
     state["execution_state"]["terminal_outcome"] = (
         terminal_outcome

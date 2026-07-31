@@ -333,7 +333,7 @@ def test_t033_requires_preparation_safer_path() -> None:
     with pytest.raises(ValueError, match="transition semantics"):
         apply(state, decision)
 
-def test_terminal_transition_records_terminal_outcome() -> None:
+def test_t018_records_draft_created_terminal_outcome() -> None:
     state = build_s01_state()
     state["session_state"]["task_state"] = "PREPARING"
     state["session_state"]["phase"] = "PREPARE"
@@ -360,7 +360,7 @@ def test_terminal_transition_records_terminal_outcome() -> None:
     assert updated["session_state"]["task_state"] == "COMPLETED"
     assert (
         updated["execution_state"]["terminal_outcome"]
-        == "COMPLETED"
+        == "DRAFT_CREATED"
     )
 
 def test_budget_exhaustion_from_hypothesis_ready_reaches_safe_fallback(
@@ -479,3 +479,78 @@ def test_non_budget_safe_stop_from_hypothesis_ready_is_terminal(
         "NOT_STARTED"
     )
     assert updated["action_readiness"]["action_ready"] is False
+
+def test_t016_records_answered_terminal_outcome() -> None:
+    state = build_s01_state()
+
+    proposal = {
+        "schema_version": "0.1.0",
+        "proposal_id": "proposal-s01-terminal-answer",
+        "proposal_type": "PROVIDE_ANSWER",
+        "rationale": (
+            "The bounded diagnostic answer is sufficient."
+        ),
+        "payload": {
+            "answer": (
+                "Version 2.4.2 is associated with elevated "
+                "5xx errors."
+            ),
+            "evidence_ids": [
+                "ev-s01-version-error-old",
+                "ev-s01-version-error-new",
+            ],
+            "freshness_note": (
+                "The supporting evidence is fresh."
+            ),
+        },
+    }
+
+    decision = evaluate(state, proposal)
+
+    assert decision["decision"] == "PROVIDE_ANSWER"
+    assert decision["reason_codes"] == []
+    assert decision["next_state"] == "COMPLETED"
+    assert decision["tool_execution_allowed"] is False
+    assert decision["confirmation_request_required"] is False
+
+    updated = apply(state, decision)
+
+    validate_state(updated)
+
+    assert updated["session_state"]["task_state"] == "COMPLETED"
+    assert (
+        updated["execution_state"]["terminal_outcome"]
+        == "ANSWERED"
+    )
+
+def test_t029_preserves_generic_completed_terminal_outcome(
+) -> None:
+    state = build_s01_state()
+    state["session_state"]["task_state"] = "VERIFYING"
+    state["session_state"]["phase"] = "EXECUTE"
+
+    decision = {
+        "schema_version": "0.1.0",
+        "decision_id": "decision-t029-completed",
+        "proposal_id": "proposal-t029-completed",
+        "decision": "ALLOW",
+        "reason_codes": [],
+        "message": None,
+        "gate_results": [],
+        "next_state": "COMPLETED",
+        "safer_path": None,
+        "tool_execution_allowed": False,
+        "confirmation_request_required": False,
+        "decided_at": state["updated_at"],
+    }
+
+    updated = apply(state, decision)
+
+    validate_state(updated)
+
+    assert updated["session_state"]["task_state"] == "COMPLETED"
+    assert (
+        updated["execution_state"]["terminal_outcome"]
+        == "COMPLETED"
+    )
+

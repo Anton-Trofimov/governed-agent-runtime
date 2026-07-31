@@ -184,3 +184,35 @@ adapter_failures:
   partial_source_data:
     tool_status: PARTIAL
     error_code: PARTIAL_SOURCE_DATA
+
+timestamp_validation_boundary:
+  validation_stage: before_normalized_observation_creation
+  error_code: INVALID_SOURCE_TIMESTAMP
+
+  runtime_fields:
+    - collected_at
+
+  source_field_names:
+    - source_timestamp
+    - occurred_at
+    - started_at
+    - timestamp
+    - start_time
+    - end_time
+
+  requirements:
+    - Every timestamp value is a string in ISO 8601 date-time format.
+    - Every parsed timestamp contains a timezone offset.
+    - UTC Z notation and explicit numeric offsets are accepted.
+    - Invalid or timezone-naive timestamps reject the complete source normalization.
+    - Validation occurs before any normalized observation is returned.
+    - Invalid observed_at must not fall back to collected_at.
+    - Valid timestamp strings are preserved without silent rewriting.
+
+  scope:
+    - top-level source timestamps
+    - nested runtime event timestamps
+    - nested deployment timestamps
+    - metric point timestamps
+    - metric and traffic window boundaries
+    - runtime collection timestamp

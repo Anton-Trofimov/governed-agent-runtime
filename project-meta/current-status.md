@@ -49,15 +49,18 @@ current repository state, those sources take precedence.
 ## Current checkpoint
 
 - Date: 2026-07-31
-- Verified baseline commit: `a4cc1b7`
-- Experiment: Exp 18.0
-- Baseline: deterministic S01 vertical, frozen
+- Current checkpoint source commit: `e4d047a`
+- Experiment: Exp 18
+- Frozen baseline: deterministic S01 vertical
+- Active design stage: Exp 18.1A single-step LLM proposal probe
 - Regression result: `68 passed`
 - Static analysis result: `ruff check .` passed
 - Latest completed verification:
   `reports/reviews/exp-18-0-s01-deterministic-codex-verification-04.md`
 - Open Critical, High or Medium findings: none
-- Freeze status: frozen for deterministic S02-S12 extension
+- S01 freeze status: frozen
+- Exp 18.1A status: specification drafted, implementation not started
+- Deterministic S02-S12 extension: not started
 
 ## Project objective
 
@@ -133,49 +136,55 @@ The current baseline includes:
 
 ## Review status
 
-The independent closure verification found no Critical, High or Medium
-correctness findings.
-
-It confirmed:
-
-- invalid and timezone-naive metric timestamps are rejected;
-- latest metric selection uses chronological time;
-- Tool Result Envelope timestamps are validated during generation and before
-  application;
-- rejected application results preserve the input state;
-- no material lifecycle, contract or trace regression was introduced.
+The deterministic S01 baseline remains frozen after an independent closure
+verification found no Critical, High or Medium correctness findings.
 
 All known findings from reviews 01, 02 and 03 are closed.
 
-The deterministic S01 baseline is frozen.
+The next-stage sequence has been refined:
+
+1. inspect the S02-S12 matrix as an evaluation set;
+2. run a limited single-step LLM proposal probe on representative cases;
+3. use the probe results to inform deterministic S02-S12 extension;
+4. keep broader LLM integration and the bounded agent loop deferred.
+
+The probe does not unfreeze S01 and does not weaken deterministic runtime
+control.
 
 ## Quality gate
 
-At the freeze checkpoint:
+At the current checkpoint:
 
 - `ruff check .` passes;
 - `pytest -q` passes with `68 passed`;
-- `git diff --check` passes;
-- the independent verification reported no blocking findings.
+- the deterministic S01 baseline remains protected by the freeze tag
+  `exp-18-0-s01-deterministic-freeze`.
 
 ## Next development block
 
-Begin the deterministic S02-S12 extension with a scenario-matrix review.
+Prepare Exp 18.1A without starting an autonomous agent loop.
 
-Before implementation:
+The next block should:
 
-1. inspect every S02-S12 acceptance definition;
-2. identify available and missing evidence;
-3. record expected bounded hypotheses and acceptable next steps;
-4. distinguish premature actions from allowed preparation paths;
-5. identify clarification, fallback, escalation and terminal outcomes;
-6. mark undefined behavior as `TBD`;
-7. separate shared runtime requirements from scenario-specific evidence logic.
+1. define the model-visible context-package contract;
+2. keep scenario identifiers and expected outcomes inside the hidden evaluation
+   harness;
+3. create representative fixtures for S02, S07, S08A, S08B and S12;
+4. distinguish normalized intake from raw-request interpretation;
+5. verify that resolved and unresolved fields are explicit;
+6. verify that the model sees only allowed tools, constraints and proposal
+   types;
+7. add tests proving that scenario IDs and acceptance expectations are not
+   exposed to the model;
+8. implement one LLM call that returns exactly one proposal;
+9. execute no preparation or operational tools during the probe;
+10. start no autonomous loop and perform no model-authorized state mutation.
 
-Do not introduce LLM integration yet.
+After the probe, compare model proposal quality and deterministic runtime
+containment separately.
 
-After the deterministic S02-S12 baseline is implemented, perform another
-independent deterministic review before Exp 18.1 model comparison.
+Broader LLM integration remains deferred until the deterministic S02-S12
+baseline is implemented and reviewed.
 
 ## Sources of truth
 

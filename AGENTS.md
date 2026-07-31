@@ -98,8 +98,10 @@ the S02-S12 scenario matrix requires it.
 
 Do not introduce:
 
-- LLM integration before the deterministic S02-S12 baseline is implemented
-  and reviewed;
+- LLM integration beyond the bounded Exp 18.1A single-step shadow probe
+  before the deterministic S02-S12 baseline is implemented and reviewed;
+- tool execution, autonomous looping or model-authorized state mutation inside
+  Exp 18.1A;
 - a bounded agent loop before the single-step baseline is evaluated;
 - LangChain, LangGraph, Langfuse or another framework without demonstrated
   implementation value;

@@ -210,6 +210,9 @@ transitions:
     resulting_phase: PREPARE
     application_requirements:
       - complete_tool_result_envelope_validated_against_canonical_schema
+      - collected_at_is_timezone_aware_iso_8601
+      - non_null_source_timestamp_is_timezone_aware_iso_8601
+      - timestamp_validation_occurs_before_state_update
       - validation_occurs_before_state_update
       - schema_invalid_result_rejects_application
       - rejected_application_preserves_input_state

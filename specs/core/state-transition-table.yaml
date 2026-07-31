@@ -205,6 +205,11 @@ transitions:
     to: ACTION_CANDIDATE
     trigger: remediation_plan_contains_candidate_action
     resulting_phase: PREPARE
+    application_requirements:
+      - complete_tool_result_envelope_validated_against_canonical_schema
+      - validation_occurs_before_state_update
+      - schema_invalid_result_rejects_application
+      - rejected_application_preserves_input_state
     invariants:
       - remediation_plan_result_schema_valid
       - candidate_action_contains_plan_reference

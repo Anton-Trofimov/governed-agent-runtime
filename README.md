@@ -76,8 +76,8 @@ The implemented S01 path is:
     -> ACTION_CANDIDATE / PREPARE
     -> governed remediation-plan result and execution trace
 
-The detailed current checkpoint, open findings, latest review and next
-development block are maintained in:
+The detailed current checkpoint, review status and next development
+block are maintained in:
 
     project-meta/current-status.md
 
@@ -249,5 +249,5 @@ Current limitations include:
   of certification;
 - no universal agent-framework or production-readiness claim is made.
 
-For the latest verified baseline and remaining hardening work, read
-`project-meta/current-status.md`.
+For the latest verified baseline, review status and freeze decision,
+read `project-meta/current-status.md`.

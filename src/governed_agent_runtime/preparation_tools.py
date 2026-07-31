@@ -149,10 +149,21 @@ def apply_preparation_tool_result(
     proposal: Mapping[str, Any],
     execution: Mapping[str, Any],
     *,
+    tool_result_schema: Mapping[str, Any],
     transition_spec: Mapping[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Normalize a successful preparation result and apply its transition."""
     tool_result = execution["tool_result"]
+
+    try:
+        Draft202012Validator(tool_result_schema).validate(
+            tool_result
+        )
+    except ValidationError as error:
+        raise ValueError(
+            "Preparation tool result failed application-boundary "
+            f"schema validation: {error.message}"
+        ) from error
 
     if tool_result["status"] != "SUCCEEDED":
         raise ValueError(

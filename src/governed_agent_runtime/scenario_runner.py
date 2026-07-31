@@ -123,6 +123,7 @@ def run_s01_preparation_path(
             state_after_decision,
             proposal,
             tool_execution,
+            tool_result_schema=tool_result_schema,
             transition_spec=transition_spec,
         )
     )

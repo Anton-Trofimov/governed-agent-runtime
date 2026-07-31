@@ -197,6 +197,9 @@ def apply_result(
         state,
         proposal,
         execution,
+        tool_result_schema=load_json(
+            ROOT / "schemas/tool-result.schema.json"
+        ),
         transition_spec=load_yaml(
             ROOT / "specs/core/state-transition-table.yaml"
         ),
@@ -367,3 +370,25 @@ def test_preparation_tool_rejects_invalid_arguments() -> None:
 
     with pytest.raises(ValueError, match="arguments"):
         execute(state, invalid_proposal, decision)
+
+def test_application_rejects_schema_invalid_tool_result_envelope(
+) -> None:
+    state, proposal, decision, _ = prepare_allowed_tool_call()
+    execution = execute(state, proposal, decision)
+
+    execution["tool_result"].pop("schema_version")
+
+    state_before = deepcopy(state)
+
+    with pytest.raises(
+        ValueError,
+        match="schema|validation|envelope",
+    ):
+        apply_result(
+            state,
+            proposal,
+            execution,
+        )
+
+    assert state == state_before
+

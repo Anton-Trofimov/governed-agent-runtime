@@ -635,10 +635,35 @@ def apply_evidence_assessment(
     )
     action_readiness["action_ready"] = False
 
-    if not action_readiness["evidence_gate_passed"]:
-        action_readiness["blocking_reason_codes"] = [
-            "EVIDENCE_INSUFFICIENT"
+    evidence_owned_blockers = {
+        "EVIDENCE_INSUFFICIENT",
+        "EVIDENCE_STALE_OR_CONFLICTING",
+    }
+
+    retained_blockers = [
+        reason_code
+        for reason_code in action_readiness[
+            "blocking_reason_codes"
         ]
+        if reason_code not in evidence_owned_blockers
+    ]
+
+    current_evidence_blockers = []
+
+    if not action_readiness["evidence_gate_passed"]:
+        current_evidence_blockers.append(
+            "EVIDENCE_INSUFFICIENT"
+        )
+
+    if not action_readiness["freshness_gate_passed"]:
+        current_evidence_blockers.append(
+            "EVIDENCE_STALE_OR_CONFLICTING"
+        )
+
+    action_readiness["blocking_reason_codes"] = [
+        *retained_blockers,
+        *current_evidence_blockers,
+    ]
 
     return updated
 

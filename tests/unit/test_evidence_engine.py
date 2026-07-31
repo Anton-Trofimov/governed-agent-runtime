@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -201,3 +202,72 @@ def test_freshness_uses_observed_time_not_collection_time() -> None:
     } == {"STALE"}
 
     assert assessment["freshness_status"] == "MIXED"
+
+def test_reassessment_replaces_only_evidence_owned_blockers(
+) -> None:
+    bundle, observations, capacity_profile = build_s01_inputs()
+
+    state = build_normalized_state(
+        bundle,
+        observations,
+        trace_id="trace-s01-evidence-reassessment",
+    )
+
+    initial_assessment = evaluate_s01_evidence(
+        observations,
+        capacity_profile,
+        reference_time=bundle.scenario["reference_time"],
+    )
+
+    insufficient_state = apply_evidence_assessment(
+        state,
+        initial_assessment,
+    )
+
+    assert insufficient_state["action_readiness"][
+        "blocking_reason_codes"
+    ] == ["EVIDENCE_INSUFFICIENT"]
+
+    insufficient_state["action_readiness"][
+        "blocking_reason_codes"
+    ].append("ROLE_NOT_AUTHORIZED")
+
+    before_stale_reassessment = deepcopy(insufficient_state)
+    stale_assessment = deepcopy(initial_assessment)
+    stale_assessment["evidence_sufficiency"] = "SUFFICIENT"
+    stale_assessment["freshness_status"] = "STALE"
+
+    stale_state = apply_evidence_assessment(
+        insufficient_state,
+        stale_assessment,
+    )
+
+    assert stale_state["action_readiness"][
+        "blocking_reason_codes"
+    ] == [
+        "ROLE_NOT_AUTHORIZED",
+        "EVIDENCE_STALE_OR_CONFLICTING",
+    ]
+    assert insufficient_state == before_stale_reassessment
+
+    before_fresh_reassessment = deepcopy(stale_state)
+    fresh_assessment = deepcopy(stale_assessment)
+    fresh_assessment["freshness_status"] = "FRESH"
+
+    fresh_state = apply_evidence_assessment(
+        stale_state,
+        fresh_assessment,
+    )
+
+    assert fresh_state["action_readiness"][
+        "blocking_reason_codes"
+    ] == ["ROLE_NOT_AUTHORIZED"]
+    assert fresh_state["action_readiness"][
+        "evidence_gate_passed"
+    ] is True
+    assert fresh_state["action_readiness"][
+        "freshness_gate_passed"
+    ] is True
+    assert fresh_state["action_readiness"]["action_ready"] is False
+    assert stale_state == before_fresh_reassessment
+

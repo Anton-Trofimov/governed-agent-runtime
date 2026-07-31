@@ -259,6 +259,23 @@ The runtime should:
 Capability gaps are an explicit evaluation result, not necessarily a system
 failure.
 
+## Evidence-derived blocker reassessment
+
+The evidence assessment layer owns these action-readiness blocker codes:
+
+- `EVIDENCE_INSUFFICIENT`;
+- `EVIDENCE_STALE_OR_CONFLICTING`.
+
+On every evidence reassessment, the runtime must remove previously recorded
+evidence-owned blockers and derive them again from the current assessment.
+
+A resolved evidence condition must remove its obsolete blocker. Blocker codes
+owned by authorization, technical preconditions, confirmation or other runtime
+layers must be preserved.
+
+Evidence reassessment always keeps `action_ready` false. Later runtime gates
+remain responsible for determining complete action readiness.
+
 ## Relationship to action readiness
 
 Evidence may make an action diagnostically plausible.

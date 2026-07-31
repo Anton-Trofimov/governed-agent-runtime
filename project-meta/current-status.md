@@ -48,13 +48,16 @@ current repository state, those sources take precedence.
 
 ## Current checkpoint
 
-- Date: 2026-07-30
-- Current commit at creation: `83a28b3`
+- Date: 2026-07-31
+- Current commit at creation: `f8dbc73`
 - Experiment: Exp 18.0
 - Baseline: deterministic S01 vertical
-- Regression result: `53 passed`
-- Latest review:
+- Regression result: `64 passed`
+- Static analysis result: `ruff check .` passed
+- Latest completed review:
   `reports/reviews/exp-18-0-s01-deterministic-codex-review-02.md`
+- Findings from that review: closed
+- Fresh independent review: pending
 - Freeze status: not yet frozen for S02-S12 extension
 
 ## Project objective
@@ -85,6 +88,7 @@ The runtime owns:
 The currently validated path is:
 
     deterministic source observations
+    -> source-boundary validation
     -> normalized state
     -> S01 evidence assessment
     -> HYPOTHESIS_READY / DIAGNOSE
@@ -94,6 +98,7 @@ The currently validated path is:
     -> PREPARING / PREPARE
     -> deterministic create_remediation_plan mock
     -> validated Tool Result Envelope
+    -> application-boundary revalidation
     -> T019
     -> ACTION_CANDIDATE / PREPARE
     -> governed outcome DRAFT_CREATED
@@ -109,11 +114,20 @@ The current baseline includes:
 - recursive and non-mutating JSON Schema alias normalization;
 - closed candidate-action input contracts;
 - runtime-decision semantic checks on implemented transitions;
+- semantic transition selection when multiple transitions share states;
+- explicit clarification and bounded safe-stop lifecycle paths;
 - evidence freshness based on `observed_at`;
-- terminal-outcome recording on terminal transitions;
+- timezone-aware normalized timestamp validation;
+- rejection of invalid timestamps before normalized observations are returned;
+- evidence-owned blocker recomputation during reassessment;
+- preservation of blockers owned by other runtime layers;
+- transition-specific governed terminal outcomes;
+- generic terminal-outcome fallback for unspecialized terminal transitions;
 - transition-aware phase permission bound to real lifecycle transitions;
 - bounded tool-budget fallback from `HYPOTHESIS_READY`;
 - deterministic preparation-tool execution;
+- complete Tool Result Envelope validation before execution output is returned;
+- complete Tool Result Envelope revalidation before state application;
 - complete Tool Result Envelope retention in execution trace;
 - immutable trace copying for recorded tool results;
 - unit, contract and acceptance coverage for the S01 vertical.
@@ -124,44 +138,52 @@ The second read-only Codex review found no Critical or High findings.
 
 All findings from the first review were verified as closed.
 
-The second review identified three Medium and two Low findings.
+The targeted hardening cycle requested by the second review is complete.
 
-### Remaining Medium findings
+Closed findings include:
 
-1. Some policy decisions allowed from `HYPOTHESIS_READY` cannot yet be applied
-   by the lifecycle state machine:
-   - `ASK_CLARIFICATION -> NEEDS_CLARIFICATION`;
-   - non-budget `STOP_OR_ESCALATE -> SAFE_FALLBACK`.
+1. policy decisions from `HYPOTHESIS_READY` now have applicable lifecycle
+   transitions for clarification and bounded safe stop;
+2. Tool Result Envelopes are revalidated at the state-application boundary;
+3. terminal transitions preserve specific governed outcomes such as
+   `ANSWERED` and `DRAFT_CREATED`;
+4. invalid or timezone-naive normalized timestamps are rejected by source
+   adapters;
+5. evidence-owned readiness blockers are recomputed rather than accumulated
+   across reassessments.
 
-2. `apply_preparation_tool_result()` does not yet revalidate the complete Tool
-   Result Envelope at the state-application boundary.
+No known finding from the second review remains open.
 
-3. Generic state-based terminal-outcome mapping cannot distinguish:
-   - `DRAFT_CREATED`;
-   - `ANSWERED`;
-   - generic `COMPLETED`.
+This statement records closure against that review only. A fresh independent
+review has not yet been completed.
 
-### Remaining Low findings
+## Quality gate
 
-1. Invalid source timestamps are not rejected immediately during source
-   normalization.
+At this checkpoint:
 
-2. `blocking_reason_codes` may remain stale after evidence reassessment.
+- `ruff check .` passes;
+- `pytest -q` passes with `64 passed`;
+- the working tree was clean before this checkpoint update.
 
 ## Next development block
 
-Complete one final targeted S01 hardening cycle in this order:
+Perform a fresh independent read-only Codex review in a new session.
 
-1. align allowed policy decisions with supported lifecycle transitions;
-2. validate Tool Result Envelopes at the application boundary;
-3. preserve specific governed terminal outcomes;
-4. reject invalid timestamps during normalization;
-5. recompute readiness blocking reasons during reassessment;
-6. run the full regression suite;
-7. perform a fresh independent Codex review in a new session;
-8. freeze the deterministic S01 baseline only if no material findings remain.
+The review should:
 
-Do not start S02-S12 implementation before this block is complete.
+1. inspect the current repository rather than rely only on historical reports;
+2. verify closure of the second-review findings;
+3. search for new correctness, contract, lifecycle and test-coverage issues;
+4. distinguish real runtime risks from speculative framework expansion;
+5. avoid requiring production infrastructure claims outside Exp 18.0 scope.
+
+After the review:
+
+- fix only material findings with targeted spec, RED test and implementation
+  changes;
+- rerun the complete quality gate;
+- freeze the deterministic S01 baseline only if no material findings remain;
+- do not begin S02-S12 implementation before the freeze decision.
 
 ## Sources of truth
 

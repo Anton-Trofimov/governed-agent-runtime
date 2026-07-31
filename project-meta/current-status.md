@@ -49,16 +49,15 @@ current repository state, those sources take precedence.
 ## Current checkpoint
 
 - Date: 2026-07-31
-- Current checkpoint commit: `6924aa1`
+- Verified baseline commit: `a4cc1b7`
 - Experiment: Exp 18.0
-- Baseline: deterministic S01 vertical
+- Baseline: deterministic S01 vertical, frozen
 - Regression result: `68 passed`
 - Static analysis result: `ruff check .` passed
-- Latest completed review:
-  `reports/reviews/exp-18-0-s01-deterministic-codex-review-03.md`
-- Findings from review-03: closed
-- Fresh closure verification: pending
-- Freeze status: not yet frozen for S02-S12 extension
+- Latest completed verification:
+  `reports/reviews/exp-18-0-s01-deterministic-codex-verification-04.md`
+- Open Critical, High or Medium findings: none
+- Freeze status: frozen for deterministic S02-S12 extension
 
 ## Project objective
 
@@ -134,52 +133,49 @@ The current baseline includes:
 
 ## Review status
 
-The fresh independent read-only Codex review-03 identified:
+The independent closure verification found no Critical, High or Medium
+correctness findings.
 
-1. High: malformed metric-point timestamps could affect latest-metric
-   selection and the S01 diagnosis.
-2. Medium: Tool Result Envelope timestamps were not explicitly validated as
-   timezone-aware values at the state-application boundary.
+It confirmed:
 
-Both findings are now closed:
-
-- decision-relevant metric timestamps are validated during normalization;
-- latest metric points are selected by parsed chronological time;
+- invalid and timezone-naive metric timestamps are rejected;
+- latest metric selection uses chronological time;
 - Tool Result Envelope timestamps are validated during generation and before
-  state application;
-- invalid application results preserve the input state.
+  application;
+- rejected application results preserve the input state;
+- no material lifecycle, contract or trace regression was introduced.
 
-No known finding from review-03 remains open.
+All known findings from reviews 01, 02 and 03 are closed.
 
-A short independent closure verification is still required before the
-deterministic S01 baseline is frozen.
+The deterministic S01 baseline is frozen.
 
 ## Quality gate
 
-At this checkpoint:
+At the freeze checkpoint:
 
 - `ruff check .` passes;
 - `pytest -q` passes with `68 passed`;
-- the working tree was clean before this checkpoint update.
+- `git diff --check` passes;
+- the independent verification reported no blocking findings.
 
 ## Next development block
 
-Perform a fresh independent read-only verification in a new Codex session.
+Begin the deterministic S02-S12 extension with a scenario-matrix review.
 
-The verification should:
+Before implementation:
 
-1. confirm closure of both review-03 findings;
-2. search for material regressions introduced by the fixes;
-3. report only Critical, High or Medium correctness issues;
-4. give a clear S01 freeze verdict.
+1. inspect every S02-S12 acceptance definition;
+2. identify available and missing evidence;
+3. record expected bounded hypotheses and acceptable next steps;
+4. distinguish premature actions from allowed preparation paths;
+5. identify clarification, fallback, escalation and terminal outcomes;
+6. mark undefined behavior as `TBD`;
+7. separate shared runtime requirements from scenario-specific evidence logic.
 
-If no material finding remains:
+Do not introduce LLM integration yet.
 
-- freeze the deterministic S01 baseline;
-- record the freeze decision;
-- begin planning the deterministic S02-S12 extension.
-
-Do not begin S02-S12 implementation before the freeze decision.
+After the deterministic S02-S12 baseline is implemented, perform another
+independent deterministic review before Exp 18.1 model comparison.
 
 ## Sources of truth
 

@@ -98,7 +98,8 @@ the S02-S12 scenario matrix requires it.
 
 Do not introduce:
 
-- LLM integration before the deterministic baseline is frozen;
+- LLM integration before the deterministic S02-S12 baseline is implemented
+  and reviewed;
 - a bounded agent loop before the single-step baseline is evaluated;
 - LangChain, LangGraph, Langfuse or another framework without demonstrated
   implementation value;

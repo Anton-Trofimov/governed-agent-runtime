@@ -241,8 +241,8 @@ Current limitations include:
 - the implemented evidence engine and deterministic path are S01-specific;
 - deterministic tool mocks do not prove real infrastructure integration;
 - no production rollback, restart or deployment is performed;
-- LLM integration is intentionally deferred until the deterministic baseline
-  is frozen;
+- LLM integration remains deferred until the deterministic S02-S12 baseline
+  is implemented and reviewed;
 - the bounded governed loop has not yet been implemented;
 - S02-S12 are not yet implemented as deterministic runtime paths;
 - security and safety controls are supporting design dimensions, not a claim

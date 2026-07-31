@@ -193,6 +193,9 @@ timestamp_validation_boundary:
     - observed_at
     - collected_at
 
+  decision_relevant_nested_fields:
+    - metric_series[].points[].timestamp
+
   requirements:
     - Every normalized observed_at value is an ISO 8601 date-time string.
     - Every normalized collected_at value is an ISO 8601 date-time string.
@@ -205,4 +208,5 @@ timestamp_validation_boundary:
 
   baseline_scope:
     - Validate timestamps that enter normalized control and evidence fields.
-    - Nested source timestamps not promoted into observed_at are outside the Exp 18.0 validation boundary.
+    - Validate metric point timestamps because deterministic evidence logic selects the latest point.
+    - Other nested timestamps remain outside the Exp 18.0 boundary unless they participate in deterministic decisions.

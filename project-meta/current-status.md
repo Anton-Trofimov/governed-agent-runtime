@@ -49,16 +49,16 @@ current repository state, those sources take precedence.
 ## Current checkpoint
 
 - Date: 2026-07-31
-- Current commit at creation: `f8dbc73`
+- Reviewed baseline commit: `de02251`
 - Experiment: Exp 18.0
 - Baseline: deterministic S01 vertical
 - Regression result: `64 passed`
 - Static analysis result: `ruff check .` passed
 - Latest completed review:
-  `reports/reviews/exp-18-0-s01-deterministic-codex-review-02.md`
-- Findings from that review: closed
-- Fresh independent review: pending
-- Freeze status: not yet frozen for S02-S12 extension
+  `reports/reviews/exp-18-0-s01-deterministic-codex-review-03.md`
+- Review findings: one High and one Medium open
+- Fresh independent review: completed
+- Freeze status: blocked by review-03 findings
 
 ## Project objective
 
@@ -134,28 +134,24 @@ The current baseline includes:
 
 ## Review status
 
-The second read-only Codex review found no Critical or High findings.
+The fresh independent read-only Codex review inspected the current repository
+at the reviewed baseline commit.
 
-All findings from the first review were verified as closed.
+It verified closure of:
 
-The targeted hardening cycle requested by the second review is complete.
+- clarification and bounded safe-stop transitions;
+- transition-specific terminal outcomes;
+- evidence blocker recomputation.
 
-Closed findings include:
+It identified two material findings:
 
-1. policy decisions from `HYPOTHESIS_READY` now have applicable lifecycle
-   transitions for clarification and bounded safe stop;
-2. Tool Result Envelopes are revalidated at the state-application boundary;
-3. terminal transitions preserve specific governed outcomes such as
-   `ANSWERED` and `DRAFT_CREATED`;
-4. invalid or timezone-naive normalized timestamps are rejected by source
-   adapters;
-5. evidence-owned readiness blockers are recomputed rather than accumulated
-   across reassessments.
+1. High: malformed metric-point timestamps can enter normalized observations
+   and affect latest-metric selection and the S01 diagnosis.
+2. Medium: Tool Result Envelope timestamps are not explicitly validated as
+   timezone-aware values at the state-application boundary.
 
-No known finding from the second review remains open.
-
-This statement records closure against that review only. A fresh independent
-review has not yet been completed.
+The deterministic S01 baseline is not ready to freeze until both findings are
+closed.
 
 ## Quality gate
 
@@ -167,23 +163,17 @@ At this checkpoint:
 
 ## Next development block
 
-Perform a fresh independent read-only Codex review in a new session.
+Close the review-03 findings in this order:
 
-The review should:
+1. validate decision-relevant metric-point timestamps during source
+   normalization and parse timestamps for latest-point selection;
+2. explicitly validate Tool Result Envelope timestamps before state
+   application;
+3. run `ruff check .` and the full regression suite;
+4. update this checkpoint;
+5. perform a fresh read-only verification before freezing S01.
 
-1. inspect the current repository rather than rely only on historical reports;
-2. verify closure of the second-review findings;
-3. search for new correctness, contract, lifecycle and test-coverage issues;
-4. distinguish real runtime risks from speculative framework expansion;
-5. avoid requiring production infrastructure claims outside Exp 18.0 scope.
-
-After the review:
-
-- fix only material findings with targeted spec, RED test and implementation
-  changes;
-- rerun the complete quality gate;
-- freeze the deterministic S01 baseline only if no material findings remain;
-- do not begin S02-S12 implementation before the freeze decision.
+Do not begin S02-S12 implementation before the freeze decision.
 
 ## Sources of truth
 

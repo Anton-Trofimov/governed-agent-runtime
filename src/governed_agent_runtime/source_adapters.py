@@ -1,6 +1,7 @@
 """Convert validated raw source responses into normalized factual observations."""
 
 from collections.abc import Callable, Mapping
+from datetime import datetime
 from typing import Any
 
 
@@ -8,6 +9,38 @@ class SourceAdapterError(ValueError):
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
+
+
+def _validate_aware_timestamp(
+    value: Any,
+    *,
+    field_name: str,
+) -> None:
+    if not isinstance(value, str):
+        raise SourceAdapterError(
+            "INVALID_SOURCE_TIMESTAMP",
+            (
+                f"{field_name} must be a timezone-aware "
+                "ISO 8601 string"
+            ),
+        )
+
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as error:
+        raise SourceAdapterError(
+            "INVALID_SOURCE_TIMESTAMP",
+            (
+                f"{field_name} must be a timezone-aware "
+                "ISO 8601 string"
+            ),
+        ) from error
+
+    if parsed.utcoffset() is None:
+        raise SourceAdapterError(
+            "INVALID_SOURCE_TIMESTAMP",
+            f"{field_name} must include a timezone offset",
+        )
 
 
 Observation = dict[str, Any]
@@ -43,12 +76,31 @@ def normalize_source(
             f"No source adapter implemented for tool: {tool_name}",
         ) from error
 
-    return normalizer(
+    observations = normalizer(
         source,
         adapter["source_type"],
         collected_at,
         raw_reference,
     )
+
+    for observation in observations:
+        observation_id = observation.get(
+            "observation_id",
+            "<unknown-observation>",
+        )
+
+        for field_name in (
+            "observed_at",
+            "collected_at",
+        ):
+            _validate_aware_timestamp(
+                observation.get(field_name),
+                field_name=(
+                    f"{observation_id}.{field_name}"
+                ),
+            )
+
+    return observations
 
 
 def _find_adapter_contract(

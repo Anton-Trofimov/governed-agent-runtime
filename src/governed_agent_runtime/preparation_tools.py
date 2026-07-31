@@ -38,7 +38,7 @@ def _validate_tool_result_envelope(
             continue
 
         if not isinstance(value, str):
-            raise ValueError(
+            raise TypeError(
                 f"{error_context} failed timestamp validation: "
                 f"{field_name} must be a timezone-aware "
                 "ISO 8601 string"

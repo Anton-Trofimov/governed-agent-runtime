@@ -111,10 +111,10 @@
       }
     },
     "resolved_fields": {
-      "$ref": "#/$defs/stringList"
+      "$ref": "#/$defs/fieldPathList"
     },
     "unresolved_fields": {
-      "$ref": "#/$defs/stringList"
+      "$ref": "#/$defs/fieldPathList"
     },
     "current_phase": {
       "enum": [
@@ -235,12 +235,10 @@
       ],
       "properties": {
         "schema_ref": {
-          "type": "string",
-          "minLength": 1
+          "const": "https://governed-agent-runtime.local/schemas/model-proposal.schema.json"
         },
         "schema_version": {
-          "type": "string",
-          "minLength": 1
+          "const": "0.1.0"
         },
         "allowed_proposal_types": {
           "type": "array",
@@ -459,6 +457,18 @@
             "null"
           ]
         }
+      }
+    },
+    "fieldPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+    },
+    "fieldPathList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/fieldPath"
       }
     }
   }

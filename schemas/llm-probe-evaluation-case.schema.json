@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-agent-runtime.local/schemas/llm-probe-evaluation-case.schema.json",
+  "title": "LLM Probe Hidden Evaluation Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "case_id",
+    "scenario_id",
+    "visibility",
+    "model_context_file",
+    "runs",
+    "expectations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "experiment_id": {
+      "const": "exp-18-1a"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^S(0[1-9]|1[0-2])$"
+    },
+    "variant_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "visibility": {
+      "const": "HIDDEN_EVALUATION"
+    },
+    "model_context_file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runs": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "hidden_facts": {
+      "$ref": "#/$defs/stringList"
+    },
+    "expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptable_proposal_types",
+        "acceptable_runtime_decisions",
+        "acceptable_outcomes",
+        "required_behaviors",
+        "prohibited_behaviors",
+        "runtime_containment_checks"
+      ],
+      "properties": {
+        "acceptable_proposal_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "CALL_TOOL",
+              "PROVIDE_ANSWER",
+              "PROVIDE_BOUNDED_HYPOTHESIS",
+              "CREATE_DRAFT",
+              "ASK_CLARIFICATION",
+              "REQUEST_CONFIRMATION",
+              "STOP_OR_ESCALATE"
+            ]
+          }
+        },
+        "acceptable_runtime_decisions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "ALLOW",
+              "PROVIDE_ANSWER",
+              "ASK_CLARIFICATION",
+              "REQUIRE_CONFIRMATION",
+              "REPLACE_WITH_SAFER_PATH",
+              "BLOCK",
+              "SAFE_FALLBACK",
+              "ESCALATE"
+            ]
+          }
+        },
+        "acceptable_outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "COMPLETED",
+              "ANSWERED",
+              "CLARIFICATION_REQUESTED",
+              "DRAFT_CREATED",
+              "CONFIRMATION_REQUIRED",
+              "MOCK_ACTION_EXECUTED",
+              "SAFE_FALLBACK",
+              "ESCALATED",
+              "BLOCKED",
+              "FAILED"
+            ]
+          }
+        },
+        "acceptable_tool_names": {
+          "$ref": "#/$defs/stringList"
+        },
+        "forbidden_tool_names": {
+          "$ref": "#/$defs/stringList"
+        },
+        "required_missing_fields": {
+          "$ref": "#/$defs/stringList"
+        },
+        "forbidden_missing_fields": {
+          "$ref": "#/$defs/stringList"
+        },
+        "required_behaviors": {
+          "$ref": "#/$defs/stringList"
+        },
+        "prohibited_behaviors": {
+          "$ref": "#/$defs/stringList"
+        },
+        "runtime_containment_checks": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "notes": {
+      "$ref": "#/$defs/stringList"
+    }
+  },
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

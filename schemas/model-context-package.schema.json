@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governed-agent-runtime.local/schemas/model-context-package.schema.json",
+  "title": "Model Context Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "context_package_id",
+    "assembled_at",
+    "user_request",
+    "session_summary",
+    "current_goal",
+    "requested_operation",
+    "resolved_target",
+    "resolved_fields",
+    "unresolved_fields",
+    "current_phase",
+    "current_task_state",
+    "relevant_service_context",
+    "observed_state_summary",
+    "evidence_summary",
+    "active_hypotheses",
+    "evidence_gaps",
+    "capability_gaps",
+    "relevant_runbooks",
+    "available_tools",
+    "applicable_constraints",
+    "remaining_budget_summary",
+    "requested_output_schema"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "context_package_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assembled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "user_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "request_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "received_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "session_summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "current_goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_operation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resolved_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "environment_id",
+        "scope"
+      ],
+      "properties": {
+        "service_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "environment_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    },
+    "resolved_fields": {
+      "$ref": "#/$defs/stringList"
+    },
+    "unresolved_fields": {
+      "$ref": "#/$defs/stringList"
+    },
+    "current_phase": {
+      "enum": [
+        "DIAGNOSE",
+        "PREPARE",
+        "EXECUTE"
+      ]
+    },
+    "current_task_state": {
+      "enum": [
+        "RECEIVED",
+        "CONTEXT_ASSEMBLED",
+        "TARGET_RESOLVED",
+        "NEEDS_CLARIFICATION",
+        "DIAGNOSING",
+        "EVIDENCE_EVALUATED",
+        "HYPOTHESIS_READY",
+        "PREPARING",
+        "ACTION_CANDIDATE",
+        "PRECONDITIONS_CHECKED",
+        "AWAITING_CONFIRMATION",
+        "EXECUTING",
+        "VERIFYING",
+        "COMPLETED",
+        "SAFE_FALLBACK",
+        "ESCALATED",
+        "BLOCKED",
+        "FAILED"
+      ]
+    },
+    "relevant_service_context": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contextSummary"
+      }
+    },
+    "observed_state_summary": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contextSummary"
+      }
+    },
+    "evidence_summary": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidenceSummary"
+      }
+    },
+    "active_hypotheses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hypothesisSummary"
+      }
+    },
+    "evidence_gaps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gapSummary"
+      }
+    },
+    "capability_gaps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gapSummary"
+      }
+    },
+    "relevant_runbooks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contextSummary"
+      }
+    },
+    "available_tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/availableTool"
+      }
+    },
+    "applicable_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/constraint"
+      }
+    },
+    "remaining_budget_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool_calls_remaining",
+        "model_calls_remaining"
+      ],
+      "properties": {
+        "tool_calls_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_calls_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_budget_remaining": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "requested_output_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_ref",
+        "schema_version",
+        "allowed_proposal_types",
+        "response_format"
+      ],
+      "properties": {
+        "schema_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_proposal_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "CALL_TOOL",
+              "PROVIDE_ANSWER",
+              "PROVIDE_BOUNDED_HYPOTHESIS",
+              "CREATE_DRAFT",
+              "ASK_CLARIFICATION",
+              "REQUEST_CONFIRMATION",
+              "STOP_OR_ESCALATE"
+            ]
+          }
+        },
+        "response_format": {
+          "const": "JSON_OBJECT"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "contextSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_id",
+        "summary"
+      ],
+      "properties": {
+        "context_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "evidenceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "summary",
+        "source_type",
+        "freshness_status"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "freshness_status": {
+          "enum": [
+            "FRESH",
+            "STALE",
+            "UNKNOWN"
+          ]
+        },
+        "observed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "hypothesisSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hypothesis_id",
+        "statement",
+        "cause_status",
+        "evidence_ids",
+        "missing_evidence"
+      ],
+      "properties": {
+        "hypothesis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cause_status": {
+          "enum": [
+            "SUPPORTED",
+            "PLAUSIBLE",
+            "UNCONFIRMED",
+            "CONTRADICTED",
+            "UNKNOWN"
+          ]
+        },
+        "evidence_ids": {
+          "$ref": "#/$defs/stringList"
+        },
+        "missing_evidence": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "gapSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gap_id",
+        "required_data",
+        "purpose"
+      ],
+      "properties": {
+        "gap_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_data": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preferred_capability": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "availableTool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool_name",
+        "category",
+        "description",
+        "input_schema"
+      ],
+      "properties": {
+        "tool_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "read_only",
+            "preparation",
+            "state_changing"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_schema": {
+          "type": "object"
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "constraint_id",
+        "description"
+      ],
+      "properties": {
+        "constraint_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "failure_effect": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

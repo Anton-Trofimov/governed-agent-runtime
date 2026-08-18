@@ -286,14 +286,16 @@ exploration. Perform one model preload or warm-up before the measured runs; the
 warm-up is not an evaluation run. Each measured run is a separate model
 invocation with otherwise identical configuration:
 
-- model identity: identical across all measured runs;
+- model identity: `qwen3.8:27b` for all measured runs;
 - model-visible context: identical for all three runs of a case;
 - `temperature=0`;
 - `seed=18`;
 - `num_ctx=8192`;
 - `num_predict=2048`;
 - `think=false`;
-- `stream=false`.
+- `stream=false`;
+- `keep_alive=10m`;
+- provider timeout: 300 seconds.
 
 The repetitions measure reproducibility and residual nondeterminism. They do
 not vary seeds or introduce stochastic sampling.
@@ -310,6 +312,24 @@ Total: 15 single-step proposals.
 
 Start with the strongest practical model available to test feasibility before
 cost optimization.
+
+### Live evidence durability
+
+Measured execution must use a clean evaluated revision and an explicit
+evidence directory outside the repository. The repository remains unchanged
+during the measured calls.
+
+For each of the 15 measured attempts, persist raw attempt evidence immediately
+after the provider call returns or fails and before proposal validation or
+deterministic runtime evaluation. The raw evidence must record the evaluated
+revision, case, run index, exact serialized model input, model identity and
+material invocation configuration, raw model response or provider failure,
+and available provider telemetry.
+
+After persisting the raw attempt evidence, perform proposal validation and
+deterministic runtime evaluation and persist the enriched result separately.
+A failure during validation, runtime evaluation or any later attempt must not
+erase previously persisted raw attempt evidence.
 
 ## Evaluation measures
 

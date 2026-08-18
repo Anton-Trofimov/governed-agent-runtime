@@ -47,6 +47,7 @@ def run_exp18_1a_measured_evaluation(
     model: _InjectedModel,
     warm_up: Callable[[_InjectedModel], None],
     evaluated_revision: str,
+    attempt_reporter: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Run one warm-up followed by the 15 fixed measured attempts."""
     _validate_configuration(model, evaluated_revision)
@@ -86,6 +87,8 @@ def run_exp18_1a_measured_evaluation(
                     policy=policy,
                     tool_contracts=tool_contracts,
                     transition_spec=transition_spec,
+                    evaluated_revision=evaluated_revision,
+                    attempt_reporter=attempt_reporter,
                 )
             )
 
@@ -115,6 +118,8 @@ def _run_measured_attempt(
     policy: dict[str, Any],
     tool_contracts: dict[str, Any],
     transition_spec: dict[str, Any],
+    evaluated_revision: str,
+    attempt_reporter: Callable[[dict[str, Any]], None] | None,
 ) -> dict[str, Any]:
     run_id = f"exp-18-1a-{case_key}-run-{run_index}"
     state = _runtime_state_from_context(context_package, run_id)
@@ -132,6 +137,14 @@ def _run_measured_attempt(
     try:
         raw_response = model(serialized_model_input)
     except (OSError, RuntimeError, ValueError, KeyError) as error:
+        _report_raw_attempt(
+            attempt_reporter,
+            evaluated_revision=evaluated_revision,
+            record=record,
+            raw_model_response=None,
+            provider_failure=str(error),
+            provider_metadata=None,
+        )
         record.update(
             {
                 "status": "MODEL_ERROR",
@@ -146,71 +159,163 @@ def _run_measured_attempt(
                 "runtime_state_after_evaluation": deepcopy(state),
             }
         )
+        _report_enriched_attempt(
+            attempt_reporter,
+            evaluated_revision=evaluated_revision,
+            record=record,
+        )
         return record
 
     record["raw_model_response"] = raw_response
     record["provider_metadata"] = deepcopy(model.last_response_metadata)
+    _report_raw_attempt(
+        attempt_reporter,
+        evaluated_revision=evaluated_revision,
+        record=record,
+        raw_model_response=raw_response,
+        provider_failure=None,
+        provider_metadata=record["provider_metadata"],
+    )
     try:
-        proposal = json.loads(raw_response)
-    except json.JSONDecodeError as error:
-        record.update(
+        try:
+            proposal = json.loads(raw_response)
+        except json.JSONDecodeError as error:
+            record.update(
+                {
+                    "status": "PROPOSAL_PARSE_ERROR",
+                    "error": str(error),
+                    "proposal": None,
+                    "validation_results": {"parse": "FAILED"},
+                    "validation_errors": {"parse": str(error)},
+                    "runtime_decision": None,
+                    "runtime_state_before_evaluation": state_before,
+                    "runtime_state_after_evaluation": deepcopy(state),
+                }
+            )
+        else:
+            validation_results = {"parse": "PASSED"}
+            validation_errors: dict[str, str] = {}
+            try:
+                _validate_schema(proposal, proposal_schema)
+            except ValidationError as error:
+                validation_results.update(
+                    {
+                        "proposal_schema": "FAILED",
+                        "proposal_context_semantics": "SKIPPED",
+                    }
+                )
+                validation_errors["proposal_schema"] = error.message
+            else:
+                validation_results["proposal_schema"] = "PASSED"
+                try:
+                    validate_proposal_context_consistency(
+                        context_package,
+                        proposal,
+                    )
+                except ValueError as error:
+                    validation_results["proposal_context_semantics"] = (
+                        "FAILED"
+                    )
+                    validation_errors["proposal_context_semantics"] = str(
+                        error
+                    )
+                else:
+                    validation_results["proposal_context_semantics"] = (
+                        "PASSED"
+                    )
+
+            runtime_decision = evaluate_proposal(
+                state,
+                proposal,
+                policy=policy,
+                tool_contracts=tool_contracts,
+                proposal_schema=proposal_schema,
+                transition_spec=transition_spec,
+            )
+            _validate_schema(runtime_decision, runtime_decision_schema)
+            record.update(
+                {
+                    "status": "COMPLETED",
+                    "error": None,
+                    "proposal": proposal,
+                    "validation_results": validation_results,
+                    "validation_errors": validation_errors,
+                    "runtime_decision": runtime_decision,
+                    "runtime_state_before_evaluation": state_before,
+                    "runtime_state_after_evaluation": deepcopy(state),
+                }
+            )
+    except Exception as error:
+        failure_record = deepcopy(record)
+        failure_record.update(
             {
-                "status": "PROPOSAL_PARSE_ERROR",
+                "status": "EVALUATION_ERROR",
                 "error": str(error),
-                "proposal": None,
-                "validation_results": {"parse": "FAILED"},
-                "validation_errors": {"parse": str(error)},
                 "runtime_decision": None,
                 "runtime_state_before_evaluation": state_before,
                 "runtime_state_after_evaluation": deepcopy(state),
             }
         )
-        return record
-
-    validation_results = {"parse": "PASSED"}
-    validation_errors: dict[str, str] = {}
-    try:
-        _validate_schema(proposal, proposal_schema)
-    except ValidationError as error:
-        validation_results.update(
-            {
-                "proposal_schema": "FAILED",
-                "proposal_context_semantics": "SKIPPED",
-            }
+        _report_enriched_attempt(
+            attempt_reporter,
+            evaluated_revision=evaluated_revision,
+            record=failure_record,
         )
-        validation_errors["proposal_schema"] = error.message
-    else:
-        validation_results["proposal_schema"] = "PASSED"
-        try:
-            validate_proposal_context_consistency(context_package, proposal)
-        except ValueError as error:
-            validation_results["proposal_context_semantics"] = "FAILED"
-            validation_errors["proposal_context_semantics"] = str(error)
-        else:
-            validation_results["proposal_context_semantics"] = "PASSED"
+        raise
 
-    runtime_decision = evaluate_proposal(
-        state,
-        proposal,
-        policy=policy,
-        tool_contracts=tool_contracts,
-        proposal_schema=proposal_schema,
-        transition_spec=transition_spec,
-    )
-    _validate_schema(runtime_decision, runtime_decision_schema)
-    record.update(
-        {
-            "status": "COMPLETED",
-            "error": None,
-            "proposal": proposal,
-            "validation_results": validation_results,
-            "validation_errors": validation_errors,
-            "runtime_decision": runtime_decision,
-            "runtime_state_before_evaluation": state_before,
-            "runtime_state_after_evaluation": deepcopy(state),
-        }
+    _report_enriched_attempt(
+        attempt_reporter,
+        evaluated_revision=evaluated_revision,
+        record=record,
     )
     return record
+
+
+def _report_raw_attempt(
+    attempt_reporter: Callable[[dict[str, Any]], None] | None,
+    *,
+    evaluated_revision: str,
+    record: dict[str, Any],
+    raw_model_response: str | None,
+    provider_failure: str | None,
+    provider_metadata: dict[str, Any] | None,
+) -> None:
+    if attempt_reporter is None:
+        return
+    attempt_reporter(
+        {
+            "event_type": "RAW",
+            "evaluated_revision": evaluated_revision,
+            "run_id": record["run_id"],
+            "case_key": record["case_key"],
+            "run_index": record["run_index"],
+            "serialized_model_input": record["serialized_model_input"],
+            "model_identity": record["model_identity"],
+            "invocation_parameters": deepcopy(
+                record["invocation_parameters"]
+            ),
+            "raw_model_response": raw_model_response,
+            "provider_failure": provider_failure,
+            "provider_metadata": deepcopy(provider_metadata),
+        }
+    )
+
+
+def _report_enriched_attempt(
+    attempt_reporter: Callable[[dict[str, Any]], None] | None,
+    *,
+    evaluated_revision: str,
+    record: dict[str, Any],
+) -> None:
+    if attempt_reporter is None:
+        return
+    attempt_reporter(
+        {
+            "event_type": "ENRICHED",
+            "evaluated_revision": evaluated_revision,
+            **deepcopy(record),
+        }
+    )
 
 
 def _base_record(

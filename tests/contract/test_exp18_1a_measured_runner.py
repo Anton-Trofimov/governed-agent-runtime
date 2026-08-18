@@ -248,3 +248,189 @@ def test_measured_runner_records_invalid_proposal_and_provider_failure() -> None
         record["status"] == "MODEL_ERROR"
         for record in result["measured_runs"]
     ) == 1
+
+
+def test_attempt_reporter_emits_raw_before_validation_and_enriched_before_next(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = measured_runner_module()
+    events: list[tuple[str, int | None]] = []
+    reported: list[dict] = []
+    model = ScriptedModel(events)
+
+    original_validate_schema = runner._validate_schema
+    original_validate_semantics = runner.validate_proposal_context_consistency
+    original_evaluate_proposal = runner.evaluate_proposal
+
+    def validate_schema(instance: object, schema: dict) -> None:
+        events.append(("schema", None))
+        original_validate_schema(instance, schema)
+
+    def validate_semantics(context: dict, proposal: dict) -> None:
+        events.append(("semantics", None))
+        original_validate_semantics(context, proposal)
+
+    def evaluate_proposal(*args: object, **kwargs: object) -> dict:
+        events.append(("runtime", None))
+        return original_evaluate_proposal(*args, **kwargs)
+
+    def report_attempt(event: dict) -> None:
+        reported.append(deepcopy(event))
+        events.append((event["event_type"], event["run_index"]))
+
+    monkeypatch.setattr(runner, "_validate_schema", validate_schema)
+    monkeypatch.setattr(
+        runner,
+        "validate_proposal_context_consistency",
+        validate_semantics,
+    )
+    monkeypatch.setattr(runner, "evaluate_proposal", evaluate_proposal)
+
+    result = runner.run_exp18_1a_measured_evaluation(
+        ROOT,
+        model=model,
+        warm_up=WarmUpSpy(events),
+        evaluated_revision="revision-under-test",
+        attempt_reporter=report_attempt,
+    )
+
+    assert len(result["measured_runs"]) == 15
+    assert len(reported) == 30
+    assert [event["event_type"] for event in reported] == [
+        event_type
+        for _ in range(15)
+        for event_type in ("RAW", "ENRICHED")
+    ]
+    assert events[1:9] == [
+        ("measured", 0),
+        ("RAW", 1),
+        ("schema", None),
+        ("semantics", None),
+        ("runtime", None),
+        ("schema", None),
+        ("ENRICHED", 1),
+        ("measured", 1),
+    ]
+
+    expected_schedule = [
+        (case_key, run_index)
+        for case_key in CASES
+        for run_index in (1, 2, 3)
+    ]
+    for call_index, (raw_event, enriched_event) in enumerate(
+        zip(reported[::2], reported[1::2], strict=True)
+    ):
+        case_key, run_index = expected_schedule[call_index]
+        assert raw_event == {
+            "event_type": "RAW",
+            "evaluated_revision": "revision-under-test",
+            "run_id": f"exp-18-1a-{case_key}-run-{run_index}",
+            "case_key": case_key,
+            "run_index": run_index,
+            "serialized_model_input": model.received_inputs[call_index],
+            "model_identity": "qwen3.8:27b",
+            "invocation_parameters": CANONICAL_PARAMETERS,
+            "raw_model_response": valid_raw_proposal(call_index),
+            "provider_failure": None,
+            "provider_metadata": model.metadata_history[call_index],
+        }
+        assert enriched_event["event_type"] == "ENRICHED"
+        assert enriched_event["evaluated_revision"] == "revision-under-test"
+        assert enriched_event["run_id"] == raw_event["run_id"]
+        assert enriched_event["case_key"] == case_key
+        assert enriched_event["run_index"] == run_index
+        assert enriched_event["serialized_model_input"] == raw_event[
+            "serialized_model_input"
+        ]
+        assert enriched_event["raw_model_response"] == raw_event[
+            "raw_model_response"
+        ]
+        assert enriched_event["status"] == "COMPLETED"
+        assert enriched_event["proposal"] == json.loads(
+            raw_event["raw_model_response"]
+        )
+        assert enriched_event["validation_results"] == {
+            "parse": "PASSED",
+            "proposal_schema": "PASSED",
+            "proposal_context_semantics": "PASSED",
+        }
+        assert enriched_event["runtime_decision"]
+
+
+def test_attempt_reporter_emits_raw_before_post_response_validation_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = measured_runner_module()
+    events: list[tuple[str, int | None]] = []
+    reported: list[dict] = []
+
+    def fail_validation(instance: object, schema: dict) -> None:
+        del instance, schema
+        events.append(("validation_failure", None))
+        raise RuntimeError("synthetic validation infrastructure failure")
+
+    def report_attempt(event: dict) -> None:
+        reported.append(deepcopy(event))
+        events.append((event["event_type"], event["run_index"]))
+
+    monkeypatch.setattr(runner, "_validate_schema", fail_validation)
+
+    with pytest.raises(RuntimeError, match="validation infrastructure"):
+        runner.run_exp18_1a_measured_evaluation(
+            ROOT,
+            model=ScriptedModel(events),
+            warm_up=WarmUpSpy(events),
+            evaluated_revision="revision-under-test",
+            attempt_reporter=report_attempt,
+        )
+
+    assert events == [
+        ("warm_up", None),
+        ("measured", 0),
+        ("RAW", 1),
+        ("validation_failure", None),
+        ("ENRICHED", 1),
+    ]
+    assert len(reported) == 2
+    assert reported[0]["event_type"] == "RAW"
+    assert reported[0]["raw_model_response"] == valid_raw_proposal(0)
+    assert reported[0]["provider_failure"] is None
+    assert reported[1]["event_type"] == "ENRICHED"
+    assert "validation infrastructure" in reported[1]["error"]
+    assert reported[1]["runtime_decision"] is None
+
+
+def test_attempt_reporter_keeps_prior_events_visible_after_provider_failure(
+) -> None:
+    runner = measured_runner_module()
+    events: list[tuple[str, int | None]] = []
+    reported: list[dict] = []
+
+    def report_attempt(event: dict) -> None:
+        reported.append(deepcopy(event))
+        events.append((event["event_type"], event["run_index"]))
+
+    result = runner.run_exp18_1a_measured_evaluation(
+        ROOT,
+        model=ScriptedModel(events, failing_call=1),
+        warm_up=WarmUpSpy(events),
+        evaluated_revision="revision-under-test",
+        attempt_reporter=report_attempt,
+    )
+
+    assert len(result["measured_runs"]) == 15
+    assert len(reported) == 30
+    first_raw, first_enriched, failed_raw, failed_enriched = reported[:4]
+    assert (first_raw["event_type"], first_enriched["event_type"]) == (
+        "RAW",
+        "ENRICHED",
+    )
+    assert first_enriched["status"] == "COMPLETED"
+    assert failed_raw["event_type"] == "RAW"
+    assert failed_raw["raw_model_response"] is None
+    assert "synthetic provider failure" in failed_raw["provider_failure"]
+    assert failed_raw["provider_metadata"] is None
+    assert failed_enriched["event_type"] == "ENRICHED"
+    assert failed_enriched["status"] == "MODEL_ERROR"
+    assert "synthetic provider failure" in failed_enriched["error"]
+    assert events.index(("ENRICHED", 1)) < events.index(("measured", 1))

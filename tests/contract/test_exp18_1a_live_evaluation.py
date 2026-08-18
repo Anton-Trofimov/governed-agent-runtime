@@ -1,5 +1,6 @@
 import importlib
 import json
+from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
 from types import ModuleType
@@ -136,7 +137,7 @@ class CheckpointingRunnerStub:
         model: FakeModel,
         warm_up: WarmUpSpy,
         evaluated_revision: str,
-        attempt_completed: object,
+        attempt_reporter: Callable[[dict], None],
     ) -> dict:
         self.revisions.append(evaluated_revision)
         warm_up(model)
@@ -145,26 +146,47 @@ class CheckpointingRunnerStub:
             context = load_exp18_1a_context(project_root, case_key)
             serialized_input = assemble_llm_probe_input(project_root, context)
             for run_index in (1, 2, 3):
+                run_id = f"exp-18-1a-{case_key}-run-{run_index}"
                 try:
                     raw_response = model(serialized_input)
                 except RuntimeError as error:
+                    provider_failure = str(error)
+                    provider_metadata = None
                     record = {
                         "status": "MODEL_ERROR",
-                        "error": str(error),
+                        "error": provider_failure,
                         "raw_model_response": None,
                         "provider_metadata": None,
                     }
                 else:
+                    provider_failure = None
+                    provider_metadata = deepcopy(model.last_response_metadata)
                     record = {
                         "status": "COMPLETED",
                         "error": None,
                         "raw_model_response": raw_response,
-                        "provider_metadata": deepcopy(
-                            model.last_response_metadata
-                        ),
+                        "provider_metadata": provider_metadata,
                     }
+                attempt_reporter(
+                    {
+                        "event_type": "RAW",
+                        "evaluated_revision": evaluated_revision,
+                        "run_id": run_id,
+                        "case_key": case_key,
+                        "run_index": run_index,
+                        "serialized_model_input": serialized_input,
+                        "model_identity": model.model_identity,
+                        "invocation_parameters": deepcopy(
+                            model.invocation_parameters
+                        ),
+                        "raw_model_response": record["raw_model_response"],
+                        "provider_failure": provider_failure,
+                        "provider_metadata": provider_metadata,
+                    }
+                )
                 record.update(
                     {
+                        "run_id": run_id,
                         "case_key": case_key,
                         "run_index": run_index,
                         "serialized_model_input": serialized_input,
@@ -175,7 +197,13 @@ class CheckpointingRunnerStub:
                     }
                 )
                 records.append(record)
-                attempt_completed(record)
+                attempt_reporter(
+                    {
+                        "event_type": "ENRICHED",
+                        "evaluated_revision": evaluated_revision,
+                        **deepcopy(record),
+                    }
+                )
         return {
             "evaluated_revision": evaluated_revision,
             "measured_runs": records,
@@ -197,7 +225,7 @@ def run_live(
         ROOT,
         evidence_directory=tmp_path / "exp18-1a-evidence",
         base_url="http://127.0.0.1:11434",
-        request_timeout_seconds=600,
+        request_timeout_seconds=300,
         git_boundary=git,
         model_factory=model_factory,
         warm_up=warm_up,
@@ -219,7 +247,7 @@ def test_dirty_repository_aborts_before_model_construction_or_warm_up(
             ROOT,
             evidence_directory=tmp_path / "evidence",
             base_url="http://127.0.0.1:11434",
-            request_timeout_seconds=600,
+            request_timeout_seconds=300,
             git_boundary=git,
             model_factory=model_factory,
             warm_up=warm_up,
@@ -241,7 +269,7 @@ def test_repository_evidence_directory_aborts_before_model_construction() -> Non
             ROOT,
             evidence_directory=ROOT / "live-evidence",
             base_url="http://127.0.0.1:11434",
-            request_timeout_seconds=600,
+            request_timeout_seconds=300,
             git_boundary=git,
             model_factory=model_factory,
             warm_up=WarmUpSpy(),
@@ -275,7 +303,7 @@ def test_live_run_binds_clean_head_canonical_model_and_manifest(
             "num_ctx": 8192,
             "num_predict": 2048,
             "keep_alive": "10m",
-            "request_timeout_seconds": 600,
+            "request_timeout_seconds": 300,
         }
     ]
 
@@ -309,12 +337,31 @@ def test_raw_checkpoint_survives_post_response_validation_failure(
             model: FakeModel,
             warm_up: WarmUpSpy,
             evaluated_revision: str,
-            attempt_completed: object,
+            attempt_reporter: Callable[[dict], None],
         ) -> dict:
-            del evaluated_revision, attempt_completed
             warm_up(model)
             context = load_exp18_1a_context(project_root, "s02")
-            model(assemble_llm_probe_input(project_root, context))
+            serialized_input = assemble_llm_probe_input(project_root, context)
+            raw_response = model(serialized_input)
+            attempt_reporter(
+                {
+                    "event_type": "RAW",
+                    "evaluated_revision": evaluated_revision,
+                    "run_id": "exp-18-1a-s02-run-1",
+                    "case_key": "s02",
+                    "run_index": 1,
+                    "serialized_model_input": serialized_input,
+                    "model_identity": model.model_identity,
+                    "invocation_parameters": deepcopy(
+                        model.invocation_parameters
+                    ),
+                    "raw_model_response": raw_response,
+                    "provider_failure": None,
+                    "provider_metadata": deepcopy(
+                        model.last_response_metadata
+                    ),
+                }
+            )
             raise RuntimeError("synthetic post-response validation failure")
 
     with pytest.raises(RuntimeError, match="post-response validation"):

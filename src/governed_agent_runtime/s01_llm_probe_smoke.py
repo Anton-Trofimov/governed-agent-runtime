@@ -91,6 +91,7 @@ def run_s01_llm_probe_smoke(
             "Use only the supplied context and requested output contract."
         ),
         "context_package": context,
+        "model_proposal_schema": proposal_schema,
     }
     serialized_model_input = json.dumps(
         invocation_payload,

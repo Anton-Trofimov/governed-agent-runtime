@@ -89,6 +89,24 @@ def raw_tool_proposal() -> str:
     )
 
 
+def raw_schema_invalid_answer_proposal() -> str:
+    return json.dumps(
+        {
+            "schema_version": "0.1.0",
+            "proposal_id": "proposal-invalid-answer-001",
+            "proposal_type": "PROVIDE_ANSWER",
+            "rationale": "Provide the observed diagnosis and next step.",
+            "payload": {
+                "diagnosis": "The service is returning elevated errors.",
+                "safest_next_step": "Collect version-specific metrics.",
+                "evidence_gaps": [],
+            },
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def collect_keys(value: object) -> set[str]:
     if isinstance(value, dict):
         keys = set(value)
@@ -211,3 +229,37 @@ def test_s01_smoke_captures_one_call_and_stops_after_runtime_evaluation() -> Non
     assert result["completed_at"]
     assert result["context_package"]["context_package_id"]
     assert result["runtime_decision"]["decision_id"]
+
+
+def test_s01_smoke_contains_schema_invalid_model_proposal() -> None:
+    smoke = smoke_module()
+    raw_response = raw_schema_invalid_answer_proposal()
+    model = SpyModel(raw_response)
+
+    result = smoke.run_s01_llm_probe_smoke(ROOT, model=model)
+
+    assert len(model.received_inputs) == 1
+    assert result["raw_model_response"] == raw_response
+    assert result["proposal"] == json.loads(raw_response)
+    assert result["validation_results"] == {
+        "context_schema": "PASSED",
+        "context_semantics": "PASSED",
+        "parse": "PASSED",
+        "proposal_schema": "FAILED",
+        "proposal_context_semantics": "SKIPPED",
+    }
+
+    decision = result["runtime_decision"]
+    validate_schema(decision, "runtime-decision.schema.json")
+    assert decision["decision"] == "BLOCK"
+    assert decision["reason_codes"] == ["INVALID_PROPOSAL_SCHEMA"]
+    assert decision["tool_execution_allowed"] is False
+
+    assert result["runtime_state_before_evaluation"] == (
+        result["runtime_state_after_evaluation"]
+    )
+    assert result["runtime_state_after_evaluation"]["execution_state"][
+        "execution_status"
+    ] == "NOT_STARTED"
+    assert not hasattr(smoke, "execute_preparation_tool")
+    assert not hasattr(smoke, "apply_runtime_decision_with_record")

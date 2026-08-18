@@ -124,6 +124,7 @@ def test_s01_smoke_builds_context_only_from_approved_inputs() -> None:
     assert {"scenario_id", "hidden_facts", "expectations"}.isdisjoint(
         collect_keys(context)
     )
+    assert "s01" not in json.dumps(context).casefold()
 
     tool_contracts = load_yaml(ROOT / "specs/core/tool-contracts.yaml")
     approved_tools = {
@@ -165,6 +166,8 @@ def test_s01_smoke_captures_one_call_and_stops_after_runtime_evaluation() -> Non
         json.loads(result["serialized_model_input"]),
         result["context_package"],
     )
+    assert "s01" not in json.dumps(result["context_package"]).casefold()
+    assert "s01" not in result["serialized_model_input"].casefold()
 
     assert result["model_identity"] == model.model_identity
     assert result["invocation_parameters"] == model.invocation_parameters

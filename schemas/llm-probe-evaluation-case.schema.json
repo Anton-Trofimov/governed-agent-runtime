@@ -55,7 +55,6 @@
       "required": [
         "acceptable_proposal_types",
         "acceptable_runtime_decisions",
-        "acceptable_next_states",
         "required_behaviors",
         "prohibited_behaviors",
         "runtime_containment_checks"

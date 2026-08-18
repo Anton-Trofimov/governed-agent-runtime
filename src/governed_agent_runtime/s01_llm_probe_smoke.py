@@ -9,6 +9,7 @@ from typing import Any, Protocol
 
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema.exceptions import ValidationError
 
 from governed_agent_runtime.contract_schema import normalize_contract_schema
 from governed_agent_runtime.evidence_engine import (
@@ -101,11 +102,29 @@ def run_s01_llm_probe_smoke(
     raw_model_response = model(serialized_model_input)
     proposal = json.loads(raw_model_response)
 
-    _validate_schema(
-        proposal,
-        project_root / "schemas/model-proposal.schema.json",
-    )
-    validate_proposal_context_consistency(context, proposal)
+    validation_results = {
+        "context_schema": "PASSED",
+        "context_semantics": "PASSED",
+        "proposal_schema": "PASSED",
+        "proposal_context_semantics": "PASSED",
+    }
+    validation_errors: dict[str, str] = {}
+    try:
+        _validate_schema(
+            proposal,
+            project_root / "schemas/model-proposal.schema.json",
+        )
+    except ValidationError as error:
+        validation_results = {
+            "context_schema": "PASSED",
+            "context_semantics": "PASSED",
+            "parse": "PASSED",
+            "proposal_schema": "FAILED",
+            "proposal_context_semantics": "SKIPPED",
+        }
+        validation_errors["proposal_schema"] = error.message
+    else:
+        validate_proposal_context_consistency(context, proposal)
 
     state_before_evaluation = deepcopy(state)
     runtime_decision = evaluate_proposal(
@@ -134,12 +153,8 @@ def run_s01_llm_probe_smoke(
         "invocation_parameters": invocation_parameters,
         "raw_model_response": raw_model_response,
         "proposal": proposal,
-        "validation_results": {
-            "context_schema": "PASSED",
-            "context_semantics": "PASSED",
-            "proposal_schema": "PASSED",
-            "proposal_context_semantics": "PASSED",
-        },
+        "validation_results": validation_results,
+        "validation_errors": validation_errors,
         "runtime_decision": runtime_decision,
         "runtime_state_before_evaluation": state_before_evaluation,
         "runtime_state_after_evaluation": state_after_evaluation,

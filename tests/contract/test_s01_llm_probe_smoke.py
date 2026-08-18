@@ -231,6 +231,34 @@ def test_s01_smoke_captures_one_call_and_stops_after_runtime_evaluation() -> Non
     assert result["runtime_decision"]["decision_id"]
 
 
+def test_s01_smoke_exposes_authoritative_proposal_schema_to_model() -> None:
+    smoke = smoke_module()
+    model = SpyModel(raw_tool_proposal())
+
+    result = smoke.run_s01_llm_probe_smoke(ROOT, model=model)
+
+    assert len(model.received_inputs) == 1
+    assert result["serialized_model_input"] == model.received_inputs[0]
+    model_input = json.loads(model.received_inputs[0])
+    assert model_input["instructions"]
+    assert model_input["context_package"] == result["context_package"]
+    assert {"scenario_id", "hidden_facts", "expectations"}.isdisjoint(
+        collect_keys(model_input)
+    )
+    assert "s01" not in model.received_inputs[0].casefold()
+
+    assert result["runtime_state_before_evaluation"] == (
+        result["runtime_state_after_evaluation"]
+    )
+    assert not hasattr(smoke, "execute_preparation_tool")
+    assert not hasattr(smoke, "apply_runtime_decision_with_record")
+
+    authoritative_schema = load_json(
+        SCHEMA_DIR / "model-proposal.schema.json"
+    )
+    assert model_input["model_proposal_schema"] == authoritative_schema
+
+
 def test_s01_smoke_contains_schema_invalid_model_proposal() -> None:
     smoke = smoke_module()
     raw_response = raw_schema_invalid_answer_proposal()

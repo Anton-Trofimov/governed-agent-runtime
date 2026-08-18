@@ -189,6 +189,58 @@ No operational or preparation tool is executed during the first probe.
 
 No autonomous loop is started.
 
+## S01 Plumbing Smoke
+
+Before running the selected evaluation cases, one S01 single-call smoke may
+validate that the proposal measurement and runtime-integration path is
+technically inspectable. It uses approved existing S01 deterministic inputs,
+not hidden acceptance or evaluation truth, to assemble the model-visible
+context. The scenario identifier and evaluator expectations do not enter the
+model input.
+
+The smoke path is:
+
+    approved S01 deterministic inputs
+    -> assemble model-visible context package
+    -> validate context schema and model-context semantics
+    -> serialize and capture the exact model invocation input
+    -> invoke one model once
+    -> capture the raw model response
+    -> parse one Model Proposal
+    -> validate proposal schema
+    -> validate proposal/context consistency
+    -> evaluate through the deterministic runtime decision boundary
+    -> record the smoke trace and result
+
+The smoke record must preserve or unambiguously reference:
+
+- the exact model-visible context package;
+- the exact serialized invocation payload supplied to the model;
+- the model identity, version or tag and material invocation parameters used;
+- the raw model response and parsed Model Proposal;
+- context, proposal-schema and proposal/context semantic-validation results;
+- the deterministic runtime decision and reason codes;
+- applicable timestamps and correlation identifiers.
+
+This record establishes an audit chain from approved model-visible inputs,
+through assembled and serialized context, to the model response. Recursive
+reserved evaluator-key validation is only defense in depth and does not prove
+the absence of semantic information leakage. Hidden evaluator truth must not
+participate in model-input construction.
+
+S01 remains a plumbing and calibration smoke only. It does not contribute to
+the planned Exp 18.1A model-quality metrics or selected-case result set, and
+the five selected cases and 15-run sample remain unchanged. Success means that
+capture, parsing, validation and deterministic runtime containment are
+exercised and inspectable; a poor model proposal may still be a successful
+smoke result when those boundaries work correctly.
+
+The smoke performs no tool execution, decision application, state mutation or
+second model step. It does not start an autonomous loop or make a model-quality
+claim. A low-cost or local model may be used because proposal quality is not
+the objective; the exact model and configuration are chosen and recorded only
+when the smoke is executed.
+
 ## Initial run design
 
 Run each selected case three times with the same model and deterministic

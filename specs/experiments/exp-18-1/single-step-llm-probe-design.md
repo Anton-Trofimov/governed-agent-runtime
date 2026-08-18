@@ -154,6 +154,20 @@ The LLM may select only tools present in `available_tools`.
 The LLM may return only proposal types allowed by the current phase and
 requested output schema.
 
+### Canonical model-input contract
+
+The provider-neutral serialized application input must make the exact
+authoritative `schemas/model-proposal.schema.json` contract visible to the
+model. It must therefore expose the allowed proposal types, the payload shape
+associated with each type, required and optional fields, and
+additional-properties restrictions. Embed the authoritative schema rather
+than maintaining a second manually duplicated description that can drift.
+
+The same schema may also be supplied through a provider structured-output
+mechanism. Provider-side schema transmission is not a substitute for including
+the contract in the model-visible application input. The repository schema
+remains authoritative in both locations.
+
 ## Runtime-owned validation
 
 The runtime independently validates:
@@ -240,6 +254,26 @@ second model step. It does not start an autonomous loop or make a model-quality
 claim. A low-cost or local model may be used because proposal quality is not
 the objective; the exact model and configuration are chosen and recorded only
 when the smoke is executed.
+
+The S01 plumbing calibration found that `num_predict=512` deterministically
+terminated at the output limit with `done_reason=length` and truncated invalid
+JSON. `num_predict=2048` is therefore the current probe baseline unless later
+bounded evidence justifies another value. `num_ctx` is not changed by this
+finding: prompt sizes for the selected evaluation cases must be measured before
+the common evaluation context budget is finalized.
+
+The same calibration compared schema transmission only through the provider
+structured-output mechanism with additionally embedding the exact schema in
+the model-visible application input. The embedded-schema variant produced a
+schema-valid and proposal/context-consistent result. This is calibration of the
+measurement interface, not Exp 18.1A model-quality evidence.
+
+**Open observation:** a schema-valid `PROVIDE_ANSWER` can contain operational
+recommendations inside its free-form `payload.answer`; the embedded-schema S01
+variant included rollback language there. Do not redesign `PROVIDE_ANSWER` from
+this calibration result alone. Evaluate the behavior across the selected
+experiment cases before deciding whether the proposal contract requires a
+semantic change.
 
 ## Initial run design
 

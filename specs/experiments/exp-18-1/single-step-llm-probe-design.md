@@ -247,6 +247,39 @@ This experiment does not prove:
 - production observability or security certification;
 - superiority of a specific agent framework.
 
+## Completion and Evidence Contract
+
+Completion of Exp 18.1A must leave enough evidence to reconstruct the design,
+the exact evaluated system, the evaluation inputs and configuration, the
+observed results and the resulting human decision.
+
+The evidence chain must distinguish:
+
+1. **Evaluated revision.** Repeated runs must use a clean Git revision that
+   contains the exact implementation, evaluator or runner, cases and fixtures,
+   and applicable configuration being evaluated. Verification status and the
+   commands or checks performed must be recorded for this revision.
+2. **Evidence revision.** Evaluation evidence must be recorded in a later
+   revision that explicitly identifies the evaluated revision. It must identify
+   the exact model version, identity or tag; relevant invocation and
+   model-visible context configuration; evaluated cases and fixtures; run
+   counts; verification status; measured results; and material limitations
+   needed to reproduce or interpret the evaluation.
+3. **Decision and optional freeze revision.** A human decision must reference
+   both the evaluated revision and its recorded evidence. A later freeze or tag
+   may be created only when that decision explicitly accepts the result as a
+   verified baseline. An ordinary successful commit is not a freeze.
+
+These responsibilities remain distinct: Git history records technical
+snapshots; completion and evaluation evidence records what was evaluated and
+observed; a review report records review findings or independent verification
+when applicable; a decision or freeze records human acceptance; and the
+CHANGELOG summarizes only meaningful milestones.
+
+This contract requires the information, not a new artifact type. Existing
+artifacts may be extended at completion time when they can carry the evidence
+unambiguously.
+
 ## Decision gate
 
 After the probe:

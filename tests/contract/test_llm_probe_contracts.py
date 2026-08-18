@@ -193,6 +193,38 @@ def test_evaluation_case_accepts_canonical_model_context_path() -> None:
     validate_schema(case, "llm-probe-evaluation-case.schema.json")
 
 
+def test_evaluation_case_may_omit_non_normative_next_state_assertion() -> None:
+    case = evaluation_case(
+        "fixtures/model-context/exp-18-1a/s08b/context-package.json"
+    )
+    del case["expectations"]["acceptable_next_states"]
+
+    validate_schema(case, "llm-probe-evaluation-case.schema.json")
+
+
+def test_evaluation_case_rejects_empty_next_state_assertion() -> None:
+    case = evaluation_case(
+        "fixtures/model-context/exp-18-1a/s08b/context-package.json"
+    )
+    case["expectations"]["acceptable_next_states"] = []
+
+    with pytest.raises(ValidationError):
+        validate_schema(case, "llm-probe-evaluation-case.schema.json")
+
+
+@pytest.mark.parametrize("invalid_state", ["NOT_A_RUNTIME_STATE", None])
+def test_evaluation_case_rejects_invalid_next_state_values(
+    invalid_state: object,
+) -> None:
+    case = evaluation_case(
+        "fixtures/model-context/exp-18-1a/s08b/context-package.json"
+    )
+    case["expectations"]["acceptable_next_states"] = [invalid_state]
+
+    with pytest.raises(ValidationError):
+        validate_schema(case, "llm-probe-evaluation-case.schema.json")
+
+
 def test_evaluation_case_rejects_model_context_path_traversal() -> None:
     case = evaluation_case(
         "fixtures/model-context/exp-18-1a/../hidden/context-package.json"

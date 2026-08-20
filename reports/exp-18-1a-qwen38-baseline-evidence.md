@@ -354,7 +354,7 @@ This report is the human-readable overview of Exp 18.1A.
 The next evidence layers are intended to serve different reviewers:
 
 - **Machine-readable aggregate:** [exp-18-1a-qwen38-baseline-evaluation.json](./exp-18-1a-qwen38-baseline-evaluation.json) — all 15 final judgments, individual checks, aggregate counts and source-evidence hashes.
-- **Detailed human semantic review:** claim-by-claim comparison of model-visible context and actual model output for the unique responses. This artifact has already been reviewed externally and is intended to be promoted into the repository as the next human-readable evidence layer.
+- **[Detailed human semantic adjudication](./reviews/exp-18-1a-qwen38-semantic-adjudication.md):** claim-by-claim human-reviewed comparison of model-visible context, actual model output, model-quality judgments and runtime outcome.
 - **Source attempts:** 15 RAW model records and 15 runtime RESULT records. They were originally written outside the repository during measured execution so the evaluated Git revision remained unchanged. After publication audit, the exact source bytes were promoted unchanged to the [repository evidence directory](../evidence/exp-18-1a-qwen38/attempts/).
 
 A reviewer should not need to inspect the entire repository to understand the reported result. The deeper artifacts exist to verify or challenge the claims in this report.

@@ -10,10 +10,10 @@ Read-only closure verification completed at HEAD `a4cc1b76602f14bbe360d8da449063
 No Critical, High, or Medium correctness findings.
 
 Verified:
-- Metric point timestamps are explicitly rejected when invalid or timezone-naive in [source_adapters.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/source_adapters.py:14) and [source_adapters.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/source_adapters.py:286).
-- Latest metric selection now parses timestamps and compares chronological datetimes in [evidence_engine.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/evidence_engine.py:683).
-- Tool Result Envelope timestamps are explicitly validated during generation and again before application in [preparation_tools.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/preparation_tools.py:15), [preparation_tools.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/preparation_tools.py:166), and [preparation_tools.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/preparation_tools.py:203).
-- Rejected preparation result application preserves input state, covered in [test_preparation_tools.py](/home/anton/projects/governed-agent-runtime/tests/unit/test_preparation_tools.py:395).
+- Metric point timestamps are explicitly rejected when invalid or timezone-naive in [source_adapters.py](../../src/governed_agent_runtime/source_adapters.py#L14) and [source_adapters.py](../../src/governed_agent_runtime/source_adapters.py#L286).
+- Latest metric selection now parses timestamps and compares chronological datetimes in [evidence_engine.py](../../src/governed_agent_runtime/evidence_engine.py#L683).
+- Tool Result Envelope timestamps are explicitly validated during generation and again before application in [preparation_tools.py](../../src/governed_agent_runtime/preparation_tools.py#L15), [preparation_tools.py](../../src/governed_agent_runtime/preparation_tools.py#L166), and [preparation_tools.py](../../src/governed_agent_runtime/preparation_tools.py#L203).
+- Rejected preparation result application preserves input state, covered in [test_preparation_tools.py](../../tests/unit/test_preparation_tools.py#L395).
 - No material contract, lifecycle, or trace regression found in the reviewed fix set.
 
 Verification run:

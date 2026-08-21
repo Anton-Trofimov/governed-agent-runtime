@@ -14,10 +14,10 @@ I verified the prior review items. Clarification/safe-stop transitions, transiti
 **High — Invalid metric point timestamps can enter normalized observations and change the S01 diagnosis**
 
 Evidence:
-- Contract says invalid timestamps must reject normalization: [specs/core/source-adapter-contracts.yaml](/home/anton/projects/governed-agent-runtime/specs/core/source-adapter-contracts.yaml:197).
-- Metric points are copied into normalized observations without validating each point timestamp: [source_adapters.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/source_adapters.py:286).
-- S01 evidence selects the latest metric point by raw string ordering: [evidence_engine.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/evidence_engine.py:683).
-- Existing negative timestamp tests cover `source_timestamp`, deployment `started_at`, and runtime event `occurred_at`, but not metric point timestamps: [test_source_adapters.py](/home/anton/projects/governed-agent-runtime/tests/unit/test_source_adapters.py:104).
+- Contract says invalid timestamps must reject normalization: [specs/core/source-adapter-contracts.yaml](../../specs/core/source-adapter-contracts.yaml#L197).
+- Metric points are copied into normalized observations without validating each point timestamp: [source_adapters.py](../../src/governed_agent_runtime/source_adapters.py#L286).
+- S01 evidence selects the latest metric point by raw string ordering: [evidence_engine.py](../../src/governed_agent_runtime/evidence_engine.py#L683).
+- Existing negative timestamp tests cover `source_timestamp`, deployment `started_at`, and runtime event `occurred_at`, but not metric point timestamps: [test_source_adapters.py](../../tests/unit/test_source_adapters.py#L104).
 
 Concrete failure scenario:
 A malformed old-version 5xx point such as `{"timestamp": "zzzz-not-a-date", "value": 0.5}` is accepted by `normalize_source()`. Because `_latest_metric()` uses `max(..., key=lambda point: point["timestamp"])`, that invalid string is treated as latest and changes `claim-s01-version-regression` from `SUPPORTED` to `UNKNOWN`, driving evidence sufficiency to `INSUFFICIENT`.
@@ -31,11 +31,11 @@ Add a negative source-adapter test for `get_service_metrics -> metric_series[*].
 **Medium — Tool Result Envelope timestamp formats are not actually enforced at the application boundary**
 
 Evidence:
-- T019 requires complete Tool Result Envelope validation before state update: [state-transition-table.yaml](/home/anton/projects/governed-agent-runtime/specs/core/state-transition-table.yaml:206).
-- The schema declares `collected_at` and `source_timestamp` as `format: date-time`: [tool-result.schema.json](/home/anton/projects/governed-agent-runtime/schemas/tool-result.schema.json:36).
-- `apply_preparation_tool_result()` validates the schema without any explicit timestamp parsing: [preparation_tools.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/preparation_tools.py:158).
-- The trace stores the nested envelope as authoritative: [execution_trace.py](/home/anton/projects/governed-agent-runtime/src/governed_agent_runtime/execution_trace.py:278), while the trace contract requires the complete validated envelope: [execution-trace-contract.md](/home/anton/projects/governed-agent-runtime/specs/core/execution-trace-contract.md:11).
-- Existing app-boundary test only removes `schema_version`; it does not mutate timestamp formats: [test_preparation_tools.py](/home/anton/projects/governed-agent-runtime/tests/unit/test_preparation_tools.py:376).
+- T019 requires complete Tool Result Envelope validation before state update: [state-transition-table.yaml](../../specs/core/state-transition-table.yaml#L206).
+- The schema declares `collected_at` and `source_timestamp` as `format: date-time`: [tool-result.schema.json](../../schemas/tool-result.schema.json#L36).
+- `apply_preparation_tool_result()` validates the schema without any explicit timestamp parsing: [preparation_tools.py](../../src/governed_agent_runtime/preparation_tools.py#L158).
+- The trace stores the nested envelope as authoritative: [execution_trace.py](../../src/governed_agent_runtime/execution_trace.py#L278), while the trace contract requires the complete validated envelope: [execution-trace-contract.md](../../specs/core/execution-trace-contract.md#L11).
+- Existing app-boundary test only removes `schema_version`; it does not mutate timestamp formats: [test_preparation_tools.py](../../tests/unit/test_preparation_tools.py#L376).
 
 Concrete failure scenario:
 An externally supplied `create_remediation_plan` execution record with `tool_result["collected_at"] = "not-a-date"` and otherwise valid fields passes the current application boundary, mutates state to `ACTION_CANDIDATE`, and can be recorded in the trace as the authoritative tool result envelope.

@@ -11,11 +11,11 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 ## Current checkpoint
 
 - Date: 2026-08-21
-- Checkpoint source commit: `47a58138f422d4a87f310125b63131569d1faba9`
+- Checkpoint source commit: `60eab6872d927dfa44472c9486a242ea53b60b1f`
 - Branch: `main`
-- Project stage: deterministic S01 baseline plus measured Exp 18.1A single-step model/runtime baseline
+- Project stage: deterministic S01 baseline plus accepted and frozen Exp 18.1A single-step Qwen baseline
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
-- Exp 18.1A status: implemented, measured, evaluated and published; no experiment-specific freeze/tag has been created
+- Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
 - License: Apache License 2.0 in `LICENSE`, with attribution in `NOTICE`
 - Current regression count: not asserted by this checkpoint; run the current suite before relying on a count
@@ -84,11 +84,14 @@ Relevant revisions:
 - evaluated revision used for the 15 calls: `b68878cbf6d5d3557d75e1b567d9dd646302e2cc`;
 - final grading/tooling revision: `03b6fd52669271ad0a74237138c75708ed1ca215`;
 - baseline evidence revision: `391804b2d4a017ca084114a8fff950bd537f8602`;
-- published semantic-review revision: `4fef19fcf2ab7738c43d6575fcff517b67d89c7a`.
+- published semantic-review revision: `4fef19fcf2ab7738c43d6575fcff517b67d89c7a`;
+- freeze decision revision: `60eab6872d927dfa44472c9486a242ea53b60b1f`;
+- freeze tag: `exp-18-1a-qwen38-baseline-freeze`.
 
 Evidence navigation:
 
 - project synthesis: `RESULTS-AND-DECISIONS.md`;
+- freeze decision: `reports/decisions/exp-18-1a-qwen38-baseline-freeze.md`;
 - human experiment report: `reports/exp-18-1a-qwen38-baseline-evidence.md`;
 - detailed semantic review: `reports/reviews/exp-18-1a-qwen38-semantic-adjudication.md`;
 - machine-readable aggregate: `reports/exp-18-1a-qwen38-baseline-evaluation.json`;
@@ -100,18 +103,17 @@ The current evidence supports keeping the deterministic runtime as the operation
 
 The evidence does not establish production readiness, safe multi-step autonomy, cross-model reliability, favorable economics, reduced operator effort, user value or business value. No model comparison has been completed.
 
-Exp 18.1A remains bounded to the evaluated model, fixed configuration, five context packages, single proposal, deterministic runtime boundary and published evidence set. The experiment report records evidence but is not itself a freeze decision.
+Exp 18.1A is formally accepted and frozen as the reference single-step Qwen baseline. Its claim boundary remains limited to the evaluated model, fixed configuration, five context packages, single proposal, deterministic runtime boundary and published evidence set.
 
 ## Next validation path
 
-The next work should build from the published baseline without retroactively changing it:
+The next work should build from the frozen baseline without retroactively changing it:
 
-1. record the Exp 18.1A baseline decision and freeze the accepted reference without rewriting its evidence;
-2. run a controlled S12 reasoning follow-up to test whether additional reasoning improves grounding or produces more unsupported detail;
-3. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
-4. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
-5. compare additional models inside the same controlled boundary;
-6. validate operator usefulness and business value against an appropriate fixed-workflow or human baseline.
+1. run a controlled S12 reasoning follow-up to test whether additional reasoning improves grounding or produces more unsupported detail;
+2. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
+3. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
+4. compare additional models inside the same controlled boundary;
+5. validate operator usefulness and business value against an appropriate fixed-workflow or human baseline.
 
 These are future validation stages, not completed project claims.
 

@@ -120,8 +120,9 @@ def _run_measured_attempt(
     transition_spec: dict[str, Any],
     evaluated_revision: str,
     attempt_reporter: Callable[[dict[str, Any]], None] | None,
+    run_id_prefix: str = "exp-18-1a",
 ) -> dict[str, Any]:
-    run_id = f"exp-18-1a-{case_key}-run-{run_index}"
+    run_id = f"{run_id_prefix}-{case_key}-run-{run_index}"
     state = _runtime_state_from_context(context_package, run_id)
     state_before = deepcopy(state)
     record = _base_record(

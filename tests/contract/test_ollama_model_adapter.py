@@ -49,6 +49,7 @@ PROVIDER_METADATA = {
     "eval_count": 128,
     "eval_duration": 6_000_000_000,
 }
+MODEL_ARTIFACT_DIGEST = "sha256:provider-model-artifact"
 
 
 def ollama_adapter_module() -> ModuleType:
@@ -69,12 +70,31 @@ def fake_ollama_server() -> Iterator[tuple[str, list[dict]]]:
     requests: list[dict] = []
 
     class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            requests.append({"path": self.path, "method": "GET"})
+            response = {
+                "models": [
+                    {
+                        "name": "qwen3.8:27b",
+                        "model": "qwen3.8:27b",
+                        "digest": MODEL_ARTIFACT_DIGEST,
+                    }
+                ]
+            }
+            encoded = json.dumps(response).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            self.wfile.write(encoded)
+
         def do_POST(self) -> None:
             content_length = int(self.headers["Content-Length"])
             body = self.rfile.read(content_length)
             requests.append(
                 {
                     "path": self.path,
+                    "method": "POST",
                     "payload": json.loads(body),
                 }
             )
@@ -136,6 +156,7 @@ def test_ollama_generate_adapter_preserves_request_and_response_boundary() -> No
     assert len(requests) == 1
     request = requests[0]
     assert request["path"] == "/api/generate"
+    assert request["method"] == "POST"
     assert request["payload"] == {
         "model": "qwen3.8:27b",
         "prompt": serialized_smoke_input,
@@ -167,3 +188,51 @@ def test_ollama_generate_adapter_preserves_request_and_response_boundary() -> No
     assert returned_response == RAW_MODEL_RESPONSE
     assert model.last_response_metadata == PROVIDER_METADATA
     assert "context" not in model.last_response_metadata
+
+
+def test_ollama_generate_adapter_propagates_explicit_thinking_mode() -> None:
+    adapter_module = ollama_adapter_module()
+
+    with fake_ollama_server() as (base_url, requests):
+        model = adapter_module.OllamaGenerateModel(
+            base_url=base_url,
+            model_identity="qwen3.8:27b",
+            model_artifact_identity="sha256:current-model-artifact",
+            model_schema=PROPOSAL_SCHEMA,
+            temperature=0,
+            seed=18,
+            num_ctx=8192,
+            num_predict=2048,
+            think=True,
+            keep_alive="10m",
+            request_timeout_seconds=300,
+        )
+        model("canonical-input")
+
+    assert requests[0]["payload"]["think"] is True
+    assert model.invocation_parameters["think"] is True
+    assert model.model_artifact_identity == "sha256:current-model-artifact"
+
+
+def test_ollama_adapter_resolves_artifact_identity_from_provider_inventory() -> None:
+    adapter_module = ollama_adapter_module()
+
+    with fake_ollama_server() as (base_url, requests):
+        model = adapter_module.OllamaGenerateModel(
+            base_url=base_url,
+            model_identity="qwen3.8:27b",
+            model_artifact_identity="untrusted-caller-value",
+            model_schema=PROPOSAL_SCHEMA,
+            temperature=0,
+            seed=18,
+            num_ctx=8192,
+            num_predict=2048,
+            think=True,
+            keep_alive="10m",
+            request_timeout_seconds=300,
+        )
+        resolved = model.resolve_model_artifact_identity()
+
+    assert requests == [{"path": "/api/tags", "method": "GET"}]
+    assert resolved == MODEL_ARTIFACT_DIGEST
+    assert model.model_artifact_identity == MODEL_ARTIFACT_DIGEST

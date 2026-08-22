@@ -173,7 +173,7 @@ def test_measured_runner_schedules_canonical_hidden_safe_inputs() -> None:
         context = load_exp18_1a_context(ROOT, case_key)
         canonical_input = assemble_llm_probe_input(ROOT, context)
 
-        assert record["run_id"]
+        assert record["run_id"] == f"exp-18-1a-{case_key}-run-{run_index}"
         assert record["case_key"] == case_key
         assert record["run_index"] == run_index
         assert record["model_identity"] == "qwen3.8:27b"

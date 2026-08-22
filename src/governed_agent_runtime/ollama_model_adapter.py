@@ -55,6 +55,23 @@ class OllamaGenerateModel:
         self.last_request_payload: dict[str, Any] | None = None
         self.last_response_metadata: dict[str, Any] | None = None
 
+    def resolve_provider_version(self) -> str:
+        """Resolve the authoritative Ollama server version."""
+        request = Request(
+            f"{self.base_url}/api/version",
+            method="GET",
+        )
+        with urlopen(
+            request,
+            timeout=self.request_timeout_seconds,
+        ) as response:
+            response_payload = json.loads(response.read().decode("utf-8"))
+
+        provider_version = response_payload.get("version")
+        if not isinstance(provider_version, str) or not provider_version:
+            raise ValueError("Ollama provider version is unavailable")
+        return provider_version
+
     def resolve_model_artifact_identity(self) -> str:
         """Resolve and retain this model tag's digest from Ollama inventory."""
         request = Request(

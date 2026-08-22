@@ -72,15 +72,18 @@ def fake_ollama_server() -> Iterator[tuple[str, list[dict]]]:
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
             requests.append({"path": self.path, "method": "GET"})
-            response = {
-                "models": [
-                    {
-                        "name": "qwen3.8:27b",
-                        "model": "qwen3.8:27b",
-                        "digest": MODEL_ARTIFACT_DIGEST,
-                    }
-                ]
-            }
+            if self.path == "/api/version":
+                response = {"version": "0.12.3-test"}
+            else:
+                response = {
+                    "models": [
+                        {
+                            "name": "qwen3.8:27b",
+                            "model": "qwen3.8:27b",
+                            "digest": MODEL_ARTIFACT_DIGEST,
+                        }
+                    ]
+                }
             encoded = json.dumps(response).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -236,3 +239,25 @@ def test_ollama_adapter_resolves_artifact_identity_from_provider_inventory() -> 
     assert requests == [{"path": "/api/tags", "method": "GET"}]
     assert resolved == MODEL_ARTIFACT_DIGEST
     assert model.model_artifact_identity == MODEL_ARTIFACT_DIGEST
+
+
+def test_ollama_adapter_resolves_authoritative_provider_version() -> None:
+    adapter_module = ollama_adapter_module()
+
+    with fake_ollama_server() as (base_url, requests):
+        model = adapter_module.OllamaGenerateModel(
+            base_url=base_url,
+            model_identity="qwen3.8:27b",
+            model_schema=PROPOSAL_SCHEMA,
+            temperature=0,
+            seed=18,
+            num_ctx=8192,
+            num_predict=2048,
+            think=True,
+            keep_alive="10m",
+            request_timeout_seconds=300,
+        )
+        provider_version = model.resolve_provider_version()
+
+    assert requests == [{"path": "/api/version", "method": "GET"}]
+    assert provider_version == "0.12.3-test"

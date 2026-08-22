@@ -16,13 +16,15 @@ evidence.
 
 ## Project purpose
 
-This repository is a controlled AI Platform laboratory project for designing
-and evaluating a governed agent and tool runtime.
+This repository develops and evaluates a governed runtime for bounded agent
+behavior in a synthetic payment-api incident-response environment.
 
-The current implementation is the deterministic Exp 18.0 S01 vertical for a
-synthetic payment-api incident scenario.
+The current baselines are the deterministic Exp 18.0 S01 vertical and the
+frozen Exp 18.1A single-step Qwen proposal evaluation for a synthetic
+payment-api incident environment.
 
-An LLM may later propose actions. The LLM is not the control plane.
+An LLM may interpret controlled context and produce bounded proposals. The LLM
+is not the control plane.
 
 The deterministic runtime owns:
 
@@ -55,21 +57,66 @@ Do not modify a specification merely to make existing Python code pass.
 
 Resolve contradictions explicitly.
 
-## SDD workflow
+## Progressive context loading
+
+Load the minimum authoritative context needed for the bounded concern. A fresh
+session should normally follow:
+
+    AGENTS.md
+    -> current Git state and accepted baseline
+    -> bounded concern
+    -> specs/README.md concern router
+    -> applicable authoritative specifications
+    -> affected formal contracts
+    -> affected implementation
+    -> relevant tests or evaluations
+    -> verification
+    -> evidence and decision handoff when applicable
+
+Formal contracts include JSON Schemas, state-transition tables, tool and
+source-adapter contracts, proposal and runtime-decision interfaces, and other
+machine-readable or formal behavioral boundaries.
+
+Do not load the whole repository by default. Do not require the external
+reusable SDD Operating Model for routine project work.
+
+## Human intent authority
+
+Human intent is authoritative. A narrow task is not permission to broaden,
+weaken or replace product intent, requirements, acceptance criteria, policy,
+architecture or shared contracts.
+
+When a narrow task conflicts with higher-level authority:
+
+    detect conflict
+    -> stop the affected path
+    -> surface the conflict
+    -> human decides
+    -> update the durable authoritative artifact if intent changes
+    -> continue only after that update
+
+Passing tests does not demonstrate preservation of intent when requirements,
+contracts or tests were weakened or redefined at the same time.
+
+## Bounded-change workflow
 
 Use this sequence for material changes:
 
-1. inspect the current specification and contracts;
-2. update or add the normative specification;
-3. add a focused failing test;
+1. identify the bounded concern and applicable authority;
+2. update the normative specification when behavior or intent changes;
+3. add a focused failing test when an executable contract is required;
 4. implement the smallest justified change;
-5. run targeted tests;
-6. run the full regression suite;
-7. record experiment or review results when appropriate;
-8. update the current development handoff when the baseline materially changes.
+5. run targeted and required regression checks;
+6. record evidence, review or decision results when applicable;
+7. obtain an explicit human disposition before starting the next meaningful
+   bounded change;
+8. update the current handoff when the baseline materially changes.
 
 A RED test must fail for the intended contract violation, not because of an
 unrelated import, fixture, signature or syntax error.
+
+A freeze or tag is optional. Create one only when a human intentionally selects
+a durable reference baseline.
 
 ## Repository boundaries
 
@@ -91,18 +138,19 @@ runtime scan the repository broadly for context or evidence.
 
 ## Current implementation boundaries
 
-The current deterministic proof is S01-specific.
+The deterministic Exp 18.0 proof remains S01-specific. Exp 18.1A is a frozen
+single-step evaluation boundary, not a bounded agent loop.
 
 Do not prematurely generalize the S01 evidence engine or scenario logic before
 the S02-S12 scenario matrix requires it.
 
 Do not introduce:
 
-- LLM integration beyond the bounded Exp 18.1A single-step shadow probe
-  before the deterministic S02-S12 baseline is implemented and reviewed;
-- tool execution, autonomous looping or model-authorized state mutation inside
-  Exp 18.1A;
-- a bounded agent loop before the single-step baseline is evaluated;
+- retrospective changes to the frozen Exp 18.1A evidence or adjudication to
+  match later experiments;
+- uncontrolled tool execution, autonomous looping or model-authorized state
+  mutation;
+- a bounded agent loop without a separately specified and verified change;
 - LangChain, LangGraph, Langfuse or another framework without demonstrated
   implementation value;
 - production infrastructure claims based on deterministic mocks;
@@ -146,6 +194,30 @@ Use the project virtual environment and run:
 Use targeted tests while developing, then run the full regression suite before
 committing a completed logical block.
 
+Required verification gates are blocking. A failed required check stops the
+dependent next step until the failure is resolved or the gate is intentionally
+changed through its proper authority and review path. Use fail-fast command
+sequencing for dependent checks where appropriate; no single shell syntax is
+required for every environment.
+
+## Evaluation evidence
+
+Decision-relevant measured evidence must identify the evaluated Git revision
+and material execution, model and runtime configuration where applicable.
+Development output, calibration smokes and ad hoc runs are not accepted
+evidence automatically.
+
+Accepted or promoted decision-relevant evidence must not be changed merely to
+satisfy formatting, lint or style preferences. Evidence integrity and
+provenance take precedence over cosmetic cleanup. Ordinary mutable
+documentation remains subject to normal formatting and quality rules.
+
+For decision-relevant AI evaluations, preserve or expose human-inspectable
+representative model-visible inputs and relevant outputs or traces. Include
+anomalous, failing or high-risk outputs where applicable. Exhaustive manual
+inspection of every run is not required unless the active evaluation contract
+requires it.
+
 ## Git discipline
 
 Keep commits atomic and aligned with the SDD sequence.
@@ -177,3 +249,11 @@ Do not duplicate detailed normative contracts from `specs/` into README or
 status files. Link to the authoritative files instead.
 
 Placeholder documents must not be presented as implemented truth.
+
+## Methodology boundary
+
+The reusable SDD Operating Model is not a runtime dependency or mandatory
+context for routine coding sessions. This file, the specification router, the
+applicable project-local specifications and contracts, relevant tests or
+evaluations, and the active bounded task should provide the minimum correct
+working context.

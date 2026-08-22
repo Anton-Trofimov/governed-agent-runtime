@@ -101,11 +101,21 @@ def fake_ollama_server() -> Iterator[tuple[str, list[dict]]]:
                     "payload": json.loads(body),
                 }
             )
-            response = {
-                **PROVIDER_METADATA,
-                "response": RAW_MODEL_RESPONSE,
-                "context": list(range(100)),
-            }
+            if self.path == "/api/chat":
+                response = {
+                    **PROVIDER_METADATA,
+                    "message": {
+                        "role": "assistant",
+                        "thinking": "diagnostic reasoning only",
+                        "content": RAW_MODEL_RESPONSE,
+                    },
+                }
+            else:
+                response = {
+                    **PROVIDER_METADATA,
+                    "response": RAW_MODEL_RESPONSE,
+                    "context": list(range(100)),
+                }
             encoded = json.dumps(response).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -215,6 +225,49 @@ def test_ollama_generate_adapter_propagates_explicit_thinking_mode() -> None:
     assert requests[0]["payload"]["think"] is True
     assert model.invocation_parameters["think"] is True
     assert model.model_artifact_identity == "sha256:current-model-artifact"
+
+
+def test_ollama_chat_adapter_preserves_complete_envelope_and_returns_content() -> None:
+    adapter_module = ollama_adapter_module()
+    serialized_input = '{"exact":"s12-input"}'
+
+    with fake_ollama_server() as (base_url, requests):
+        model = adapter_module.OllamaChatModel(
+            base_url=base_url,
+            model_identity="qwen3.8:27b",
+            model_schema=PROPOSAL_SCHEMA,
+            temperature=0.6,
+            seed=18,
+            num_ctx=8192,
+            num_predict=2048,
+            think=True,
+            keep_alive="10m",
+            request_timeout_seconds=300,
+        )
+        returned = model(serialized_input)
+
+    assert requests[0]["path"] == "/api/chat"
+    assert requests[0]["payload"] == {
+        "model": "qwen3.8:27b",
+        "messages": [{"role": "user", "content": serialized_input}],
+        "stream": False,
+        "think": True,
+        "format": PROPOSAL_SCHEMA,
+        "keep_alive": "10m",
+        "options": {
+            "temperature": 0.6,
+            "seed": 18,
+            "num_ctx": 8192,
+            "num_predict": 2048,
+        },
+    }
+    assert returned == RAW_MODEL_RESPONSE
+    assert returned != "diagnostic reasoning only"
+    assert model.last_response_envelope["message"]["thinking"] == (
+        "diagnostic reasoning only"
+    )
+    assert model.last_raw_response_body == json.dumps(model.last_response_envelope)
+    assert model.last_response_metadata["thinking"] == "diagnostic reasoning only"
 
 
 def test_ollama_adapter_resolves_artifact_identity_from_provider_inventory() -> None:

@@ -1,4 +1,4 @@
-"""Provider boundary for one local Ollama Generate API invocation."""
+"""Provider boundaries for local Ollama Generate and Chat invocations."""
 
 import json
 from copy import deepcopy
@@ -54,6 +54,9 @@ class OllamaGenerateModel:
         }
         self.last_request_payload: dict[str, Any] | None = None
         self.last_response_metadata: dict[str, Any] | None = None
+        self.last_response_envelope: dict[str, Any] | None = None
+        self.last_raw_response_body: str | None = None
+        self.provider_endpoint = "/api/generate"
 
     def resolve_provider_version(self) -> str:
         """Resolve the authoritative Ollama server version."""
@@ -128,11 +131,62 @@ class OllamaGenerateModel:
             request,
             timeout=self.request_timeout_seconds,
         ) as response:
-            response_payload = json.loads(response.read().decode("utf-8"))
+            self.last_raw_response_body = response.read().decode("utf-8")
+            response_payload = json.loads(self.last_raw_response_body)
 
+        self.last_response_envelope = deepcopy(response_payload)
         self.last_response_metadata = {
             field: response_payload[field]
             for field in _RESPONSE_METADATA_FIELDS
             if field in response_payload
         }
         return response_payload["response"]
+
+
+class OllamaChatModel(OllamaGenerateModel):
+    """Call one configured Ollama model through ``POST /api/chat``."""
+
+    def __init__(self, **configuration: Any) -> None:
+        super().__init__(**configuration)
+        self.provider_endpoint = "/api/chat"
+
+    def __call__(self, serialized_input: str) -> str:
+        """Return submitted chat content while retaining the full envelope."""
+        self.last_response_metadata = None
+        self.last_response_envelope = None
+        self.last_raw_response_body = None
+        payload = {
+            "model": self.model_identity,
+            "messages": [{"role": "user", "content": serialized_input}],
+            "stream": self.invocation_parameters["stream"],
+            "think": self.invocation_parameters["think"],
+            "format": self.model_schema,
+            "keep_alive": self.invocation_parameters["keep_alive"],
+            "options": {
+                "temperature": self.invocation_parameters["temperature"],
+                "seed": self.invocation_parameters["seed"],
+                "num_ctx": self.invocation_parameters["num_ctx"],
+                "num_predict": self.invocation_parameters["num_predict"],
+            },
+        }
+        self.last_request_payload = payload
+        request = Request(
+            f"{self.base_url}/api/chat",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(request, timeout=self.request_timeout_seconds) as response:
+            self.last_raw_response_body = response.read().decode("utf-8")
+            response_payload = json.loads(self.last_raw_response_body)
+
+        self.last_response_envelope = deepcopy(response_payload)
+        self.last_response_metadata = {
+            field: response_payload[field]
+            for field in _RESPONSE_METADATA_FIELDS
+            if field in response_payload
+        }
+        message = response_payload["message"]
+        if "thinking" in message:
+            self.last_response_metadata["thinking"] = message["thinking"]
+        return message["content"]

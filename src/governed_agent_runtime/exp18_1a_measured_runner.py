@@ -121,8 +121,13 @@ def _run_measured_attempt(
     evaluated_revision: str,
     attempt_reporter: Callable[[dict[str, Any]], None] | None,
     run_id_prefix: str = "exp-18-1a",
+    runtime_requires_valid_structure: bool = False,
+    include_case_in_run_id: bool = True,
 ) -> dict[str, Any]:
-    run_id = f"{run_id_prefix}-{case_key}-run-{run_index}"
+    if include_case_in_run_id:
+        run_id = f"{run_id_prefix}-{case_key}-run-{run_index}"
+    else:
+        run_id = f"{run_id_prefix}-run-{run_index}"
     state = _runtime_state_from_context(context_package, run_id)
     state_before = deepcopy(state)
     record = _base_record(
@@ -225,23 +230,34 @@ def _run_measured_attempt(
                         "PASSED"
                     )
 
-            runtime_decision = evaluate_proposal(
-                state,
-                proposal,
-                policy=policy,
-                tool_contracts=tool_contracts,
-                proposal_schema=proposal_schema,
-                transition_spec=transition_spec,
+            structure_valid = (
+                validation_results.get("proposal_schema") == "PASSED"
             )
-            _validate_schema(runtime_decision, runtime_decision_schema)
+            if runtime_requires_valid_structure and not structure_valid:
+                runtime_decision = None
+                runtime_evaluation_status = "NOT_REACHED"
+                status = "PROPOSAL_VALIDATION_ERROR"
+            else:
+                runtime_decision = evaluate_proposal(
+                    state,
+                    proposal,
+                    policy=policy,
+                    tool_contracts=tool_contracts,
+                    proposal_schema=proposal_schema,
+                    transition_spec=transition_spec,
+                )
+                _validate_schema(runtime_decision, runtime_decision_schema)
+                runtime_evaluation_status = "COMPLETED"
+                status = "COMPLETED"
             record.update(
                 {
-                    "status": "COMPLETED",
+                    "status": status,
                     "error": None,
                     "proposal": proposal,
                     "validation_results": validation_results,
                     "validation_errors": validation_errors,
                     "runtime_decision": runtime_decision,
+                    "runtime_evaluation_status": runtime_evaluation_status,
                     "runtime_state_before_evaluation": state_before,
                     "runtime_state_after_evaluation": deepcopy(state),
                 }

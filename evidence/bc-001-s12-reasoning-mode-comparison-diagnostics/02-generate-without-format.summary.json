@@ -1,0 +1,31 @@
+{
+  "call_index": 2,
+  "call_name": "generate-without-format",
+  "done": true,
+  "done_reason": "stop",
+  "endpoint": "/api/generate",
+  "eval_count": 2047,
+  "exact_changed_variable": "top-level format omitted only",
+  "final_content_character_count": 3975,
+  "final_content_parses_as_json": true,
+  "final_content_present": true,
+  "final_content_validates_as_model_proposal": true,
+  "final_json_parse_error": null,
+  "http_status": 200,
+  "model_proposal_validation_error": null,
+  "prompt_eval_count": 3494,
+  "raw_response_byte_count": 34620,
+  "raw_response_sha256": "883bb075d478f9f462d1ad65f0e2b2bab594d05eb8447456f984615ad7dd34ff",
+  "response_envelope_json_parse_error": null,
+  "thinking_character_count": 4324,
+  "thinking_present": true,
+  "total_duration": 28418246151,
+  "unsupported_operational_criteria_in_final": [
+    "5% threshold",
+    "1% threshold"
+  ],
+  "unsupported_operational_criteria_in_thinking": [
+    "5% threshold",
+    "1% threshold"
+  ]
+}

@@ -17,6 +17,18 @@ The current measured baseline is:
 
 The three model-quality failures all occurred in S12. The LLM selected the permitted planning step, but added plausible operational thresholds that were not present in the supplied evidence. The runtime still kept the workflow inside the allowed preparation boundary and did not execute an operational action.
 
+BC-001 subsequently tested `think=true` for S12. All three canonical calls
+returned populated reasoning content but an empty submitted-final response, so
+no Model Proposal reached runtime evaluation and semantic grounding could not be
+fairly adjudicated. The human disposition is **Inconclusive due to integration
+confounder**. Containment remained three of three PASS only because no tool
+execution or normalized-state mutation occurred; runtime policy evaluation was
+`NOT_REACHED`.
+
+BC-001 navigation: [evidence report](./reports/bc-001-s12-reasoning-mode-comparison-evidence.md),
+[disposition](./reports/decisions/bc-001-s12-reasoning-mode-comparison-disposition.md),
+and [non-canonical diagnostics](./evidence/bc-001-s12-reasoning-mode-comparison-diagnostics/).
+
 This distinction drives several of the current project decisions below.
 
 ## 1. Solution hypothesis — governed runtime around the model
@@ -188,6 +200,8 @@ The project currently supports these claims:
 - the current Qwen `qwen3.8:27b` baseline passed model-quality evaluation in 12 of 15 measured attempts and runtime containment in all 15;
 - schema-valid structured output can still contain unsupported semantic detail;
 - the published Exp 18.1A result is traceable from synthesis to human review, machine aggregate, and individual source attempts.
+- BC-001 preserved containment but did not answer the reasoning-quality question
+  because its canonical provider boundary produced no submitted final response.
 
 The project does **not** currently establish:
 
@@ -206,7 +220,9 @@ The current baseline is useful because it defines a controlled starting point fo
 
 The planned sequence is:
 
-1. **S12 reasoning follow-up:** Does enabling extended reasoning help the model distinguish supplied operational facts from plausible-but-unsupported assumptions under otherwise comparable conditions?
+1. **BC-002 chat-interface reasoning comparison:** Compare `think=false` and
+   `think=true` using the same `/api/chat` boundary so both branches have their
+   own controlled submitted-proposal path.
 2. **Bounded multi-step runtime:** Evaluate a governed loop across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition, and trace.
 3. **Failure handling and runtime economics:** Measure failures, retries, latency, tokens, tool usage, containment, and cost per useful outcome.
 4. **Model comparison:** Compare models inside the same control and observation boundary rather than changing the surrounding system together with the model.

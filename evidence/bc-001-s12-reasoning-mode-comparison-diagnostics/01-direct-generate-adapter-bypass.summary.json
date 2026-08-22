@@ -1,0 +1,29 @@
+{
+  "call_index": 1,
+  "call_name": "direct-generate-adapter-bypass",
+  "done": true,
+  "done_reason": "stop",
+  "endpoint": "/api/generate",
+  "eval_count": 645,
+  "exact_changed_variable": "adapter bypass only",
+  "final_content_character_count": 0,
+  "final_content_parses_as_json": false,
+  "final_content_present": false,
+  "final_content_validates_as_model_proposal": false,
+  "final_json_parse_error": null,
+  "http_status": 200,
+  "model_proposal_validation_error": null,
+  "prompt_eval_count": 3494,
+  "raw_response_byte_count": 22579,
+  "raw_response_sha256": "74fc972d2391e42ec3f4707a88b0d1216774a8be13daad2f4865b9cfb4e7aa3c",
+  "response_envelope_json_parse_error": null,
+  "thinking_character_count": 2595,
+  "thinking_present": true,
+  "total_duration": 85067635554,
+  "unsupported_operational_criteria_in_final": [],
+  "unsupported_operational_criteria_in_thinking": [
+    "1% threshold",
+    "120-second rule",
+    "90% threshold"
+  ]
+}

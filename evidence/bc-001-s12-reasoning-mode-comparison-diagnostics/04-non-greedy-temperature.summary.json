@@ -1,0 +1,28 @@
+{
+  "call_index": 4,
+  "call_name": "non-greedy-temperature",
+  "done": true,
+  "done_reason": "stop",
+  "endpoint": "/api/generate",
+  "eval_count": 811,
+  "exact_changed_variable": "temperature 0 to 0.6 only",
+  "final_content_character_count": 0,
+  "final_content_parses_as_json": false,
+  "final_content_present": false,
+  "final_content_validates_as_model_proposal": false,
+  "final_json_parse_error": null,
+  "http_status": 200,
+  "model_proposal_validation_error": null,
+  "prompt_eval_count": 3494,
+  "raw_response_byte_count": 23976,
+  "raw_response_sha256": "c5eb70054d55be8eae3d546a630fa3b58645259f8782eb5ed074083ea80c93c6",
+  "response_envelope_json_parse_error": null,
+  "thinking_character_count": 3270,
+  "thinking_present": true,
+  "total_duration": 12430831302,
+  "unsupported_operational_criteria_in_final": [],
+  "unsupported_operational_criteria_in_thinking": [
+    "5% threshold",
+    "1% threshold"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "call_index": 3,
+  "call_name": "chat-endpoint",
+  "done": true,
+  "done_reason": "stop",
+  "endpoint": "/api/chat",
+  "eval_count": 955,
+  "exact_changed_variable": "interface endpoint /api/generate to /api/chat only",
+  "final_content_character_count": 3805,
+  "final_content_parses_as_json": true,
+  "final_content_present": true,
+  "final_content_validates_as_model_proposal": true,
+  "final_json_parse_error": null,
+  "http_status": 200,
+  "model_proposal_validation_error": null,
+  "prompt_eval_count": 4547,
+  "raw_response_byte_count": 8715,
+  "raw_response_sha256": "b146d3132de17816b737d5751a432f5a9647ef2e89ec0a7f2b5d9c5e6afc259c",
+  "response_envelope_json_parse_error": null,
+  "thinking_character_count": 4324,
+  "thinking_present": true,
+  "total_duration": 29173519114,
+  "unsupported_operational_criteria_in_final": [
+    "5% threshold",
+    "1% threshold"
+  ],
+  "unsupported_operational_criteria_in_thinking": [
+    "5% threshold",
+    "1% threshold"
+  ]
+}

@@ -10,10 +10,10 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 
 ## Current checkpoint
 
-- Date: 2026-08-21
-- Checkpoint source commit: `60eab6872d927dfa44472c9486a242ea53b60b1f`
+- Date: 2026-08-22
+- Checkpoint source commit: `679e63fa696950924511cccb85ad70e6a75d828c`
 - Branch: `main`
-- Project stage: deterministic S01 baseline plus accepted and frozen Exp 18.1A single-step Qwen baseline
+- Project stage: frozen Exp 18.1A baseline, completed BC-001, and active BC-002
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
@@ -105,11 +105,41 @@ The evidence does not establish production readiness, safe multi-step autonomy, 
 
 Exp 18.1A is formally accepted and frozen as the reference single-step Qwen baseline. Its claim boundary remains limited to the evaluated model, fixed configuration, five context packages, single proposal, deterministic runtime boundary and published evidence set.
 
+## BC-001 reasoning-mode comparison
+
+BC-001 ran three canonical S12 `/api/generate` calls with `think=true` and
+JSON-schema structured output at evaluated revision
+`e4aab95ea78295d0d90cb877832057c85c2f5fe6`. All three returned populated
+reasoning content and an empty submitted-final response. Structured submission
+failed three of three, runtime evaluation was `NOT_REACHED`, and semantic
+grounding could not be fairly adjudicated from submitted proposals.
+
+Runtime containment was three of three PASS only because no unauthorized tool
+execution or normalized-state mutation occurred. This does not imply that
+runtime policy gates evaluated or admitted a proposal.
+
+Human disposition: **INCONCLUSIVE DUE TO INTEGRATION CONFOUNDER**.
+
+Canonical evidence and closure records:
+
+- source evidence: `evidence/bc-001-s12-reasoning-mode-comparison/`;
+- factual report: `reports/bc-001-s12-reasoning-mode-comparison-evidence.md`;
+- decision: `reports/decisions/bc-001-s12-reasoning-mode-comparison-disposition.md`;
+- non-canonical diagnostic evidence:
+  `evidence/bc-001-s12-reasoning-mode-comparison-diagnostics/`.
+
+Separate non-canonical diagnostics isolated the strongest bounded diagnosis to
+an interaction involving `/api/generate`, reasoning mode, and structured
+JSON-schema output. They explain the confounder but are not BC-001 decision
+evidence.
+
 ## Next validation path
 
 The next work should build from the frozen baseline without retroactively changing it:
 
-1. run a controlled S12 reasoning follow-up to test whether additional reasoning improves grounding or produces more unsupported detail;
+1. implement and evaluate BC-002 using chat-based control and treatment branches
+   to revisit the S12 semantic-grounding question without treating BC-001 or its
+   diagnostics as the experimental control;
 2. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
 3. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
 4. compare additional models inside the same controlled boundary;

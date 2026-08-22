@@ -11,9 +11,9 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 ## Current checkpoint
 
 - Date: 2026-08-22
-- Checkpoint source commit: `679e63fa696950924511cccb85ad70e6a75d828c`
+- Checkpoint source commit: `a572c4a81457d108f52e92be507596122793e229`
 - Branch: `main`
-- Project stage: frozen Exp 18.1A baseline, completed BC-001, and active BC-002
+- Project stage: frozen Exp 18.1A baseline, completed BC-001 and BC-002; next bounded decision pending
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
@@ -101,7 +101,7 @@ Evidence navigation:
 
 The current evidence supports keeping the deterministic runtime as the operational control plane and evaluating model reasoning separately from runtime containment. It also demonstrates that valid structured output can contain unsupported semantic detail that deterministic schema and policy checks do not judge.
 
-The evidence does not establish production readiness, safe multi-step autonomy, cross-model reliability, favorable economics, reduced operator effort, user value or business value. No model comparison has been completed.
+The evidence does not establish production readiness, safe multi-step autonomy, cross-model reliability, favorable economics, reduced operator effort, user value or business value. No cross-model comparison has been completed.
 
 Exp 18.1A is formally accepted and frozen as the reference single-step Qwen baseline. Its claim boundary remains limited to the evaluated model, fixed configuration, five context packages, single proposal, deterministic runtime boundary and published evidence set.
 
@@ -133,13 +133,37 @@ an interaction involving `/api/generate`, reasoning mode, and structured
 JSON-schema output. They explain the confounder but are not BC-001 decision
 evidence.
 
+## BC-002 chat-interface reasoning comparison
+
+BC-002 removed BC-001's integration confounder by comparing both branches on
+the same chat interface. CONTROL (`/api/chat`, `think=false`) and TREATMENT
+(`/api/chat`, `think=true`) each used one excluded preload followed by three
+measured S12 calls. Think was the sole treatment variable.
+
+All six measured calls produced submitted finals, passed structured validation,
+and reached runtime evaluation. Containment remained three of three PASS in
+both branches; no tool executed and normalized runtime state did not mutate.
+
+Human semantic adjudication found zero of three PASS in CONTROL and zero of
+three PASS in TREATMENT. Reasoning preserved materially more supplied
+operational detail, but it also introduced unsupported governing thresholds and
+criteria. Human disposition: **NOT SUPPORTED**.
+
+Canonical evidence and closure records:
+
+- source evidence:
+  `evidence/bc-002-s12-reasoning-comparison-chat-interface/`;
+- factual report:
+  `reports/bc-002-s12-reasoning-comparison-chat-interface-evidence.md`;
+- decision:
+  `reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md`.
+
 ## Next validation path
 
-The next work should build from the frozen baseline without retroactively changing it:
+The next work requires an explicit human decision and prospective specification.
+Possible later validation stages, not selected current work, are:
 
-1. implement and evaluate BC-002 using chat-based control and treatment branches
-   to revisit the S12 semantic-grounding question without treating BC-001 or its
-   diagnostics as the experimental control;
+1. respond narrowly to the unsupported governing criteria observed in BC-002;
 2. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
 3. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
 4. compare additional models inside the same controlled boundary;

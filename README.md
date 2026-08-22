@@ -98,6 +98,28 @@ Those thresholds were not present in the supplied evidence. The deterministic ru
 
 This is why the two dimensions are reported separately: runtime control worked as designed in all 15 attempts, while semantic model quality still exposed a meaningful residual risk.
 
+## BC-002 — S12 reasoning comparison on `/api/chat`
+
+BC-002 compared two branches using the same S12 context, recorded Qwen model
+artifact, Ollama provider and fixed configuration:
+
+- **CONTROL (`/api/chat`, `think=false`):** one excluded preload followed by
+  three measured calls.
+- **TREATMENT (`/api/chat`, `think=true`):** one excluded preload followed by
+  three measured calls.
+
+Both branches produced structured-valid submissions in 3/3 calls and retained
+runtime containment in 3/3 calls. Semantic grounding was 0/3 PASS in both
+branches. Reasoning preserved materially more supplied operational detail, but
+still introduced unsupported governing thresholds and criteria. The BC-002
+disposition is **NOT SUPPORTED**.
+
+This result is bounded to S12, the recorded `qwen3.8:27b` artifact, Ollama and
+invocation configuration, and three measured calls per branch. See the
+[evidence report](./reports/bc-002-s12-reasoning-comparison-chat-interface-evidence.md),
+[disposition](./reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md),
+and [published evidence bundle](./evidence/bc-002-s12-reasoning-comparison-chat-interface/).
+
 ## Development approach — SDD and harnesses
 
 The project uses Specification-Driven Development together with explicit harnesses for both AI-assisted development and agent execution.
@@ -291,7 +313,7 @@ The current work supports a bounded governed-runtime architecture in which model
 
 Exp 18.1A also exposed an important remaining boundary. The runtime correctly controlled the permitted action path and prevented execution, but the LLM still introduced unsupported details inside free-text plan fields. Those details required an independent semantic review because the current deterministic runtime does not evaluate every free-text statement for grounding. A separate semantic evaluator may automate part of that review in future, but that is a different responsibility from deterministic runtime control.
 
-The next validation stages expand the system toward bounded multi-step agent behavior, comparison of reasoning configurations and models, controlled tool interaction, failure handling, latency and token economics, and ultimately measurable user and business outcomes.
+The next validation stages expand the system toward bounded multi-step agent behavior, further reasoning and cross-model comparisons, controlled tool interaction, failure handling, latency and token economics, and ultimately measurable user and business outcomes.
 
 The level of autonomy should grow only where the architecture, observed quality, and risk of the action justify it.
 

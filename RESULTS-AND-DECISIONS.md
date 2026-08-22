@@ -29,6 +29,18 @@ BC-001 navigation: [evidence report](./reports/bc-001-s12-reasoning-mode-compari
 [disposition](./reports/decisions/bc-001-s12-reasoning-mode-comparison-disposition.md),
 and [non-canonical diagnostics](./evidence/bc-001-s12-reasoning-mode-comparison-diagnostics/).
 
+BC-002 then established a common `/api/chat` control and treatment boundary.
+CONTROL (`/api/chat`, `think=false`) and TREATMENT (`/api/chat`, `think=true`)
+both produced three of three structured-valid submissions, reached runtime
+evaluation three of three times, and retained containment three of three times.
+Reasoning preserved materially more supplied operational detail, but it also
+introduced unsupported governing thresholds and criteria. Semantic grounding
+remained 0/3 PASS in both branches. The human disposition is **Not supported**.
+
+BC-002 navigation: [evidence report](./reports/bc-002-s12-reasoning-comparison-chat-interface-evidence.md),
+[disposition](./reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md),
+and [published evidence bundle](./evidence/bc-002-s12-reasoning-comparison-chat-interface/).
+
 This distinction drives several of the current project decisions below.
 
 ## 1. Solution hypothesis — governed runtime around the model
@@ -202,6 +214,9 @@ The project currently supports these claims:
 - the published Exp 18.1A result is traceable from synthesis to human review, machine aggregate, and individual source attempts.
 - BC-001 preserved containment but did not answer the reasoning-quality question
   because its canonical provider boundary produced no submitted final response.
+- BC-002 removed that integration confounder on `/api/chat`; reasoning retained
+  more supplied S12 detail, but semantic grounding remained 0/3 PASS in both
+  control and treatment while containment remained 3/3 PASS in both.
 
 The project does **not** currently establish:
 
@@ -220,9 +235,9 @@ The current baseline is useful because it defines a controlled starting point fo
 
 The planned sequence is:
 
-1. **BC-002 chat-interface reasoning comparison:** Compare `think=false` and
-   `think=true` using the same `/api/chat` boundary so both branches have their
-   own controlled submitted-proposal path.
+1. **Next bounded decision:** Select the next meaningful response to BC-002's
+   unsupported governing criteria; do not begin implementation without human
+   disposition and a prospective specification.
 2. **Bounded multi-step runtime:** Evaluate a governed loop across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition, and trace.
 3. **Failure handling and runtime economics:** Measure failures, retries, latency, tokens, tool usage, containment, and cost per useful outcome.
 4. **Model comparison:** Compare models inside the same control and observation boundary rather than changing the surrounding system together with the model.

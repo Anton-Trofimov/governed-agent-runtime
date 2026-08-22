@@ -21,6 +21,7 @@ Load only the rows relevant to the bounded task, then inspect the affected schem
 | Execution trace | [`core/execution-trace-contract.md`](./core/execution-trace-contract.md) | Governed lineage from proposal through decision, result and state application | Active | Current |
 | Exp 18.0 and deterministic S01 | [`experiments/exp-18-0/experiment-scope.md`](./experiments/exp-18-0/experiment-scope.md), [`experiment-plan.md`](./experiments/exp-18-0/experiment-plan.md), [`acceptance-cases.yaml`](./experiments/exp-18-0/acceptance-cases.yaml), [`evaluation-plan.md`](./experiments/exp-18-0/evaluation-plan.md) | Original deterministic scope, S01–S12 acceptance matrix and evaluation plan; only the S01 implementation is formally frozen | Active; S01 frozen | Current scenario/evaluation authority; frozen S01 is a historical reference |
 | Exp 18.1A single-step Qwen baseline | [`experiments/exp-18-1/single-step-llm-probe-design.md`](./experiments/exp-18-1/single-step-llm-probe-design.md) | Model-visible input, selected cases, single-call evaluation, grading separation and evidence contract | Frozen | Historical reference; current accepted single-step baseline |
+| BC-001 S12 reasoning mode comparison | [`bounded-changes/bc-001-s12-reasoning-mode-comparison.md`](./bounded-changes/bc-001-s12-reasoning-mode-comparison.md) | Controlled S12 `think=true` comparison against the frozen Exp 18.1A S12 baseline | Active | Current bounded change |
 
 The `Lifecycle` and `Relevance` columns are the project-local authority for current applicability. Existing artifact-local `Status`, `Spec version`, specification-family markers and similar legacy metadata are non-authoritative for current lifecycle and applicability and must not override this router.
 
@@ -51,6 +52,7 @@ Identifiers preserve historical names. Their prefix denotes a stable entity or c
 | Form | Existing use | Authority or note |
 | --- | --- | --- |
 | `exp-18-0`, `Exp 18.1A`, `Exp 18.1B` | Experiment or bounded experiment slice | Machine/path forms and human-readable forms differ historically; preserve the established form in each artifact. `Exp 18.1B` is an existing planned label in the frozen Exp 18.1A design, not the current active bounded change |
+| `BC-001` | Prospective bounded change | Established by the active S12 reasoning-mode comparison. Use `BC-*` only for explicitly selected prospective bounded changes; do not retrofit historical artifacts |
 | `S01`–`S12` | Acceptance-scenario identities | Defined in Exp 18.0 acceptance cases; do not rename |
 | `S08A`, `S08B` | Exp 18.1A evaluation variants of historical S08 | Useful probe labels, while hidden evaluation records retain canonical `scenario_id: S08`; preserve this distinction |
 | `G01_*`–`G10_*` | Ordered deterministic runtime gates | Defined in `core/policy-spec.yaml` |
@@ -59,4 +61,7 @@ Identifiers preserve historical names. Their prefix denotes a stable entity or c
 | `DA001`, `CINV01`–`CINV08` | Decision-application and confirmation-invalidation rules | Existing specialized rule categories; do not normalize them into another prefix |
 | snake-case names such as `create_remediation_plan` | Tool identities | Defined by `core/tool-contracts.yaml`; tools do not use a separate numeric prefix |
 
-No `BC`, `REQ` or `AC` identifier family is established for this project. Do not retrofit one into historical artifacts; its usefulness and granularity remain a prospective question for a future bounded change.
+No `REQ` or `AC` identifier family is established for this project. Keep
+requirements and acceptance criteria as concise sections within the applicable
+`BC-*` specification. Do not retrofit `BC-*` or another identifier family into
+historical artifacts.

@@ -12,8 +12,8 @@ from uuid import uuid4
 from governed_agent_runtime import bc003_s12_first_step as _probe
 from governed_agent_runtime.bc001_live_evaluation import _run_required_verification
 from governed_agent_runtime.exp18_1a_live_evaluation import (
-    _SubprocessGitBoundary,
     _atomic_write_json,
+    _SubprocessGitBoundary,
 )
 from governed_agent_runtime.ollama_model_adapter import OllamaChatModel
 

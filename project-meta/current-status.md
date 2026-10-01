@@ -10,10 +10,10 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 
 ## Current checkpoint
 
-- Date: 2026-08-22
-- Checkpoint source commit: `a572c4a81457d108f52e92be507596122793e229`
-- Branch: `main`
-- Project stage: frozen Exp 18.1A baseline, completed BC-001 and BC-002; next bounded decision pending
+- Date: 2026-10-01
+- Checkpoint source commit: `5d4781016c05a55961ffe9b14724183aff6b898f`
+- Branch: `bc-003-s12-first-step-assessment`
+- Project stage: BC-003 S12 first-step implementation complete; measured model calls blocked pending pre-run human/SDD review
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
@@ -157,6 +157,25 @@ Canonical evidence and closure records:
   `reports/bc-002-s12-reasoning-comparison-chat-interface-evidence.md`;
 - decision:
   `reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md`.
+
+## BC-003 S12 first-step assessment
+
+BC-003 is the active bounded change responding to the S12/BC-002 semantic-grounding failure without expanding operational authority.
+
+Implemented boundary:
+
+```text
+EVIDENCE_EVALUATED
+→ one model assessment / PROVIDE_BOUNDED_HYPOTHESIS proposal
+→ deterministic runtime evaluation
+→ HYPOTHESIS_READY
+```
+
+The model-visible fixture supplies one fixed two-minute rollout-health observation window, an authoritative deterministic `rollout_health_gate=FAILED` result, explicit capacity policy, and deterministic 6/7/8-replica capacity findings. The LLM does not calculate the health-gate outcome or own capacity arithmetic.
+
+The implementation adds BC-003-local fixture, evaluator, runner/live harness and focused contract tests while leaving core runtime, state, schemas, confirmation, tool paths and frozen historical evidence unchanged.
+
+Measured model calls have **not** started. Before the first measured call, human/SDD review must approve the exact revision, fixture, evaluator criteria, model/configuration and run command.
 
 ## Next validation path
 

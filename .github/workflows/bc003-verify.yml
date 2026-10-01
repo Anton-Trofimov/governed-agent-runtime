@@ -10,13 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install
         run: python -m pip install -e ".[dev]"
       - name: Diff check
-        run: git diff --check HEAD^ HEAD
+        run: git diff --check 09818e08db807cee462e6c65d57ec32ada195b57 HEAD --
       - name: Ruff
         run: ruff check .
       - name: Pytest

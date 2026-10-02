@@ -22,10 +22,15 @@ _REQUEST_TIMEOUT_SECONDS = 300
 _RUN_INDEXES = (1, 2, 3)
 _CONTEXT_PATH = Path("fixtures/model-context/bc-003/s12/context-package.json")
 _INVOCATION_PARAMETERS = {
-    "temperature": 0.6,
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "repeat_penalty": 1.0,
     "seed": 18,
-    "num_ctx": 8192,
-    "num_predict": 2048,
+    "num_ctx": 32768,
+    "num_predict": 8192,
     "think": True,
     "stream": False,
     "keep_alive": "10m",
@@ -132,6 +137,9 @@ def run_bc003_first_step(
         record["serialized_model_input_sha256"] = input_sha256
         record["request_timeout_seconds"] = model.request_timeout_seconds
         record["runtime_evaluation_status"] = _runtime_status(record)
+        record["generation_budget_diagnostics"] = _generation_budget_diagnostics(
+            model
+        )
         record["evaluation_dimensions"] = _evaluation_dimensions(record)
         measured_runs.append(record)
 
@@ -224,6 +232,7 @@ def _run_preload(
         "completed": True,
         "included_in_measured_runs": False,
         "decision_evidence_eligible": False,
+        "generation_budget_diagnostics": _generation_budget_diagnostics(model),
     }
 
 
@@ -260,6 +269,7 @@ def _raw_event(
         "provider_request_payload": deepcopy(model.last_request_payload),
         "raw_provider_response_body": model.last_raw_response_body,
         "provider_response_envelope": deepcopy(model.last_response_envelope),
+        "generation_budget_diagnostics": _generation_budget_diagnostics(model),
     }
 
 
@@ -295,12 +305,41 @@ def _measured_reporter(
                     "serialized_model_input_sha256": input_sha256,
                     "request_timeout_seconds": model.request_timeout_seconds,
                     "runtime_evaluation_status": _runtime_status(event),
+                    "generation_budget_diagnostics": (
+                        _generation_budget_diagnostics(model)
+                    ),
                     "evaluation_dimensions": _evaluation_dimensions(event),
                 }
             )
         attempt_reporter(enriched)
 
     return report
+
+
+def _generation_budget_diagnostics(model: _Model) -> dict[str, Any]:
+    metadata = model.last_response_metadata or {}
+    envelope = model.last_response_envelope or {}
+    message = envelope.get("message", {}) if isinstance(envelope, dict) else {}
+    eval_count = metadata.get("eval_count")
+    num_predict = model.invocation_parameters.get("num_predict")
+    done_reason = metadata.get("done_reason")
+    near_limit = (
+        isinstance(eval_count, int)
+        and isinstance(num_predict, int)
+        and num_predict > 0
+        and eval_count >= int(num_predict * 0.95)
+    )
+    return {
+        "num_ctx": model.invocation_parameters.get("num_ctx"),
+        "num_predict": num_predict,
+        "prompt_eval_count": metadata.get("prompt_eval_count"),
+        "eval_count": eval_count,
+        "done_reason": done_reason,
+        "thinking_characters": len(message.get("thinking", "")),
+        "final_content_characters": len(message.get("content", "")),
+        "near_num_predict_limit": near_limit,
+        "suspected_truncation": done_reason == "length" or near_limit,
+    }
 
 
 def _runtime_status(record: dict[str, Any]) -> str:

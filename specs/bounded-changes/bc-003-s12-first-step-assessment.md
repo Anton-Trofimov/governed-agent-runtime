@@ -86,6 +86,8 @@ rollout_state = PAUSED
 
 The LLM does not compute this outcome and must not invent controller thresholds. Exact internal controller thresholds are not required to reproduce BC-003 because the controller is not replayed in this experiment: the fixed gate result is scenario authority. If a later experiment replays the controller, its thresholds must be specified prospectively in that experiment's normative artifact before execution.
 
+Fixture timestamps are synthetic scenario timestamps, not wall-clock measured-run timestamps. Actual execution time is recorded separately in the measured-run manifest.
+
 ### Capacity policy
 
 Authoritative policy:
@@ -146,20 +148,35 @@ The exact wording is not prescribed.
 
 ## Fixed model/provider configuration
 
-BC-003 reuses the most recent working BC-002 treatment-side provider boundary as a fixed configuration, not as a comparison:
+BC-003 uses one fixed canonical Qwen3.8 thinking configuration:
 
 - provider endpoint: `/api/chat`;
 - model tag: `qwen3.8:27b`;
 - `think=true`;
-- `temperature=0.6`;
+- `temperature=1.0`;
+- `top_p=0.95`;
+- `top_k=20`;
+- `min_p=0.0`;
+- `presence_penalty=0.0`;
+- `repeat_penalty=1.0`;
 - `seed=18`;
-- `num_ctx=8192`;
-- `num_predict=2048`;
+- `num_ctx=32768`;
+- `num_predict=8192`;
 - `stream=false`;
 - `keep_alive=10m`;
 - provider timeout: `300s`.
 
-One excluded preload uses the exact same serialized input and fixed configuration. Then three measured attempts are run. Sample size and configuration must not change after outputs are observed.
+One excluded preload uses the exact same serialized input and fixed configuration. Then three measured attempts are run. The same seed is intentionally retained across the canonical pool to maximize reproducibility. Sample size and configuration must not change after outputs are observed.
+
+A secondary stochastic-sensitivity pool with different prospectively fixed seeds may be designed after the canonical disposition. It is not part of the canonical BC-003 evidence and must not alter the interpretation of the first three measured attempts.
+
+### Generation-budget review
+
+The measured evidence must preserve provider `prompt_eval_count`, `eval_count`, `done_reason`, the separate reasoning channel, final content, `num_ctx` and `num_predict`.
+
+After the canonical pool, generation-budget diagnostics are reviewed before semantic disposition. A run is treated as potentially budget-constrained when the provider reports a length stop or generation approaches the configured `num_predict` limit. Such a case is an experiment/integration confounder, not an automatic semantic model-quality failure.
+
+If the canonical pool is materially budget-constrained, do not change limits between remaining attempts. Prospectively revise the configuration and rerun the complete preload + three-attempt pool under one new exact revision/configuration.
 
 ## PASS / FAIL
 

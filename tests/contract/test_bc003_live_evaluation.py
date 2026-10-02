@@ -56,6 +56,11 @@ class FakeChatModel:
         self.provider_endpoint = "/api/chat"
         self.invocation_parameters = {
             "temperature": configuration["temperature"],
+            "top_p": configuration["top_p"],
+            "top_k": configuration["top_k"],
+            "min_p": configuration["min_p"],
+            "presence_penalty": configuration["presence_penalty"],
+            "repeat_penalty": configuration["repeat_penalty"],
             "seed": configuration["seed"],
             "num_ctx": configuration["num_ctx"],
             "num_predict": configuration["num_predict"],
@@ -88,12 +93,18 @@ class FakeChatModel:
             "model": self.model_identity,
             "message": {"thinking": "diagnostic", "content": content},
             "done": True,
+            "done_reason": "stop",
+            "prompt_eval_count": 600,
+            "eval_count": 900,
         }
         self.last_raw_response_body = json.dumps(self.last_response_envelope)
         self.last_response_metadata = {
             "model": self.model_identity,
             "thinking": "diagnostic",
             "done": True,
+            "done_reason": "stop",
+            "prompt_eval_count": 600,
+            "eval_count": 900,
         }
         return content
 
@@ -135,13 +146,27 @@ def test_live_boundary_persists_one_preload_and_three_measured_attempts(
 
     assert len(factory.calls) == 1
     assert factory.calls[0]["think"] is True
-    assert factory.calls[0]["temperature"] == 0.6
+    assert factory.calls[0]["temperature"] == 1.0
+    assert factory.calls[0]["top_p"] == 0.95
+    assert factory.calls[0]["top_k"] == 20
+    assert factory.calls[0]["min_p"] == 0.0
+    assert factory.calls[0]["presence_penalty"] == 0.0
+    assert factory.calls[0]["repeat_penalty"] == 1.0
+    assert factory.calls[0]["seed"] == 18
+    assert factory.calls[0]["num_ctx"] == 32768
+    assert factory.calls[0]["num_predict"] == 8192
     assert len(factory.models[0].received_inputs) == 4
     manifest = json.loads((evidence / "manifest.json").read_text())
     assert manifest["bounded_change_id"] == "BC-003"
     assert manifest["expected_measured_call_count"] == 3
     assert manifest["model_artifact_identity"] == DIGEST
     assert manifest["written_evidence_files"] == manifest["expected_evidence_files"]
+    assert manifest["post_run_budget_review_required"] is True
+    assert len(manifest["generation_budget_diagnostics"]) == 3
+    assert all(
+        not item["suspected_truncation"]
+        for item in manifest["generation_budget_diagnostics"]
+    )
     assert len(result["measured_runs"]) == 3
     assert (evidence / "preload/bc-003-s12-preload.raw.json").exists()
     schema_path = ROOT / "schemas/model-proposal.schema.json"

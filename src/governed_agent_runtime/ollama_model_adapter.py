@@ -18,6 +18,13 @@ _RESPONSE_METADATA_FIELDS = (
     "eval_duration",
     "thinking",
 )
+_OPTIONAL_SAMPLING_FIELDS = (
+    "top_p",
+    "top_k",
+    "min_p",
+    "presence_penalty",
+    "repeat_penalty",
+)
 
 
 class OllamaGenerateModel:
@@ -36,6 +43,11 @@ class OllamaGenerateModel:
         keep_alive: str,
         request_timeout_seconds: float,
         think: bool = False,
+        top_p: float | None = None,
+        top_k: int | None = None,
+        min_p: float | None = None,
+        presence_penalty: float | None = None,
+        repeat_penalty: float | None = None,
         model_artifact_identity: str | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
@@ -52,6 +64,20 @@ class OllamaGenerateModel:
             "stream": False,
             "keep_alive": keep_alive,
         }
+        optional_sampling = {
+            "top_p": top_p,
+            "top_k": top_k,
+            "min_p": min_p,
+            "presence_penalty": presence_penalty,
+            "repeat_penalty": repeat_penalty,
+        }
+        self.invocation_parameters.update(
+            {
+                name: value
+                for name, value in optional_sampling.items()
+                if value is not None
+            }
+        )
         self.last_request_payload: dict[str, Any] | None = None
         self.last_response_metadata: dict[str, Any] | None = None
         self.last_response_envelope: dict[str, Any] | None = None
@@ -112,12 +138,7 @@ class OllamaGenerateModel:
             "think": self.invocation_parameters["think"],
             "format": self.model_schema,
             "keep_alive": self.invocation_parameters["keep_alive"],
-            "options": {
-                "temperature": self.invocation_parameters["temperature"],
-                "seed": self.invocation_parameters["seed"],
-                "num_ctx": self.invocation_parameters["num_ctx"],
-                "num_predict": self.invocation_parameters["num_predict"],
-            },
+            "options": self._request_options(),
         }
         self.last_request_payload = payload
         request = Request(
@@ -142,6 +163,22 @@ class OllamaGenerateModel:
         }
         return response_payload["response"]
 
+    def _request_options(self) -> dict[str, Any]:
+        options = {
+            "temperature": self.invocation_parameters["temperature"],
+            "seed": self.invocation_parameters["seed"],
+            "num_ctx": self.invocation_parameters["num_ctx"],
+            "num_predict": self.invocation_parameters["num_predict"],
+        }
+        options.update(
+            {
+                field: self.invocation_parameters[field]
+                for field in _OPTIONAL_SAMPLING_FIELDS
+                if field in self.invocation_parameters
+            }
+        )
+        return options
+
 
 class OllamaChatModel(OllamaGenerateModel):
     """Call one configured Ollama model through ``POST /api/chat``."""
@@ -162,12 +199,7 @@ class OllamaChatModel(OllamaGenerateModel):
             "think": self.invocation_parameters["think"],
             "format": self.model_schema,
             "keep_alive": self.invocation_parameters["keep_alive"],
-            "options": {
-                "temperature": self.invocation_parameters["temperature"],
-                "seed": self.invocation_parameters["seed"],
-                "num_ctx": self.invocation_parameters["num_ctx"],
-                "num_predict": self.invocation_parameters["num_predict"],
-            },
+            "options": self._request_options(),
         }
         self.last_request_payload = payload
         request = Request(

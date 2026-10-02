@@ -67,10 +67,15 @@ class ModelStub:
         self.request_timeout_seconds = 300
         self.provider_endpoint = "/api/chat"
         self.invocation_parameters = {
-            "temperature": 0.6,
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 20,
+            "min_p": 0.0,
+            "presence_penalty": 0.0,
+            "repeat_penalty": 1.0,
             "seed": 18,
-            "num_ctx": 8192,
-            "num_predict": 2048,
+            "num_ctx": 32768,
+            "num_predict": 8192,
             "think": True,
             "stream": False,
             "keep_alive": "10m",
@@ -97,12 +102,18 @@ class ModelStub:
             "model": self.model_identity,
             "message": {"thinking": "diagnostic", "content": content},
             "done": True,
+            "done_reason": "stop",
+            "prompt_eval_count": 600,
+            "eval_count": 900,
         }
         self.last_raw_response_body = json.dumps(self.last_response_envelope)
         self.last_response_metadata = {
             "model": self.model_identity,
             "thinking": "diagnostic",
             "done": True,
+            "done_reason": "stop",
+            "prompt_eval_count": 600,
+            "eval_count": 900,
         }
         return content
 
@@ -157,6 +168,11 @@ def test_bc003_valid_hypothesis_routes_to_hypothesis_ready_without_execution() -
         assert record["evaluation_dimensions"]["runtime_control_containment"][
             "status"
         ] == "PASS"
+        budget = record["generation_budget_diagnostics"]
+        assert budget["num_ctx"] == 32768
+        assert budget["num_predict"] == 8192
+        assert budget["eval_count"] == 900
+        assert budget["suspected_truncation"] is False
 
 
 def test_bc003_configuration_drift_blocks_before_provider_inference() -> None:
@@ -173,3 +189,26 @@ def test_bc003_configuration_drift_blocks_before_provider_inference() -> None:
         )
 
     assert model.received_inputs == []
+
+
+def test_bc003_budget_diagnostic_flags_generation_near_limit() -> None:
+    model = ModelStub()
+    model.last_response_metadata = {
+        "done_reason": "length",
+        "prompt_eval_count": 600,
+        "eval_count": 8192,
+    }
+    model.last_response_envelope = {
+        "message": {"thinking": "x" * 20, "content": "{}"}
+    }
+
+    from governed_agent_runtime.bc003_s12_first_step import (
+        _generation_budget_diagnostics,
+    )
+
+    diagnostic = _generation_budget_diagnostics(model)
+
+    assert diagnostic["near_num_predict_limit"] is True
+    assert diagnostic["suspected_truncation"] is True
+    assert diagnostic["thinking_characters"] == 20
+    assert diagnostic["final_content_characters"] == 2

@@ -20,10 +20,15 @@ from governed_agent_runtime.ollama_model_adapter import OllamaChatModel
 _MODEL_IDENTITY = "qwen3.8:27b"
 _TIMEOUT = 300
 _PARAMETERS = {
-    "temperature": 0.6,
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "repeat_penalty": 1.0,
     "seed": 18,
-    "num_ctx": 8192,
-    "num_predict": 2048,
+    "num_ctx": 32768,
+    "num_predict": 8192,
     "think": True,
     "stream": False,
     "keep_alive": "10m",
@@ -70,6 +75,11 @@ def run_bc003_live_evaluation(
         model_identity=_MODEL_IDENTITY,
         model_schema=schema,
         temperature=_PARAMETERS["temperature"],
+        top_p=_PARAMETERS["top_p"],
+        top_k=_PARAMETERS["top_k"],
+        min_p=_PARAMETERS["min_p"],
+        presence_penalty=_PARAMETERS["presence_penalty"],
+        repeat_penalty=_PARAMETERS["repeat_penalty"],
         seed=_PARAMETERS["seed"],
         num_ctx=_PARAMETERS["num_ctx"],
         num_predict=_PARAMETERS["num_predict"],
@@ -126,6 +136,10 @@ def run_bc003_live_evaluation(
             "completed_at": _utc_now(),
             "model_artifact_identity": result["model_artifact_identity"],
             "actual_measured_call_count": len(result["measured_runs"]),
+            "generation_budget_diagnostics": [
+                run["generation_budget_diagnostics"]
+                for run in result["measured_runs"]
+            ],
         }
     )
     _atomic_write_json(manifest_path, manifest)
@@ -185,6 +199,7 @@ def _initial_manifest(
         "measured_run_ids": list(_MEASURED_RUN_IDS),
         "expected_evidence_files": expected_files,
         "written_evidence_files": [],
+        "post_run_budget_review_required": True,
     }
 
 

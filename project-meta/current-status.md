@@ -10,15 +10,15 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 
 ## Current checkpoint
 
-- Date: 2026-10-01
-- Checkpoint source commit: `5d4781016c05a55961ffe9b14724183aff6b898f`
+- Date: 2026-10-03
 - Branch: `bc-003-s12-first-step-assessment`
+- Exact checkpoint revision: record the reviewed branch HEAD externally in the pre-measured SDD checkpoint; this file intentionally does not embed a self-referential commit SHA
 - Project stage: BC-003 S12 first-step implementation complete; measured model calls blocked pending pre-run human/SDD review
+- Verification authority for the active branch: current GitHub Actions result for branch HEAD plus local clean-worktree checks before a measured run
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
 - License: Apache License 2.0 in `LICENSE`, with attribution in `NOTICE`
-- Current regression count: not asserted by this checkpoint; run the current suite before relying on a count
 - Open Critical, High or Medium findings against the historical S01 freeze: none recorded
 
 The historical S01 closure verification at commit `a4cc1b76602f14bbe360d8da44906369eca619d5` reported `68 passed`, `ruff check .` passed and `git diff --check` passed. Those counts describe that frozen historical checkpoint, not current HEAD.
@@ -175,14 +175,20 @@ The model-visible fixture supplies one fixed two-minute rollout-health observati
 
 The implementation adds BC-003-local fixture, evaluator, runner/live harness and focused contract tests while leaving core runtime, state, schemas, confirmation, tool paths and frozen historical evidence unchanged.
 
+The canonical pre-measured model configuration is fixed at `qwen3.8:27b` through `/api/chat` with `think=true`, `temperature=1.0`, `top_p=0.95`, `top_k=20`, `min_p=0.0`, `presence_penalty=0.0`, `repeat_penalty=1.0`, `seed=18`, `num_ctx=32768`, `num_predict=8192`, `stream=false`, `keep_alive=10m` and a 300-second timeout. One excluded preload is followed by three measured attempts with the same fixed seed and configuration.
+
+Generation-budget diagnostics are captured from provider metadata and response content. A provider length stop or another verified output-budget truncation is an integration/experiment confounder, not a semantic model-quality failure; if the canonical pool is budget-constrained, the configuration must be changed prospectively and the entire pool rerun.
+
 Measured model calls have **not** started. Before the first measured call, human/SDD review must approve the exact revision, fixture, evaluator criteria, model/configuration and run command.
+
+The temporary branch-only workflow `.github/workflows/bc003-verify.yml` remains in place until BC-003 review and disposition are complete. Before merge to `main`, replace this BC-003-specific verification scaffold with a small reusable `.github/workflows/ci.yml` for ordinary repository verification rather than carrying the temporary workflow forward.
 
 ## Next validation path
 
 The next work requires an explicit human decision and prospective specification.
 Possible later validation stages, not selected current work, are:
 
-1. respond narrowly to the unsupported governing criteria observed in BC-002;
+1. complete BC-003 only after pre-measured approval, measured evidence, semantic review and human disposition;
 2. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
 3. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
 4. compare additional models inside the same controlled boundary;
@@ -203,7 +209,7 @@ Run the deterministic S01 acceptance path with:
 
     pytest tests/acceptance/test_s01_preparation_path.py -q
 
-Do not carry the historical `68 passed` count forward as the current regression result. Record a new count only after running the current suite at the revision being reported.
+Do not carry a historical regression count forward as the current result. Use the verification result for the exact revision being reviewed or measured.
 
 ## Repository-context boundaries
 

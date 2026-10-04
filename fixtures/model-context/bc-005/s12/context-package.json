@@ -1,0 +1,233 @@
+{
+  "schema_version": "0.1.0",
+  "context_package_id": "context-package-bc005-s12-prospective-grounded",
+  "assembled_at": "2026-10-05T00:00:00Z",
+  "user_request": {
+    "request_id": "request-bc005-s12-prospective-grounded",
+    "text": "Assess the paused payment-api production rollout and propose one bounded mitigation path. Do not execute any action.",
+    "received_at": "2026-10-04T23:59:55Z"
+  },
+  "session_summary": "The rollout-health controller has already classified the fixed two-minute observation window as FAILED and paused the rollout. Evidence has been evaluated. The model must not recompute controller thresholds. Execution is not authorized, and action-bound execution confirmation is not applicable at this stage. Any later post-shift service-recovery result remains authoritative deterministic system output.",
+  "current_goal": "Assess the unhealthy partial rollout from supplied authoritative evidence and rules, then propose one bounded remediation path without authorizing execution.",
+  "requested_operation": "assess_paused_rollout",
+  "resolved_target": {
+    "service_id": "payment-api",
+    "environment_id": "production",
+    "scope": {
+      "deployment_target_id": "payment-api-prod-eu-central-1",
+      "rollout_id": "rollout-payment-api-20261005-0000",
+      "stable_version_id": "2.4.1",
+      "candidate_version_id": "2.4.2"
+    }
+  },
+  "resolved_fields": [
+    "resolved_target.service_id",
+    "resolved_target.environment_id",
+    "resolved_target.scope"
+  ],
+  "unresolved_fields": [],
+  "current_phase": "DIAGNOSE",
+  "current_task_state": "EVIDENCE_EVALUATED",
+  "relevant_service_context": [
+    {
+      "context_id": "context-bc005-service",
+      "summary": "payment-api is the production Payment Orchestration Service.",
+      "source": "service-catalog"
+    },
+    {
+      "context_id": "context-bc005-readiness-semantics",
+      "summary": "readiness_loss_events is the count of Ready → NotReady events for the specific replica within the fixed two-minute evaluation window; it is not failed-probe count, downtime duration or current readiness state.",
+      "source": "metric-contract"
+    },
+    {
+      "context_id": "context-bc005-governing-criteria",
+      "summary": "Governing thresholds and verification criteria not supplied by authoritative system or controller results are not established by this context; the model must not invent or substitute them.",
+      "source": "evaluation-authority-boundary"
+    }
+  ],
+  "observed_state_summary": [
+    {
+      "context_id": "obs-bc005-stable-topology",
+      "summary": "Stable version 2.4.1 has 6 healthy replicas.",
+      "source": "service-status",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-candidate-topology",
+      "summary": "Candidate version 2.4.2 has 2 degraded replicas.",
+      "source": "service-status",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-traffic",
+      "summary": "Current production traffic is approximately 820 RPS.",
+      "source": "service-metrics",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-window",
+      "summary": "The rollout-health evaluation window is the fixed last 2 minutes.",
+      "source": "rollout-health-controller",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-candidate-5xx",
+      "summary": "Within the two-minute window, version 2.4.2 5xx rate increased and remained elevated; the latest value is 8.1%.",
+      "source": "service-metrics",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-candidate-latency",
+      "summary": "Within the two-minute window, version 2.4.2 p95 latency increased and remained elevated; the latest value is 1010 ms.",
+      "source": "service-metrics",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-readiness",
+      "summary": "Within the two-minute window, readiness instability was observed on both 2.4.2 replicas: readiness_loss_events are replica_a=2 and replica_b=1.",
+      "source": "service-status",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-health-gate",
+      "summary": "Authoritative deterministic result: rollout_health_gate=FAILED and rollout_state=PAUSED. The model does not calculate this outcome.",
+      "source": "rollout-health-controller",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-stable-capacity",
+      "summary": "Validated sustainable capacity of each healthy 2.4.1 replica is 150 RPS.",
+      "source": "capacity-controller",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-capacity-findings",
+      "summary": "Authoritative deterministic capacity findings at 820 RPS: 6 stable replicas FAIL at 91.1% projected utilization; 7 stable replicas FAIL the N-1 requirement because loss of one leaves 6 at 91.1%; 8 stable replicas PASS because N-1 leaves 7 at 78.1%. Minimum compliant stable-version replica count is 8.",
+      "source": "capacity-controller",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-db-compatibility",
+      "summary": "Database compatibility with version 2.4.1 is CONFIRMED.",
+      "source": "compatibility-check",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-config-compatibility",
+      "summary": "Configuration compatibility with version 2.4.1 is CONFIRMED.",
+      "source": "compatibility-check",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-dependency-headroom",
+      "summary": "Dependency headroom for the current 820 RPS load is PASS.",
+      "source": "dependency-status",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "context_id": "obs-bc005-conflicts",
+      "summary": "There is no conflicting rollout, restart or rollback operation.",
+      "source": "runtime-state",
+      "observed_at": "2026-10-05T00:00:00Z"
+    }
+  ],
+  "evidence_summary": [
+    {
+      "evidence_id": "ev-bc005-rollout-topology",
+      "summary": "The partial rollout has 6 healthy stable-version replicas, 2 degraded candidate-version replicas and approximately 820 RPS of production traffic.",
+      "source_type": "RUNTIME_STATE",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "evidence_id": "ev-bc005-rollout-health",
+      "summary": "Across the fixed two-minute evaluation window, 2.4.2 shows sustained 5xx and p95-latency degradation plus readiness instability on both replicas; the rollout-health controller reports FAILED and the rollout is PAUSED.",
+      "source_type": "ROLLOUT_HEALTH",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "evidence_id": "ev-bc005-capacity-policy",
+      "summary": "Stable-version projected utilization must remain below 90%, and after complete traffic shift the stable group must tolerate N-1 and still remain below 90%.",
+      "source_type": "CAPACITY_POLICY",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "evidence_id": "ev-bc005-capacity-findings",
+      "summary": "Authoritative deterministic capacity evaluation reports 6 replicas FAIL, 7 replicas FAIL under N-1, 8 replicas PASS under N-1, and minimum compliant stable-version replica count 8.",
+      "source_type": "CAPACITY_PRECONDITION",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "evidence_id": "ev-bc005-rollback-compatibility",
+      "summary": "Database and configuration compatibility with stable version 2.4.1 are CONFIRMED.",
+      "source_type": "ROLLBACK_PRECONDITION",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "evidence_id": "ev-bc005-dependency-headroom",
+      "summary": "Dependency headroom for current load is PASS.",
+      "source_type": "DEPENDENCY_STATUS",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    },
+    {
+      "evidence_id": "ev-bc005-operation-conflicts",
+      "summary": "The runtime reports no conflicting rollout, restart or rollback operation.",
+      "source_type": "RUNTIME_STATE",
+      "freshness_status": "FRESH",
+      "observed_at": "2026-10-05T00:00:00Z"
+    }
+  ],
+  "active_hypotheses": [],
+  "evidence_gaps": [],
+  "capability_gaps": [],
+  "relevant_runbooks": [],
+  "available_tools": [],
+  "applicable_constraints": [
+    {
+      "constraint_id": "BC005-R1",
+      "description": "A FAILED rollout-health gate prevents further candidate-version rollout progression and keeps the rollout PAUSED."
+    },
+    {
+      "constraint_id": "BC005-R2",
+      "description": "Stable-version projected utilization must remain below 90%."
+    },
+    {
+      "constraint_id": "BC005-R3",
+      "description": "After complete traffic shift, the stable-version group must tolerate N-1 and still remain below 90%."
+    },
+    {
+      "constraint_id": "BC005-R4",
+      "description": "The supplied capacity findings are authoritative deterministic results; do not replace them with alternative thresholds or replica counts."
+    },
+    {
+      "constraint_id": "P001",
+      "description": "The current model output is an assessment or proposal and cannot authorize operational execution."
+    },
+    {
+      "constraint_id": "BC005-R5",
+      "description": "Do not request action-bound execution confirmation from EVIDENCE_EVALUATED; confirmation becomes applicable only after a concrete action candidate exists and deterministic pre-confirmation checks have passed."
+    },
+    {
+      "constraint_id": "BC005-R6",
+      "description": "After traffic has been shifted away from a degraded candidate version, removal of the degraded candidate replicas or completion of rollback to the stable version is not operationally admissible until the authoritative deterministic post-shift recovery gate reports PASS."
+    }
+  ],
+  "remaining_budget_summary": {
+    "tool_calls_remaining": 3,
+    "model_calls_remaining": 1,
+    "token_budget_remaining": null
+  },
+  "requested_output_schema": {
+    "schema_ref": "https://governed-agent-runtime.local/schemas/model-proposal.schema.json",
+    "schema_version": "0.1.0",
+    "allowed_proposal_types": [
+      "PROVIDE_BOUNDED_HYPOTHESIS"
+    ],
+    "response_format": "JSON_OBJECT"
+  }
+}

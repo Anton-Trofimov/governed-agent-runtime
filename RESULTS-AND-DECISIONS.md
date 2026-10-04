@@ -1,340 +1,232 @@
 # Results and Decisions
 
-This document is the project-level synthesis for Governed Agent Runtime. It summarizes what the current evidence supports, which decisions have been made from that evidence, and which questions remain open. It is intentionally different from an experiment report: specifications define intended behavior, experiment reports record individual evaluations, and this file connects those results back to the project hypotheses and decisions.
+This document is the project-level synthesis for Governed Agent Runtime. It summarizes what the current evidence supports, which decisions have been made from that evidence, and which questions remain open. Specifications define intended behavior; reports and evidence record individual evaluations; this file connects those results back to the project hypotheses and decisions.
 
-The project is still in progress. The conclusions below describe the current validated boundary, not a final production-readiness or business-value assessment.
+The project is still in progress. The conclusions below describe the current validated boundary, not production readiness or final business value.
 
 ## Current position
 
-The strongest result so far is not that an LLM can always produce a correct operational answer. It is that model reasoning and operational authority can be evaluated and controlled as separate concerns.
+The strongest result so far is not that an LLM can always produce a correct operational answer. It is that three concerns can be kept separate and governed explicitly:
 
-The first deterministic governed path established the runtime control mechanics. Exp 18.1A then evaluated a broader single-step boundary across five operational scenarios and 15 measured model calls using Qwen `qwen3.8:27b`.
+1. model reasoning and proposal quality;
+2. runtime authority and containment;
+3. provenance of the semantic criteria used to judge the model.
 
-The current measured baseline is:
+The deterministic S01 vertical established the runtime control mechanics. Exp 18.1A then evaluated a broader single-step model boundary across five operational scenarios and 15 measured Qwen `qwen3.8:27b` calls. BC-001 through BC-003 explored S12 reasoning and first-step assessment behavior. BC-004 then closed the evaluation-design gap exposed by BC-003 by adding an explicit Evaluation Traceability Gate.
 
-- **`Model quality`: `12 / 15 PASS`**
-- **`Runtime control (containment)`: `15 / 15 PASS`**
+The accepted measured Exp 18.1A baseline remains:
 
-The three model-quality failures all occurred in S12. The LLM selected the permitted planning step, but added plausible operational thresholds that were not present in the supplied evidence. The runtime still kept the workflow inside the allowed preparation boundary and did not execute an operational action.
+- **Model quality:** `12 / 15 PASS`
+- **Runtime control (containment):** `15 / 15 PASS`
 
-BC-001 subsequently tested `think=true` for S12. All three canonical calls
-returned populated reasoning content but an empty submitted-final response, so
-no Model Proposal reached runtime evaluation and semantic grounding could not be
-fairly adjudicated. The human disposition is **Inconclusive due to integration
-confounder**. Containment remained three of three PASS only because no tool
-execution or normalized-state mutation occurred; runtime policy evaluation was
-`NOT_REACHED`.
+BC-003 remains canonically:
 
-BC-001 navigation: [evidence report](./reports/bc-001-s12-reasoning-mode-comparison-evidence.md),
-[disposition](./reports/decisions/bc-001-s12-reasoning-mode-comparison-disposition.md),
-and [non-canonical diagnostics](./evidence/bc-001-s12-reasoning-mode-comparison-diagnostics/).
+`INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
 
-BC-002 then established a common `/api/chat` control and treatment boundary.
-CONTROL (`/api/chat`, `think=false`) and TREATMENT (`/api/chat`, `think=true`)
-both produced three of three structured-valid submissions, reached runtime
-evaluation three of three times, and retained containment three of three times.
-Reasoning preserved materially more supplied operational detail, but it also
-introduced unsupported governing thresholds and criteria. Semantic grounding
-remained 0/3 PASS in both branches. The human disposition is **Not supported**.
+BC-004 is accepted as:
 
-BC-002 navigation: [evidence report](./reports/bc-002-s12-reasoning-comparison-chat-interface-evidence.md),
-[disposition](./reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md),
-and [published evidence bundle](./evidence/bc-002-s12-reasoning-comparison-chat-interface/).
-
-BC-003 then evaluated a bounded first-step S12 assessment using authoritative
-rollout-health and deterministic capacity findings. All three canonical calls
-produced structured-valid proposals and retained runtime containment. Human
-diagnostic review found all three outputs satisfactory against the contract
-actually visible to the model.
-
-The canonical model-quality disposition is nevertheless **INCONCLUSIVE —
-EVALUATION_DESIGN_CONFOUNDER**. The prospective semantic evaluator required
-two material verification steps that were neither explicitly model-visible nor
-documented as derivations from identified model-visible context. Treating those
-omissions as model failures would therefore confound model behavior with
-evaluation-design completeness.
-
-BC-003 navigation:
-[evidence report](./reports/bc-003-s12-first-step-assessment-evidence.md),
-[semantic adjudication](./reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md),
-[disposition](./reports/decisions/bc-003-s12-first-step-assessment-disposition.md),
-and [published evidence bundle](./evidence/bc-003-s12-first-step-assessment/).
-
-This distinction drives several of the current project decisions below.
+`ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
 
 ## 1. Solution hypothesis — governed runtime around the model
 
-**Question:** Can a governed harness around the model preserve explicit control, traceability, and measurable quality across agent workflows while allowing the underlying model to be replaced or compared independently?
+**Question:** Can a governed harness around the model preserve explicit control, traceability and measurable quality while allowing the underlying model to be replaced or compared independently?
 
 ### What has been validated
 
-The project first established one deterministic governed path in S01 and then broadened the model/runtime boundary in Exp 18.1A across five scenarios:
-
-- degradation localization and a bounded next step;
-- retrieval of an authoritative deployment fact;
-- clarification when target information is incomplete;
-- preservation of known target information while asking only for the missing scope;
-- rollback-path preparation without execution.
-
-In Exp 18.1A the LLM received bounded context and produced one structured proposal. The deterministic runtime independently evaluated policy, state, authorization, execution, and transition boundaries.
-
-### Evidence
-
-The Exp 18.1A baseline produced 15 measured attempts under one fixed model configuration. Twelve passed the model-quality evaluation and all fifteen passed runtime containment.
-
-The published evidence chain includes the [human-readable experiment report](./reports/exp-18-1a-qwen38-baseline-evidence.md), [human semantic review](./reports/reviews/exp-18-1a-qwen38-semantic-adjudication.md), [machine-readable aggregate](./reports/exp-18-1a-qwen38-baseline-evaluation.json), and the [15 RAW + 15 RESULT source attempts](./evidence/exp-18-1a-qwen38/attempts/).
-
-### Interpretation
-
-The current evidence supports the architectural separation between model reasoning and runtime authority for the evaluated single-step boundary.
-
-It does not show that the model is semantically reliable in every valid output, and it does not show that a governed runtime eliminates model-quality risk. S12 demonstrates the opposite: a proposal can remain inside the permitted action boundary while still containing unsupported semantic detail.
+The project established a deterministic governed path in S01 and a bounded single-step model/runtime boundary in Exp 18.1A. The LLM receives controlled context and produces a bounded proposal; the deterministic runtime independently owns schema validation, evidence and target checks, policy, authorization, lifecycle transitions, confirmation, tool permission, state mutation and audit lineage.
 
 ### Decision
 
-Keep the deterministic runtime as the operational control plane. The LLM may interpret evidence, identify gaps, form hypotheses, retrieve known facts, and propose next steps, but policy, authorization, confirmation, tool availability, state transitions, and execution authority remain outside the model.
-
-Treat this architecture as the current project baseline for subsequent bounded-agent experiments.
+Keep the deterministic runtime as the operational control plane. The LLM may interpret evidence, identify gaps, form hypotheses, retrieve known facts and propose next steps, but operational authority remains outside the model.
 
 ### Remaining uncertainty
 
-The result is limited to the current single-step evaluation boundary. Multi-step behavior, repeated tool interaction, longer-lived state, recovery paths, and broader action autonomy still require separate validation.
+The evidence does not yet establish safe multi-step autonomy, production infrastructure integration, cross-model reliability or long-lived recovery behavior.
 
-## 2. Model quality and runtime containment are separate evaluation dimensions
+## 2. Model quality and runtime containment are separate dimensions
 
-**Question:** Can a system distinguish a model-quality failure from a runtime-control failure rather than collapsing both into one PASS/FAIL result?
+Exp 18.1A S12 demonstrated the distinction most clearly: all three S12 proposals failed model-quality evaluation because they introduced unsupported operational criteria, while runtime containment remained PASS because no unauthorized operational action occurred.
 
-### What has been validated
-
-Exp 18.1A evaluates model behavior and runtime containment independently.
-
-S12 produced the clearest test of this separation: all three runs failed model-quality evaluation because the model introduced unsupported thresholds, while all three passed runtime containment because the runtime kept the system inside the allowed preparation path and did not execute an unauthorized action.
-
-### Interpretation
-
-A safe runtime block or bounded runtime decision does not make a poor model proposal good. Likewise, a good model proposal does not remove the need for runtime policy and execution controls.
-
-This separation gives the project a more useful failure model: it is possible to ask whether the problem came from model reasoning, semantic grounding, runtime policy, authorization, state handling, or execution rather than reporting a single opaque agent score.
+BC-001, BC-002 and BC-003 preserved the same separation. A bounded or blocked runtime path does not make a poor model proposal good, and a good proposal does not remove the need for runtime policy and execution controls.
 
 ### Decision
 
-Continue reporting `Model quality` and `Runtime control (containment)` independently.
-
-Do not use runtime containment to “rescue” a model-quality failure, and do not treat model quality as evidence that operational execution is safe.
+Continue reporting model quality and runtime containment independently. Do not use one dimension to “rescue” failure in the other.
 
 ## 3. Structured output is not sufficient evidence of semantic grounding
 
-**Question:** Is schema-valid structured model output enough to treat an operational proposal as grounded?
+Schema validation proves machine-readable shape and contract compliance. It does not prove that arbitrary natural-language content is supported by evidence.
 
-### What has been validated
-
-No. The S12 outputs were structurally valid and selected the correct high-level planning action, but contained unsupported operational criteria inside free-text fields.
-
-Those details were plausible, but they were not supplied by the evaluated evidence package.
-
-### Interpretation
-
-Schema validation can prove shape, required fields, and machine-readable contract compliance. It cannot by itself prove that arbitrary natural-language content is supported by evidence.
-
-The deterministic runtime can control what the system is allowed to do without necessarily proving every statement generated by the LLM.
+The Exp 18.1A S12 failures showed that a structurally valid proposal can still contain plausible but unsupported operational detail.
 
 ### Decision
 
-Keep schema validation and semantic grounding as separate concerns.
-
-Do not silently expand deterministic runtime policy into a general-purpose semantic judge. Where semantic grounding matters, evaluate it explicitly through evidence-aware evaluation or review.
-
-The current human semantic adjudication is therefore part of the evidence chain rather than an afterthought.
-
-### Remaining uncertainty
-
-A future semantic evaluator may automate part of this review, but its reliability, failure modes, latency, and cost must be measured separately. It should not be treated as equivalent to deterministic policy enforcement.
+Keep structural validation and semantic grounding separate. Do not silently expand deterministic runtime policy into a general semantic judge.
 
 ## 4. Model replaceability is an architectural goal, not a quality assumption
 
-**Question:** Can the same controlled environment be used to compare or replace models without moving operational authority into a particular model implementation?
-
-### What has been validated
-
-The current contracts, context assembly, runtime checks, and evaluation boundary are designed around a model proposal interface rather than around one model owning the workflow.
-
-Exp 18.1A demonstrates that one model can be evaluated inside that boundary under a fixed configuration.
-
-### Interpretation
-
-The harness is intended to be model-agnostic at the control boundary, but the project is not model-indifferent. Different models may produce materially different quality, latency, cost, variance, and failure patterns.
-
-The current evidence contains one measured model baseline, not a cross-model comparison.
+The control boundary is designed around a model proposal interface rather than around one model owning the workflow. That supports replacement and comparison of models without moving operational authority into the model.
 
 ### Decision
 
-Preserve model-independent runtime contracts and evaluate model capability separately.
-
-Do not infer portability of quality from portability of the interface. A replacement model must earn its own measured baseline.
-
-### Remaining uncertainty
-
-Cross-model quality, reasoning behavior, latency, token usage, and failure modes remain to be compared under the same controlled scenarios.
+Preserve model-independent runtime contracts, but require every replacement model to earn its own measured quality baseline. Interface portability is not evidence of quality portability.
 
 ## 5. User-value hypothesis remains open
 
-**Question:** Can a bounded agent reduce the cognitive and coordination burden of investigating an operational issue by interpreting available evidence, identifying what is known or missing, and proposing a useful next step without taking uncontrolled action?
-
-### Current evidence
-
-The current scenarios exercise behaviors that are relevant to this hypothesis: localization, fact retrieval, clarification, preservation of known context, and bounded planning.
-
-However, the project has not yet measured an operator journey, time-to-useful-decision, task completion, interaction burden, escalation quality, or comparison with an equivalent fixed workflow.
+The scenarios exercise behaviors relevant to operator assistance—localization, fact retrieval, clarification, preservation of known context and bounded planning—but the project has not yet measured operator effort, time-to-useful-decision, task completion, escalation quality or comparison with a fixed workflow.
 
 ### Decision
 
-Do not claim demonstrated user-value improvement from Exp 18.1A.
+Do not claim demonstrated user-value improvement yet. A later bounded operator journey should measure usefulness directly.
 
-Use the current technical baseline to build and evaluate a bounded multi-step operator journey where user-facing usefulness can be measured directly.
+## 6. Business value and economics remain open
 
-## 6. Business-value and economics hypotheses remain open
-
-**Question:** Can the governed-agent approach improve the speed and consistency of operational work while keeping risk, execution authority, and escalation explicit enough to be useful in controlled enterprise workflows?
-
-### Current evidence
-
-The project already records model/runtime behavior and has the architecture needed to measure latency, token usage, retries, tools, failures, and execution paths.
-
-It does not yet provide a measured comparison showing lower operating cost, faster incident handling, better task completion, or a favorable break-even point versus a fixed workflow or human-only process.
+The project can already record latency, tokens, retries, tools, failures and runtime behavior, but no measured comparison yet shows lower operating cost, faster incident handling or favorable break-even economics.
 
 ### Decision
 
-Do not infer ROI or business impact from technical containment or model-quality results.
-
-Measure economics as a separate validation layer: quality, latency, tokens, tool calls, retries, successful-task rate, failure handling, and the operational effort required for the same bounded task.
+Treat economics as a separate validation layer. Do not infer ROI from model quality or runtime containment.
 
 ## 7. Autonomy should be earned, not assumed
 
-The current architecture deliberately separates the ability to reason from the authority to act.
-
-A model may be allowed to suggest, investigate, prepare, request confirmation, or eventually execute a bounded action, but those levels should not be treated as one binary “agent autonomy” capability.
+The architecture separates the ability to reason from the authority to act. Suggestion, investigation, preparation, confirmation and execution are distinct authority levels rather than one binary “agent autonomy” feature.
 
 ### Decision
 
-Increase autonomy only where the combination of architecture, evidence, measured reliability, reversibility, and action risk supports it.
-
-The project therefore treats autonomy as a system property that can expand through validation rather than as a feature granted merely because a stronger model is available.
-
-This principle is a design direction supported by the current architecture and evidence, not a general claim proven by Exp 18.1A alone.
+Increase autonomy only where architecture, evidence, measured reliability, reversibility and action risk support it.
 
 ## 8. Material evaluation criteria need provenance
 
-**Question:** Can a measured semantic result be treated as evidence about model
-quality when material evaluator expectations are not traceable to what the
-model was actually given?
+BC-003 exposed a second governance problem independent of runtime control.
 
-### What BC-003 exposed
+The prospective hidden evaluator required two material S12 sequencing behaviors:
 
-BC-003 contained a mismatch between the stronger prospective semantic
-expectation and the actual assembled model-visible contract.
+- verify all 8 stable replicas healthy before full traffic shift;
+- verify service recovery before removal or rollback of the degraded candidate.
 
-The evaluator expected verification of all 8 stable replicas before full
-traffic shift and verification of service recovery before removal or rollback
-of the degraded candidate. Those requirements were not explicitly present in
-the model-visible fixture and had no recorded derivation from identified
-visible rules or evidence.
+Those expectations were fixed prospectively, but their provenance to the exact model-visible contract had not been reviewed before measurement. The measured outputs omitted the full sequence, so a clean model-quality FAIL would have mixed model behavior with evaluation-design incompleteness.
 
-### Interpretation
+### Decision from BC-003
 
-Evaluation governance matters independently of runtime governance.
-
-A prospective evaluator should not become unquestioned ground truth merely
-because it was fixed before measurement. Material semantic criteria also need
-provenance to the contract against which the model was actually operating.
-
-This introduces a complementary trace:
-
-    execution trace:
-    proposal → gates → runtime decision → state transition → tool boundary
-
-    evaluation trace:
-    expectation → model-visible basis → evaluator criterion
-    → observed output → disposition
-
-### Decision
-
-For future measured semantic evaluations, require each material evaluator
-expectation to identify either:
+For measured semantic evaluations, every material evaluator expectation must identify either:
 
 1. an explicit model-visible basis; or
 2. an explicitly documented derivation from identified model-visible context.
 
-Use deterministic validation to check declared references and review structure.
-Do not use keyword matching or an LLM-generated mapping as sole semantic
-authority.
+Deterministic validation may check declared references and review structure. It must not infer semantic equivalence from wording, keywords or an LLM-generated mapping. Material derived requirements retain a human semantic-review boundary.
 
-Where a material requirement is derived rather than explicit, retain a human
-semantic-review boundary.
+BC-003 itself remains unchanged and is not rerun or retroactively converted into a clean PASS/FAIL result.
 
-BC-003 itself remains unchanged and is not rerun or reinterpreted as a clean
-PASS/FAIL experiment.
+## 9. BC-004 — Evaluation Traceability Gate demonstrated
 
-### Next bounded implementation
+BC-004 implemented the governance boundary selected after BC-003.
 
-Before another prospective S12 semantic measurement, implement and review a
-minimal Evaluation Traceability Gate / review bundle.
+The v1 trace is:
 
-The minimum trace is:
+```text
+material evaluator expectation
+→ explicit authored mapping
+→ basis type
+→ exact model-visible refs
+→ deterministic structural/reference validation
+→ human semantic review when derived
+```
 
-    expectation
-    → basis type
-    → visible refs
-    → derivation if any
-    → structural check
-    → semantic review needed?
+Allowed basis types are:
 
-This belongs to the evaluation/development Harness rather than the operational
-runtime state machine.
+- `EXPLICIT_MODEL_VISIBLE`
+- `DERIVED_FROM_MODEL_VISIBLE`
+
+For derived expectations, deterministic structural validity is explicitly not semantic approval.
+
+### Historical BC-003 diagnostic
+
+The diagnostic run at exact revision
+`db34c992d12afbe838431efde7428e89912941b4` returned:
+
+```text
+minimum-8-stable-replicas:      PASS
+verify-stable-before-shift:     PASS
+verify-recovery-before-remove:  FAIL — HUMAN_REVIEW_REJECTED
+aggregate gate:                 FAIL
+undeclared mappings:            []
+```
+
+The aggregate `FAIL` is the intended successful diagnostic outcome. The gate blocked a material criterion whose references resolved structurally but whose semantic derivation had been rejected by human review.
+
+The two historically confounded sequencing requirements therefore separate cleanly:
+
+- `verify 8 healthy before shift` — accepted as `DERIVED_FROM_MODEL_VISIBLE` with human `APPROVED` review;
+- `verify recovery before remove/rollback` — blocked because the BC-003 visible contract did not provide a sufficient reviewed basis for that exact post-shift sequencing requirement.
+
+### What BC-004 validates
+
+The implemented v1 boundary demonstrates that the harness can:
+
+- require mappings for material evaluator expectations;
+- resolve exact canonical model-visible IDs;
+- block missing or ambiguous references;
+- require derivation metadata for derived criteria;
+- require human `APPROVED` review for derived criteria;
+- block `PENDING` and `REJECTED` semantic review states;
+- expose referenced records for human inspection;
+- reproduce the BC-003 evaluation-design problem without modifying BC-003.
+
+### What BC-004 does not validate
+
+BC-004 does not automatically determine whether a semantic derivation is correct. It does not make keyword matching, embeddings, fuzzy matching or an LLM judge authoritative for provenance. It also does not implement GitHub reviewer enforcement or CI-based measured-job unlocking.
+
+### Decision
+
+Accept BC-004 as the required evaluation-design boundary for future measured semantic evaluations where a material criterion can affect model-quality disposition.
+
+Disposition:
+
+`ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
+
+Supporting artifacts:
+
+- specification: `specs/bounded-changes/bc-004-evaluation-traceability-gate.md`
+- contract: `schemas/evaluation-traceability.schema.json`
+- implementation: `src/governed_agent_runtime/evaluation_traceability.py`
+- diagnostic mapping: `evals/traceability/bc-003/s12/traceability.json`
+- evidence report: `reports/bc-004-evaluation-traceability-gate-evidence.md`
+- decision: `reports/decisions/bc-004-evaluation-traceability-gate-disposition.md`
 
 ## Current evidence boundary
 
 The project currently supports these claims:
 
-- a deterministic runtime can remain the control plane while an LLM performs bounded interpretation and proposal work;
+- a deterministic runtime can remain the operational control plane while an LLM performs bounded interpretation and proposal work;
 - model quality and runtime containment can be measured independently;
-- the current Qwen `qwen3.8:27b` baseline passed model-quality evaluation in 12 of 15 measured attempts and runtime containment in all 15;
+- the current Qwen `qwen3.8:27b` Exp 18.1A baseline passed model-quality evaluation in 12 of 15 measured attempts and runtime containment in all 15;
 - schema-valid structured output can still contain unsupported semantic detail;
-- the published Exp 18.1A result is traceable from synthesis to human review, machine aggregate, and individual source attempts.
-- BC-001 preserved containment but did not answer the reasoning-quality question
-  because its canonical provider boundary produced no submitted final response.
-- BC-002 removed that integration confounder on `/api/chat`; reasoning retained
-  more supplied S12 detail, but semantic grounding remained 0/3 PASS in both
-  control and treatment while containment remained 3/3 PASS in both.
-- BC-003 produced 3/3 structured-valid submissions and 3/3 runtime-containment
-  PASS. Human diagnostic review found 3/3 satisfactory against the actual
-  model-visible contract, but canonical model quality is
-  `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER` because material evaluator
-  requirements were not traceable to that visible contract.
+- BC-001 preserved containment but did not answer the reasoning-quality question because its canonical provider boundary produced no submitted final response;
+- BC-002 removed that integration confounder on `/api/chat`, but semantic grounding remained 0/3 PASS in both control and treatment while containment remained 3/3 PASS in both;
+- BC-003 produced 3/3 structured-valid submissions and 3/3 runtime-containment PASS, but canonical model quality remains `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`;
+- BC-004 demonstrates a fail-closed traceability gate that separates deterministic reference validation from human semantic approval for derived evaluator criteria.
 
 The project does **not** currently establish:
 
 - production readiness or production safety;
 - general enterprise effectiveness;
 - superiority of an agent over a fixed workflow;
-- reduced incident resolution time or operator effort;
+- reduced incident-resolution time or operator effort;
 - positive ROI or break-even economics;
 - general reliability across models;
 - safe multi-step autonomy;
-- semantic correctness of arbitrary model-generated free text.
+- semantic correctness of arbitrary model-generated free text;
+- automatic correctness of semantic derivations.
 
 ## Next validation path
 
-The current baseline is useful because it defines a controlled starting point for the next questions rather than trying to answer all of them at once.
+BC-004 should close as its own bounded change through pull-request CI and merge into protected `main` before another material bounded block is opened.
 
-The planned sequence is:
+After BC-004 integration, the broader roadmap remains:
 
-1. **Evaluation Traceability Gate:** Implement the minimal expectation-to-visible-
-   basis review bundle identified by BC-003, validate exact structured
-   references deterministically, and retain human review for material derived
-   semantic requirements before the next prospective S12 measurement.
-2. **Bounded multi-step runtime:** Evaluate a governed loop across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition, and trace.
-3. **Failure handling and runtime economics:** Measure failures, retries, latency, tokens, tool usage, containment, and cost per useful outcome.
-4. **Model comparison:** Compare models inside the same control and observation boundary rather than changing the surrounding system together with the model.
-5. **User and business validation:** Compare the bounded agent workflow with an appropriate fixed-workflow or human baseline and measure usefulness, effort, speed, risk, and economics.
+1. **Bounded multi-step runtime / operator journey:** evaluate a governed loop across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace.
+2. **Failure handling and runtime economics:** measure failures, retries, latency, tokens, tool usage, containment and cost per useful outcome.
+3. **Model comparison:** compare models inside the same control and observation boundary.
+4. **User and business validation:** compare the bounded agent workflow with an appropriate fixed-workflow or human baseline and measure usefulness, effort, speed, risk and economics.
 
-The project-level decision will evolve as these stages produce evidence. Earlier baselines remain reference points rather than being rewritten to fit later results.
+The exact next bounded change requires a separate human selection and specification. Earlier baselines remain reference points rather than being rewritten to fit later results.

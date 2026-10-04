@@ -115,7 +115,7 @@ def _collect_visible_refs(
             for key in VISIBLE_ID_KEYS:
                 identifier = item.get(key)
                 if isinstance(identifier, str) and identifier:
-                    if identifier in index and index[identifier] != record:
+                    if identifier in index:
                         duplicates.add(identifier)
                     else:
                         index[identifier] = record
@@ -135,10 +135,62 @@ def evaluate_traceability(
     bundle: TraceabilityBundle,
     model_context: Mapping[str, Any],
 ) -> TraceabilityGateResult:
-    """Evaluate the BC-004 traceability gate.
+    """Evaluate exact-reference and human-review readiness for material expectations."""
+    visible_index, duplicate_visible_refs = _collect_visible_refs(model_context)
+    mappings = {entry.expectation_id: entry for entry in bundle.mappings}
+    material_ids = set(bundle.material_expectation_ids)
+    undeclared_mapping_ids = sorted(set(mappings) - material_ids)
 
-    The first implementation step intentionally leaves gate behavior unimplemented so
-    focused contract tests can establish the required RED state before implementation.
-    """
-    del bundle, model_context
-    return TraceabilityGateResult(gate_pass=False, expectations=[])
+    expectation_results: list[ExpectationGateResult] = []
+
+    for expectation_id in bundle.material_expectation_ids:
+        entry = mappings.get(expectation_id)
+        if entry is None:
+            expectation_results.append(
+                ExpectationGateResult(
+                    expectation_id=expectation_id,
+                    status="FAIL",
+                    reasons=["MAPPING_MISSING"],
+                )
+            )
+            continue
+
+        reasons: list[str] = []
+        resolved_visible_refs: dict[str, dict[str, Any]] = {}
+
+        for visible_ref in entry.visible_refs:
+            if visible_ref in duplicate_visible_refs:
+                reasons.append(f"AMBIGUOUS_VISIBLE_REF:{visible_ref}")
+                continue
+            record = visible_index.get(visible_ref)
+            if record is None:
+                reasons.append(f"UNKNOWN_VISIBLE_REF:{visible_ref}")
+                continue
+            resolved_visible_refs[visible_ref] = record
+
+        if entry.basis_type is BasisType.DERIVED_FROM_MODEL_VISIBLE:
+            if entry.semantic_review_disposition is SemanticReviewDisposition.PENDING:
+                reasons.append("HUMAN_REVIEW_PENDING")
+            elif entry.semantic_review_disposition is SemanticReviewDisposition.REJECTED:
+                reasons.append("HUMAN_REVIEW_REJECTED")
+
+        expectation_results.append(
+            ExpectationGateResult(
+                expectation_id=expectation_id,
+                status="PASS" if not reasons else "FAIL",
+                reasons=reasons,
+                resolved_visible_refs=resolved_visible_refs,
+            )
+        )
+
+    gate_pass = (
+        not undeclared_mapping_ids
+        and bool(expectation_results)
+        and all(item.status == "PASS" for item in expectation_results)
+    )
+
+    return TraceabilityGateResult(
+        gate_pass=gate_pass,
+        expectations=expectation_results,
+        undeclared_mapping_ids=undeclared_mapping_ids,
+    )

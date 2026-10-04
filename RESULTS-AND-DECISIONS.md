@@ -41,6 +41,25 @@ BC-002 navigation: [evidence report](./reports/bc-002-s12-reasoning-comparison-c
 [disposition](./reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md),
 and [published evidence bundle](./evidence/bc-002-s12-reasoning-comparison-chat-interface/).
 
+BC-003 then evaluated a bounded first-step S12 assessment using authoritative
+rollout-health and deterministic capacity findings. All three canonical calls
+produced structured-valid proposals and retained runtime containment. Human
+diagnostic review found all three outputs satisfactory against the contract
+actually visible to the model.
+
+The canonical model-quality disposition is nevertheless **INCONCLUSIVE —
+EVALUATION_DESIGN_CONFOUNDER**. The prospective semantic evaluator required
+two material verification steps that were neither explicitly model-visible nor
+documented as derivations from identified model-visible context. Treating those
+omissions as model failures would therefore confound model behavior with
+evaluation-design completeness.
+
+BC-003 navigation:
+[evidence report](./reports/bc-003-s12-first-step-assessment-evidence.md),
+[semantic adjudication](./reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md),
+[disposition](./reports/decisions/bc-003-s12-first-step-assessment-disposition.md),
+and [published evidence bundle](./evidence/bc-003-s12-first-step-assessment/).
+
 This distinction drives several of the current project decisions below.
 
 ## 1. Solution hypothesis — governed runtime around the model
@@ -203,6 +222,75 @@ The project therefore treats autonomy as a system property that can expand throu
 
 This principle is a design direction supported by the current architecture and evidence, not a general claim proven by Exp 18.1A alone.
 
+## 8. Material evaluation criteria need provenance
+
+**Question:** Can a measured semantic result be treated as evidence about model
+quality when material evaluator expectations are not traceable to what the
+model was actually given?
+
+### What BC-003 exposed
+
+BC-003 contained a mismatch between the stronger prospective semantic
+expectation and the actual assembled model-visible contract.
+
+The evaluator expected verification of all 8 stable replicas before full
+traffic shift and verification of service recovery before removal or rollback
+of the degraded candidate. Those requirements were not explicitly present in
+the model-visible fixture and had no recorded derivation from identified
+visible rules or evidence.
+
+### Interpretation
+
+Evaluation governance matters independently of runtime governance.
+
+A prospective evaluator should not become unquestioned ground truth merely
+because it was fixed before measurement. Material semantic criteria also need
+provenance to the contract against which the model was actually operating.
+
+This introduces a complementary trace:
+
+    execution trace:
+    proposal → gates → runtime decision → state transition → tool boundary
+
+    evaluation trace:
+    expectation → model-visible basis → evaluator criterion
+    → observed output → disposition
+
+### Decision
+
+For future measured semantic evaluations, require each material evaluator
+expectation to identify either:
+
+1. an explicit model-visible basis; or
+2. an explicitly documented derivation from identified model-visible context.
+
+Use deterministic validation to check declared references and review structure.
+Do not use keyword matching or an LLM-generated mapping as sole semantic
+authority.
+
+Where a material requirement is derived rather than explicit, retain a human
+semantic-review boundary.
+
+BC-003 itself remains unchanged and is not rerun or reinterpreted as a clean
+PASS/FAIL experiment.
+
+### Next bounded implementation
+
+Before another prospective S12 semantic measurement, implement and review a
+minimal Evaluation Traceability Gate / review bundle.
+
+The minimum trace is:
+
+    expectation
+    → basis type
+    → visible refs
+    → derivation if any
+    → structural check
+    → semantic review needed?
+
+This belongs to the evaluation/development Harness rather than the operational
+runtime state machine.
+
 ## Current evidence boundary
 
 The project currently supports these claims:
@@ -217,6 +305,11 @@ The project currently supports these claims:
 - BC-002 removed that integration confounder on `/api/chat`; reasoning retained
   more supplied S12 detail, but semantic grounding remained 0/3 PASS in both
   control and treatment while containment remained 3/3 PASS in both.
+- BC-003 produced 3/3 structured-valid submissions and 3/3 runtime-containment
+  PASS. Human diagnostic review found 3/3 satisfactory against the actual
+  model-visible contract, but canonical model quality is
+  `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER` because material evaluator
+  requirements were not traceable to that visible contract.
 
 The project does **not** currently establish:
 
@@ -235,9 +328,10 @@ The current baseline is useful because it defines a controlled starting point fo
 
 The planned sequence is:
 
-1. **Next bounded decision:** Select the next meaningful response to BC-002's
-   unsupported governing criteria; do not begin implementation without human
-   disposition and a prospective specification.
+1. **Evaluation Traceability Gate:** Implement the minimal expectation-to-visible-
+   basis review bundle identified by BC-003, validate exact structured
+   references deterministically, and retain human review for material derived
+   semantic requirements before the next prospective S12 measurement.
 2. **Bounded multi-step runtime:** Evaluate a governed loop across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition, and trace.
 3. **Failure handling and runtime economics:** Measure failures, retries, latency, tokens, tool usage, containment, and cost per useful outcome.
 4. **Model comparison:** Compare models inside the same control and observation boundary rather than changing the surrounding system together with the model.

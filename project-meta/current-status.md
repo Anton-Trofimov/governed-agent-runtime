@@ -13,7 +13,7 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 - Date: 2026-10-03
 - Branch: `bc-003-s12-first-step-assessment`
 - Exact checkpoint revision: record the reviewed branch HEAD externally in the pre-measured SDD checkpoint; this file intentionally does not embed a self-referential commit SHA
-- Project stage: BC-003 S12 first-step implementation complete; measured model calls blocked pending pre-run human/SDD review
+- Project stage: BC-003 measured, adjudicated and in post-measured closure; canonical model-quality disposition is `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
 - Verification authority for the active branch: current GitHub Actions result for branch HEAD plus local clean-worktree checks before a measured run
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
@@ -160,41 +160,83 @@ Canonical evidence and closure records:
 
 ## BC-003 S12 first-step assessment
 
-BC-003 is the active bounded change responding to the S12/BC-002 semantic-grounding failure without expanding operational authority.
+BC-003 is measured and adjudicated.
 
-Implemented boundary:
+Exact evaluated revision:
 
-```text
-EVIDENCE_EVALUATED
-→ one model assessment / PROVIDE_BOUNDED_HYPOTHESIS proposal
-→ deterministic runtime evaluation
-→ HYPOTHESIS_READY
-```
+`300449adefbc1d93ae6f198144c4c2995a05e9d5`
 
-The model-visible fixture supplies one fixed two-minute rollout-health observation window, an authoritative deterministic `rollout_health_gate=FAILED` result, explicit capacity policy, and deterministic 6/7/8-replica capacity findings. The LLM does not calculate the health-gate outcome or own capacity arithmetic.
+Canonical run:
 
-The implementation adds BC-003-local fixture, evaluator, runner/live harness and focused contract tests while leaving core runtime, state, schemas, confirmation, tool paths and frozen historical evidence unchanged.
+- one excluded preload;
+- three measured `/api/chat` calls;
+- `qwen3.8:27b`, `think=true`;
+- fixed seed and invocation configuration;
+- all three submitted finals byte-identical;
+- structured validity: `3/3 PASS`;
+- runtime containment: `3/3 PASS`;
+- no tool execution;
+- no normalized runtime-state mutation;
+- no verified generation-budget or truncation confounder.
 
-The canonical pre-measured model configuration is fixed at `qwen3.8:27b` through `/api/chat` with `think=true`, `temperature=1.0`, `top_p=0.95`, `top_k=20`, `min_p=0.0`, `presence_penalty=0.0`, `repeat_penalty=1.0`, `seed=18`, `num_ctx=32768`, `num_predict=8192`, `stream=false`, `keep_alive=10m` and a 300-second timeout. One excluded preload is followed by three measured attempts with the same fixed seed and configuration.
+Canonical model-quality disposition:
 
-Generation-budget diagnostics are captured from provider metadata and response content. A provider length stop or another verified output-budget truncation is an integration/experiment confounder, not a semantic model-quality failure; if the canonical pool is budget-constrained, the configuration must be changed prospectively and the entire pool rerun.
+`INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
 
-Measured model calls have **not** started. Before the first measured call, human/SDD review must approve the exact revision, fixture, evaluator criteria, model/configuration and run command.
+Human diagnostic review found `3/3 satisfactory` against the contract actually
+visible to the model. That diagnostic result is supporting evidence, not a
+replacement canonical semantic PASS.
 
-The temporary branch-only workflow `.github/workflows/bc003-verify.yml` remains in place until BC-003 review and disposition are complete. Before merge to `main`, replace this BC-003-specific verification scaffold with a small reusable `.github/workflows/ci.yml` for ordinary repository verification rather than carrying the temporary workflow forward.
+The confounder was in the evaluation design: the prospective semantic evaluator
+required verification of all 8 stable replicas before full traffic shift and
+verification of service recovery before removal or rollback, but those material
+requirements were neither explicitly model-visible nor documented as
+derivations from identified model-visible context.
+
+BC-003 remains an immutable historical measured experiment. Do not rewrite the
+fixture, evaluator, measured evidence or evaluated revision to convert it into
+a clean PASS/FAIL result.
+
+Closure records:
+
+- evidence: `evidence/bc-003-s12-first-step-assessment/`;
+- factual report: `reports/bc-003-s12-first-step-assessment-evidence.md`;
+- semantic adjudication:
+  `reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md`;
+- disposition:
+  `reports/decisions/bc-003-s12-first-step-assessment-disposition.md`.
+
+The temporary branch-only `.github/workflows/bc003-verify.yml` has been
+removed. Repository verification is now defined by
+`.github/workflows/ci.yml`, which runs on pull requests and pushes to `main`.
 
 ## Next validation path
 
-The next work requires an explicit human decision and prospective specification.
-Possible later validation stages, not selected current work, are:
+The selected next bounded work item after BC-003 closure is a minimal
+Evaluation Traceability Gate / review bundle in the development/evaluation
+Harness.
 
-1. complete BC-003 only after pre-measured approval, measured evidence, semantic review and human disposition;
-2. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
-3. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
-4. compare additional models inside the same controlled boundary;
-5. validate operator usefulness and business value against an appropriate fixed-workflow or human baseline.
+Minimum trace:
 
-These are future validation stages, not completed project claims.
+    expectation
+    → basis type
+    → visible refs
+    → derivation if any
+    → structural check
+    → semantic review needed?
+
+The deterministic layer should validate declared structured references and
+review structure, not infer semantic equivalence from keywords. Material
+derived requirements retain a human semantic-review boundary.
+
+After that gate is demonstrated, a new prospective S12 follow-up may explicitly
+test:
+
+1. verification of all 8 stable replicas before full traffic shift;
+2. verification of service recovery before removal or rollback of the degraded
+   candidate.
+
+That follow-up is a new experiment and must not rewrite BC-003.
 
 ## Verification commands
 

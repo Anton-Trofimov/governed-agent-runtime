@@ -120,6 +120,33 @@ invocation configuration, and three measured calls per branch. See the
 [disposition](./reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md),
 and [published evidence bundle](./evidence/bc-002-s12-reasoning-comparison-chat-interface/).
 
+## BC-003 — S12 first-step assessment
+
+BC-003 supplied the model with authoritative rollout-health and deterministic
+capacity findings instead of asking it to invent operational criteria.
+
+All three canonical calls produced structured-valid bounded proposals and
+retained runtime containment. Human diagnostic review found 3/3 outputs
+satisfactory against the contract actually visible to the model.
+
+The canonical model-quality disposition is nevertheless
+**INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER**. Two material sequencing
+requirements used by the prospective semantic evaluator were not explicitly
+model-visible and had no documented derivation from identified visible context.
+
+BC-003 therefore exposed a second governance boundary: material evaluation
+criteria also need traceability to the contract actually presented to the
+model.
+
+The next bounded step is a minimal Evaluation Traceability Gate before a new
+prospective S12 follow-up.
+
+See the
+[evidence report](./reports/bc-003-s12-first-step-assessment-evidence.md),
+[semantic adjudication](./reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md),
+[disposition](./reports/decisions/bc-003-s12-first-step-assessment-disposition.md),
+and [published evidence bundle](./evidence/bc-003-s12-first-step-assessment/).
+
 ## Development approach — SDD and harnesses
 
 The project uses Specification-Driven Development together with explicit harnesses for both AI-assisted development and agent execution.

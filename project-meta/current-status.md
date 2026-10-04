@@ -10,15 +10,15 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 
 ## Current checkpoint
 
-- Date: 2026-08-22
-- Checkpoint source commit: `a572c4a81457d108f52e92be507596122793e229`
-- Branch: `main`
-- Project stage: frozen Exp 18.1A baseline, completed BC-001 and BC-002; next bounded decision pending
+- Date: 2026-10-03
+- Branch: `bc-003-s12-first-step-assessment`
+- Exact checkpoint revision: record the reviewed branch HEAD externally in the pre-measured SDD checkpoint; this file intentionally does not embed a self-referential commit SHA
+- Project stage: BC-003 measured, adjudicated and in post-measured closure; canonical model-quality disposition is `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
+- Verification authority for the active branch: current GitHub Actions result for branch HEAD plus local clean-worktree checks before a measured run
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
 - License: Apache License 2.0 in `LICENSE`, with attribution in `NOTICE`
-- Current regression count: not asserted by this checkpoint; run the current suite before relying on a count
 - Open Critical, High or Medium findings against the historical S01 freeze: none recorded
 
 The historical S01 closure verification at commit `a4cc1b76602f14bbe360d8da44906369eca619d5` reported `68 passed`, `ruff check .` passed and `git diff --check` passed. Those counts describe that frozen historical checkpoint, not current HEAD.
@@ -158,18 +158,85 @@ Canonical evidence and closure records:
 - decision:
   `reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md`.
 
+## BC-003 S12 first-step assessment
+
+BC-003 is measured and adjudicated.
+
+Exact evaluated revision:
+
+`300449adefbc1d93ae6f198144c4c2995a05e9d5`
+
+Canonical run:
+
+- one excluded preload;
+- three measured `/api/chat` calls;
+- `qwen3.8:27b`, `think=true`;
+- fixed seed and invocation configuration;
+- all three submitted finals byte-identical;
+- structured validity: `3/3 PASS`;
+- runtime containment: `3/3 PASS`;
+- no tool execution;
+- no normalized runtime-state mutation;
+- no verified generation-budget or truncation confounder.
+
+Canonical model-quality disposition:
+
+`INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
+
+Human diagnostic review found `3/3 satisfactory` against the contract actually
+visible to the model. That diagnostic result is supporting evidence, not a
+replacement canonical semantic PASS.
+
+The confounder was in the evaluation design: the prospective semantic evaluator
+required verification of all 8 stable replicas before full traffic shift and
+verification of service recovery before removal or rollback, but those material
+requirements were neither explicitly model-visible nor documented as
+derivations from identified model-visible context.
+
+BC-003 remains an immutable historical measured experiment. Do not rewrite the
+fixture, evaluator, measured evidence or evaluated revision to convert it into
+a clean PASS/FAIL result.
+
+Closure records:
+
+- evidence: `evidence/bc-003-s12-first-step-assessment/`;
+- factual report: `reports/bc-003-s12-first-step-assessment-evidence.md`;
+- semantic adjudication:
+  `reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md`;
+- disposition:
+  `reports/decisions/bc-003-s12-first-step-assessment-disposition.md`.
+
+The temporary branch-only `.github/workflows/bc003-verify.yml` has been
+removed. Repository verification is now defined by
+`.github/workflows/ci.yml`, which runs on pull requests and pushes to `main`.
+
 ## Next validation path
 
-The next work requires an explicit human decision and prospective specification.
-Possible later validation stages, not selected current work, are:
+The selected next bounded work item after BC-003 closure is a minimal
+Evaluation Traceability Gate / review bundle in the development/evaluation
+Harness.
 
-1. respond narrowly to the unsupported governing criteria observed in BC-002;
-2. design and evaluate a bounded multi-step runtime across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace;
-3. measure failure handling, latency, tokens, retries, tool usage and cost per useful outcome;
-4. compare additional models inside the same controlled boundary;
-5. validate operator usefulness and business value against an appropriate fixed-workflow or human baseline.
+Minimum trace:
 
-These are future validation stages, not completed project claims.
+    expectation
+    → basis type
+    → visible refs
+    → derivation if any
+    → structural check
+    → semantic review needed?
+
+The deterministic layer should validate declared structured references and
+review structure, not infer semantic equivalence from keywords. Material
+derived requirements retain a human semantic-review boundary.
+
+After that gate is demonstrated, a new prospective S12 follow-up may explicitly
+test:
+
+1. verification of all 8 stable replicas before full traffic shift;
+2. verification of service recovery before removal or rollback of the degraded
+   candidate.
+
+That follow-up is a new experiment and must not rewrite BC-003.
 
 ## Verification commands
 
@@ -184,7 +251,7 @@ Run the deterministic S01 acceptance path with:
 
     pytest tests/acceptance/test_s01_preparation_path.py -q
 
-Do not carry the historical `68 passed` count forward as the current regression result. Record a new count only after running the current suite at the revision being reported.
+Do not carry a historical regression count forward as the current result. Use the verification result for the exact revision being reviewed or measured.
 
 ## Repository-context boundaries
 

@@ -10,13 +10,15 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 
 ## Current checkpoint
 
-- Date: 2026-10-04
-- Branch: `bc-004-evaluation-traceability-gate`
-- Project stage: BC-004 implementation, diagnostic demonstration and local closure verification complete; pull-request integration into protected `main` is pending
-- Diagnostic revision: `db34c992d12afbe838431efde7428e89912941b4`
+- Date: 2026-10-05
+- Branch: `bc-005-s12-prospective-grounded-assessment`
+- Base: post-BC-004 merged `main`, merge commit `3a7d227629a04a46326b5223018c47748ed66015`
+- BC-004 integration: PR #2 merged; pull-request CI and post-merge `main` CI completed successfully
 - BC-004 disposition: `ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
-- Final local verification after closure documentation: `ruff check .` PASS; `pytest` `189 passed in 6.91s`; `git diff --check main...HEAD --` PASS; working tree clean and synchronized with origin
-- GitHub CI remains the independent integration gate after a pull request is opened
+- BC-005 stage: prospective specification/refinement after human design review; implementation artifacts and measured model calls have not started
+- BC-005 measurement boundary: no measured call is permitted until the dedicated fixture, hidden evaluator, traceability bundle, focused verification and human pre-run checkpoint are complete
+- Current BC-005 design distinguishes pre-shift stable-replica health/readiness from post-shift service recovery; the former remains a human-approved derivation target, while the latter receives an explicit model-visible recovery-gate rule
+- Do not carry the historical BC-004 `189 passed` result forward as current BC-005 verification; record verification for the exact BC-005 revision when implementation-readiness is reviewed
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
@@ -135,6 +137,40 @@ Reference artifacts:
 - evidence: `reports/bc-004-evaluation-traceability-gate-evidence.md`
 - disposition: `reports/decisions/bc-004-evaluation-traceability-gate-disposition.md`
 
+## BC-005 S12 prospective grounded assessment
+
+BC-005 is the active bounded change. It is the first prospective model-quality evaluation designed to use the BC-004 traceability gate before measurement.
+
+The experiment remains intentionally single-step:
+
+```text
+frozen model-visible context
+→ one model proposal
+→ deterministic runtime evaluation
+→ semantic evaluation against traceability-approved criteria
+→ STOP
+```
+
+The model must receive sufficient operational facts and rules without receiving the full target remediation sequence verbatim.
+
+Two checkpoints are explicitly distinguished in the design:
+
+```text
+pre-shift stable-replica health/readiness
+→ does the compliant 8-healthy-replica stable capacity state actually exist?
+
+post-shift service recovery
+→ after traffic moves away from degraded v2.4.2, has the service recovered under the resulting load?
+```
+
+The pre-shift checkpoint remains a `DERIVED_FROM_MODEL_VISIBLE` reasoning target based on capacity being defined per healthy replica plus the authoritative minimum compliant count of 8. The post-shift checkpoint receives a new explicit model-visible operational rule requiring the deterministic recovery gate to report `PASS` before final candidate removal / rollback completion.
+
+BC-005 does not execute scale, traffic shift, recovery checks or removal. Actual system feedback belongs to the later multi-step block.
+
+Reference artifact:
+
+- specification: `specs/bounded-changes/bc-005-s12-prospective-grounded-assessment.md`
+
 ## Current claims boundary
 
 The current project evidence supports the separation of model reasoning, runtime authority and evaluation-governance provenance inside the implemented bounded scenarios.
@@ -143,13 +179,30 @@ It does not establish production readiness, safe multi-step autonomy, general mo
 
 BC-004 specifically demonstrates deterministic traceability enforcement plus a human semantic-review boundary. It does not demonstrate automatic semantic derivation judgment or GitHub/CI approval automation.
 
+BC-005 has not yet produced measured evidence and therefore adds no model-quality claim at this checkpoint.
+
 ## Next validation path
 
-No new bounded change is opened by this handoff automatically.
+The selected next bounded block is BC-005.
 
-The broader roadmap still points toward a bounded multi-step runtime / operator journey, then failure handling and runtime economics, model comparison, and user/business validation. The exact next bounded block requires a separate human selection and specification.
+Proceed in this order:
 
-Do not couple a new runtime experiment to BC-004 closure merely to keep momentum. BC-004 should first complete pull-request CI and merge into `main` as its own accepted bounded change.
+```text
+human approval of revised BC-005 specification
+→ dedicated BC-005 model-visible fixture
+→ stable material expectation IDs
+→ hidden evaluator
+→ dedicated traceability mappings
+→ human semantic review of derived mappings
+→ aggregate traceability gate PASS
+→ focused tests and repository verification
+→ human pre-run checkpoint
+→ excluded preload + three measured calls
+→ semantic/runtime evaluation
+→ canonical disposition
+```
+
+Do not begin BC-006 multi-step execution, UI work or reliability mechanics inside BC-005. Actual readiness feedback after scaling and post-shift recovery results are intentionally deferred until a later bounded multi-step experiment.
 
 ## Verification commands
 

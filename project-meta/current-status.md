@@ -13,12 +13,16 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 - Date: 2026-10-05
 - Branch: `bc-005-s12-prospective-grounded-assessment`
 - Base: post-BC-004 merged `main`, merge commit `3a7d227629a04a46326b5223018c47748ed66015`
+- Draft integration surface: PR #3, `BC-005: prepare prospective grounded assessment`
 - BC-004 integration: PR #2 merged; pull-request CI and post-merge `main` CI completed successfully
 - BC-004 disposition: `ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
-- BC-005 stage: prospective specification/refinement after human design review; implementation artifacts and measured model calls have not started
-- BC-005 measurement boundary: no measured call is permitted until the dedicated fixture, hidden evaluator, traceability bundle, focused verification and human pre-run checkpoint are complete
-- Current BC-005 design distinguishes pre-shift stable-replica health/readiness from post-shift service recovery; the former remains a human-approved derivation target, while the latter receives an explicit model-visible recovery-gate rule
-- Do not carry the historical BC-004 `189 passed` result forward as current BC-005 verification; record verification for the exact BC-005 revision when implementation-readiness is reviewed
+- BC-005 prospective implementation revision before this handoff-only update: `b4099a6e01ca066f01c0401cc1a301f909a789b2`
+- BC-005 stage: prospective fixture, hidden evaluator, traceability bundle, guarded runner/live staging support, offline evaluator and focused contract tests are implemented; no measured BC-005 model call has run
+- BC-005 traceability design: all six material expectations are mapped; the pre-shift stable-health checkpoint is the only derived mapping and records human `APPROVED`; the aggregate deterministic gate passes in focused verification
+- BC-005 measurement boundary: provider inference remains blocked unless repository verification passes, the traceability gate passes and the explicit human pre-run approval flag is true
+- Pull-request CI for prospective implementation revision `b4099a6e01ca066f01c0401cc1a301f909a789b2`: `git diff --check` PASS; `ruff check .` PASS; `pytest` `203 passed in 12.41s`; workflow run `37243084274` PASS
+- Because this handoff update creates a later exact revision, use the latest PR CI result for the actual reviewed HEAD before any measurement; do not carry the `b4099a6e...` verification forward if HEAD changes again
+- Current BC-005 design distinguishes pre-shift stable-replica health/readiness from post-shift service recovery; the former remains a human-approved derivation target, while the latter has an explicit model-visible recovery-gate rule
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
@@ -151,9 +155,9 @@ frozen model-visible context
 → STOP
 ```
 
-The model must receive sufficient operational facts and rules without receiving the full target remediation sequence verbatim.
+The model receives sufficient operational facts and rules without receiving the full target remediation sequence verbatim.
 
-Two checkpoints are explicitly distinguished in the design:
+Two checkpoints are explicitly distinguished:
 
 ```text
 pre-shift stable-replica health/readiness
@@ -163,13 +167,19 @@ post-shift service recovery
 → after traffic moves away from degraded v2.4.2, has the service recovered under the resulting load?
 ```
 
-The pre-shift checkpoint remains a `DERIVED_FROM_MODEL_VISIBLE` reasoning target based on capacity being defined per healthy replica plus the authoritative minimum compliant count of 8. The post-shift checkpoint receives a new explicit model-visible operational rule requiring the deterministic recovery gate to report `PASS` before final candidate removal / rollback completion.
+The pre-shift checkpoint is a `DERIVED_FROM_MODEL_VISIBLE` reasoning target based on capacity being defined per healthy replica plus the authoritative minimum compliant count of 8. The post-shift checkpoint has an explicit model-visible rule requiring the deterministic recovery gate to report `PASS` before removing degraded `v2.4.2` candidate replicas or completing rollback to stable `v2.4.1`.
 
-BC-005 does not execute scale, traffic shift, recovery checks or removal. Actual system feedback belongs to the later multi-step block.
+Prospective implementation artifacts now exist:
 
-Reference artifact:
+- model-visible fixture: `fixtures/model-context/bc-005/s12/context-package.json`;
+- hidden evaluator: `evals/hidden/bc-005/s12/evaluation-case.json`;
+- traceability bundle: `evals/traceability/bc-005/s12/traceability.json`;
+- guarded runner: `src/governed_agent_runtime/bc005_s12_prospective_grounded.py`;
+- live evidence staging boundary: `src/governed_agent_runtime/bc005_live_evaluation.py`;
+- offline evaluator: `src/governed_agent_runtime/bc005_offline_evaluator.py`;
+- focused BC-005 contract tests under `tests/contract/`.
 
-- specification: `specs/bounded-changes/bc-005-s12-prospective-grounded-assessment.md`
+The live boundary records exact revision/configuration/artifact hashes and cannot construct the provider path when the explicit human pre-run approval flag is false. BC-005 still does not execute scale, traffic shift, recovery checks or removal; actual system feedback belongs to the later multi-step block.
 
 ## Current claims boundary
 
@@ -179,28 +189,28 @@ It does not establish production readiness, safe multi-step autonomy, general mo
 
 BC-004 specifically demonstrates deterministic traceability enforcement plus a human semantic-review boundary. It does not demonstrate automatic semantic derivation judgment or GitHub/CI approval automation.
 
-BC-005 has not yet produced measured evidence and therefore adds no model-quality claim at this checkpoint.
+BC-005 has not yet produced measured model evidence and therefore adds no model-quality claim at this checkpoint. The current BC-005 result is implementation/readiness evidence only.
 
 ## Next validation path
 
-The selected next bounded block is BC-005.
+BC-005 prospective implementation is ready for the explicit human pre-run checkpoint after the exact reviewed HEAD receives green repository verification.
 
-Proceed in this order:
+At that checkpoint review, present:
 
 ```text
-human approval of revised BC-005 specification
-→ dedicated BC-005 model-visible fixture
-→ stable material expectation IDs
-→ hidden evaluator
-→ dedicated traceability mappings
-→ human semantic review of derived mappings
-→ aggregate traceability gate PASS
-→ focused tests and repository verification
-→ human pre-run checkpoint
-→ excluded preload + three measured calls
-→ semantic/runtime evaluation
-→ canonical disposition
+exact branch + revision
+→ exact model-visible fixture
+→ material expectation IDs
+→ traceability mappings + aggregate PASS
+→ human-approved derived pre-shift mapping
+→ hidden evaluator criteria
+→ exact Qwen/provider configuration
+→ exact repository verification for reviewed HEAD
+→ exact preload + measured-run command
+→ explicit confirmation that no measured BC-005 call has run
 ```
+
+Only an explicit human approval of that package may unlock the excluded preload plus three measured calls. If the review finds a semantic/design mismatch, revise prospectively and rerun verification before measurement.
 
 Do not begin BC-006 multi-step execution, UI work or reliability mechanics inside BC-005. Actual readiness feedback after scaling and post-shift recovery results are intentionally deferred until a later bounded multi-step experiment.
 

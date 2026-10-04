@@ -109,6 +109,21 @@ BC-004 demonstrates, for the implemented v1 boundary, that the harness can:
 - keep semantic approval outside deterministic inference;
 - reproduce the known BC-003 evaluation-design problem without altering BC-003.
 
+## Post-documentation closure verification
+
+After the evidence and disposition documents were added to the feature branch,
+AI Station repeated repository verification on the synchronized branch:
+
+- `ruff check .` — PASS;
+- `pytest` — PASS;
+- pytest result — `189 passed in 6.91s`;
+- `git diff --check main...HEAD --` — PASS;
+- `git status` — branch up to date with origin, nothing to commit, working tree clean.
+
+This is the final local closure verification for the documented BC-004 branch
+before pull-request integration. GitHub pull-request CI remains an independent
+integration check and is not part of the diagnostic result above.
+
 ## Claims boundary
 
 The result does not establish that the harness can automatically determine

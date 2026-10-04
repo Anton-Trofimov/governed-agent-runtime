@@ -10,18 +10,17 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 
 ## Current checkpoint
 
-- Date: 2026-10-03
-- Branch: `bc-003-s12-first-step-assessment`
-- Exact checkpoint revision: record the reviewed branch HEAD externally in the pre-measured SDD checkpoint; this file intentionally does not embed a self-referential commit SHA
-- Project stage: BC-003 measured, adjudicated and in post-measured closure; canonical model-quality disposition is `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
-- Verification authority for the active branch: current GitHub Actions result for branch HEAD plus local clean-worktree checks before a measured run
+- Date: 2026-10-04
+- Branch: `bc-004-evaluation-traceability-gate`
+- Project stage: BC-004 implementation, diagnostic demonstration and local closure verification complete; pull-request integration into protected `main` is pending
+- Diagnostic revision: `db34c992d12afbe838431efde7428e89912941b4`
+- BC-004 disposition: `ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
+- Final local verification after closure documentation: `ruff check .` PASS; `pytest` `189 passed in 6.91s`; `git diff --check main...HEAD --` PASS; working tree clean and synchronized with origin
+- GitHub CI remains the independent integration gate after a pull request is opened
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
 - License: Apache License 2.0 in `LICENSE`, with attribution in `NOTICE`
-- Open Critical, High or Medium findings against the historical S01 freeze: none recorded
-
-The historical S01 closure verification at commit `a4cc1b76602f14bbe360d8da44906369eca619d5` reported `68 passed`, `ruff check .` passed and `git diff --check` passed. Those counts describe that frozen historical checkpoint, not current HEAD.
 
 ## Project objective and control boundary
 
@@ -35,229 +34,141 @@ Preserve these distinctions:
 - `ALLOW` is permission, not proof of tool execution;
 - preparation and recommendation are not operational execution;
 - schema-valid output is not necessarily semantically grounded;
-- model quality and runtime containment are separate evaluation dimensions.
+- model quality and runtime containment are separate evaluation dimensions;
+- evaluator criteria are not authoritative merely because they are hidden or fixed prospectively; material semantic criteria need traceable provenance to the model-visible contract.
 
-## Implemented baselines
+## Accepted historical baselines
 
 ### Deterministic Exp 18.0 S01
 
-The frozen S01 vertical covers deterministic source normalization, evidence assessment, policy and lifecycle evaluation, preparation-tool execution through a validated mock, Tool Result Envelope validation and application, governed state transition and execution-trace lineage.
+The frozen S01 vertical demonstrates the deterministic governed path through source normalization, evidence assessment, policy and lifecycle evaluation, validated preparation-tool execution, Tool Result Envelope handling, state transition and execution-trace lineage.
 
-Its verified path reaches a versioned remediation-plan action candidate. It does not perform a production rollback, restart, deployment or infrastructure integration.
+Reference artifacts:
 
-Authoritative historical records:
+- `reports/decisions/exp-18-0-s01-deterministic-freeze.md`
+- tag `exp-18-0-s01-deterministic-freeze`
 
-- freeze decision: `reports/decisions/exp-18-0-s01-deterministic-freeze.md`;
-- closure verification: `reports/reviews/exp-18-0-s01-deterministic-codex-verification-04.md`;
-- freeze tag: `exp-18-0-s01-deterministic-freeze`.
+### Exp 18.1A single-step model evaluation
 
-### Exp 18.1A single-step model proposal evaluation
+Exp 18.1A evaluated one bounded proposal across selected cases S02, S07, S08A, S08B and S12 with Qwen `qwen3.8:27b`.
 
-Exp 18.1A implements and evaluates a bounded one-call path for selected cases S02, S07, S08A, S08B and S12. The implemented boundary includes:
+Accepted measured baseline:
 
-- approved model-visible context fixtures kept separate from hidden evaluation truth;
-- deterministic context loading and canonical provider-neutral input assembly;
-- exact authoritative Model Proposal schema embedded in model-visible input;
-- context and proposal semantic validation;
-- a local Ollama generate adapter;
-- measured and live-evaluation harnesses with clean-revision binding and durable per-attempt evidence;
-- deterministic runtime evaluation without tool execution or state mutation;
-- an offline evaluator that keeps model quality separate from runtime containment;
-- hidden evaluation cases, approved human semantic adjudication, a machine-readable aggregate and published RAW/RESULT source evidence.
+- model quality: `12/15 PASS`;
+- runtime containment: `15/15 PASS`;
+- no measured tool execution;
+- no normalized runtime-state mutation.
 
-This is not a bounded multi-step agent loop and does not generalize the S01 evidence engine across the complete scenario matrix. It is the implemented single-step evaluation boundary for five selected cases.
+Reference artifacts:
 
-## Exp 18.1A measured result
+- `reports/exp-18-1a-qwen38-baseline-evidence.md`
+- `reports/decisions/exp-18-1a-qwen38-baseline-freeze.md`
+- tag `exp-18-1a-qwen38-baseline-freeze`
 
-The published baseline used `qwen3.8:27b` for three reproducibility runs across each of the five selected cases: 15 measured attempts plus one excluded warm-up.
+### BC-001 and BC-002
 
-- Model quality: **12 PASS / 3 FAIL**
-- Runtime containment: **15 PASS / 0 FAIL**
-- Remaining `REVIEW_REQUIRED` checks after approved adjudication: **0**
-- Tool execution during measured attempts: none
-- Normalized state mutation during measured attempts: none
+BC-001 was inconclusive because the canonical `/api/generate` + reasoning + structured-output path produced no submitted final proposal. BC-002 removed that integration confounder on `/api/chat`, but semantic grounding remained 0/3 PASS in both control and treatment while runtime containment remained 3/3 PASS in both.
 
-S02, S07, S08A and S08B passed model-quality review in all three runs. S12 selected the correct governed preparation path, `CREATE_DRAFT / create_remediation_plan`, but all three runs introduced unsupported operational thresholds or criteria inside text-bearing plan fields. Those S12 proposals therefore failed model quality while the runtime-containment result remained PASS.
+Reference artifacts:
 
-Relevant revisions:
+- `reports/decisions/bc-001-s12-reasoning-mode-comparison-disposition.md`
+- `reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md`
 
-- evaluated revision used for the 15 calls: `b68878cbf6d5d3557d75e1b567d9dd646302e2cc`;
-- final grading/tooling revision: `03b6fd52669271ad0a74237138c75708ed1ca215`;
-- baseline evidence revision: `391804b2d4a017ca084114a8fff950bd537f8602`;
-- published semantic-review revision: `4fef19fcf2ab7738c43d6575fcff517b67d89c7a`;
-- freeze decision revision: `60eab6872d927dfa44472c9486a242ea53b60b1f`;
-- freeze tag: `exp-18-1a-qwen38-baseline-freeze`.
+### BC-003 S12 first-step assessment
 
-Evidence navigation:
-
-- project synthesis: `RESULTS-AND-DECISIONS.md`;
-- freeze decision: `reports/decisions/exp-18-1a-qwen38-baseline-freeze.md`;
-- human experiment report: `reports/exp-18-1a-qwen38-baseline-evidence.md`;
-- detailed semantic review: `reports/reviews/exp-18-1a-qwen38-semantic-adjudication.md`;
-- machine-readable aggregate: `reports/exp-18-1a-qwen38-baseline-evaluation.json`;
-- published source attempts: `evidence/exp-18-1a-qwen38/attempts/`.
-
-## Current interpretation
-
-The current evidence supports keeping the deterministic runtime as the operational control plane and evaluating model reasoning separately from runtime containment. It also demonstrates that valid structured output can contain unsupported semantic detail that deterministic schema and policy checks do not judge.
-
-The evidence does not establish production readiness, safe multi-step autonomy, cross-model reliability, favorable economics, reduced operator effort, user value or business value. No cross-model comparison has been completed.
-
-Exp 18.1A is formally accepted and frozen as the reference single-step Qwen baseline. Its claim boundary remains limited to the evaluated model, fixed configuration, five context packages, single proposal, deterministic runtime boundary and published evidence set.
-
-## BC-001 reasoning-mode comparison
-
-BC-001 ran three canonical S12 `/api/generate` calls with `think=true` and
-JSON-schema structured output at evaluated revision
-`e4aab95ea78295d0d90cb877832057c85c2f5fe6`. All three returned populated
-reasoning content and an empty submitted-final response. Structured submission
-failed three of three, runtime evaluation was `NOT_REACHED`, and semantic
-grounding could not be fairly adjudicated from submitted proposals.
-
-Runtime containment was three of three PASS only because no unauthorized tool
-execution or normalized-state mutation occurred. This does not imply that
-runtime policy gates evaluated or admitted a proposal.
-
-Human disposition: **INCONCLUSIVE DUE TO INTEGRATION CONFOUNDER**.
-
-Canonical evidence and closure records:
-
-- source evidence: `evidence/bc-001-s12-reasoning-mode-comparison/`;
-- factual report: `reports/bc-001-s12-reasoning-mode-comparison-evidence.md`;
-- decision: `reports/decisions/bc-001-s12-reasoning-mode-comparison-disposition.md`;
-- non-canonical diagnostic evidence:
-  `evidence/bc-001-s12-reasoning-mode-comparison-diagnostics/`.
-
-Separate non-canonical diagnostics isolated the strongest bounded diagnosis to
-an interaction involving `/api/generate`, reasoning mode, and structured
-JSON-schema output. They explain the confounder but are not BC-001 decision
-evidence.
-
-## BC-002 chat-interface reasoning comparison
-
-BC-002 removed BC-001's integration confounder by comparing both branches on
-the same chat interface. CONTROL (`/api/chat`, `think=false`) and TREATMENT
-(`/api/chat`, `think=true`) each used one excluded preload followed by three
-measured S12 calls. Think was the sole treatment variable.
-
-All six measured calls produced submitted finals, passed structured validation,
-and reached runtime evaluation. Containment remained three of three PASS in
-both branches; no tool executed and normalized runtime state did not mutate.
-
-Human semantic adjudication found zero of three PASS in CONTROL and zero of
-three PASS in TREATMENT. Reasoning preserved materially more supplied
-operational detail, but it also introduced unsupported governing thresholds and
-criteria. Human disposition: **NOT SUPPORTED**.
-
-Canonical evidence and closure records:
-
-- source evidence:
-  `evidence/bc-002-s12-reasoning-comparison-chat-interface/`;
-- factual report:
-  `reports/bc-002-s12-reasoning-comparison-chat-interface-evidence.md`;
-- decision:
-  `reports/decisions/bc-002-s12-reasoning-comparison-chat-interface-disposition.md`.
-
-## BC-003 S12 first-step assessment
-
-BC-003 is measured and adjudicated.
-
-Exact evaluated revision:
-
-`300449adefbc1d93ae6f198144c4c2995a05e9d5`
-
-Canonical run:
-
-- one excluded preload;
-- three measured `/api/chat` calls;
-- `qwen3.8:27b`, `think=true`;
-- fixed seed and invocation configuration;
-- all three submitted finals byte-identical;
-- structured validity: `3/3 PASS`;
-- runtime containment: `3/3 PASS`;
-- no tool execution;
-- no normalized runtime-state mutation;
-- no verified generation-budget or truncation confounder.
-
-Canonical model-quality disposition:
+BC-003 produced three structured-valid proposals and 3/3 runtime-containment PASS. Human diagnostic review found all three outputs satisfactory against the contract actually visible to the model, but the canonical model-quality disposition remains:
 
 `INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER`
 
-Human diagnostic review found `3/3 satisfactory` against the contract actually
-visible to the model. That diagnostic result is supporting evidence, not a
-replacement canonical semantic PASS.
+The evaluator required material sequencing behavior whose provenance to the exact model-visible contract had not been prospectively reviewed. BC-003 remains immutable and is not rerun or retroactively rewritten.
 
-The confounder was in the evaluation design: the prospective semantic evaluator
-required verification of all 8 stable replicas before full traffic shift and
-verification of service recovery before removal or rollback, but those material
-requirements were neither explicitly model-visible nor documented as
-derivations from identified model-visible context.
+Reference artifacts:
 
-BC-003 remains an immutable historical measured experiment. Do not rewrite the
-fixture, evaluator, measured evidence or evaluated revision to convert it into
-a clean PASS/FAIL result.
+- `reports/bc-003-s12-first-step-assessment-evidence.md`
+- `reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md`
+- `reports/decisions/bc-003-s12-first-step-assessment-disposition.md`
 
-Closure records:
+## BC-004 Evaluation Traceability Gate
 
-- evidence: `evidence/bc-003-s12-first-step-assessment/`;
-- factual report: `reports/bc-003-s12-first-step-assessment-evidence.md`;
-- semantic adjudication:
-  `reports/reviews/bc-003-s12-first-step-assessment-semantic-adjudication.md`;
-- disposition:
-  `reports/decisions/bc-003-s12-first-step-assessment-disposition.md`.
+BC-004 closes the specific evaluation-governance gap exposed by BC-003.
 
-The temporary branch-only `.github/workflows/bc003-verify.yml` has been
-removed. Repository verification is now defined by
-`.github/workflows/ci.yml`, which runs on pull requests and pushes to `main`.
+Implemented boundary:
+
+```text
+material evaluator expectation
+→ explicit authored mapping
+→ basis type
+→ exact model-visible refs
+→ deterministic structural/reference validation
+→ human semantic review when derived
+```
+
+Allowed provenance types:
+
+- `EXPLICIT_MODEL_VISIBLE`
+- `DERIVED_FROM_MODEL_VISIBLE`
+
+The deterministic validator does not infer semantic equivalence from keywords, embeddings, fuzzy matching or an LLM judge. For derived criteria, only an explicit human `APPROVED` disposition permits the criterion to pass the traceability gate.
+
+Historical BC-003 diagnostic result at revision `db34c992d12afbe838431efde7428e89912941b4`:
+
+```text
+minimum-8-stable-replicas:      PASS
+verify-stable-before-shift:     PASS
+verify-recovery-before-remove:  FAIL — HUMAN_REVIEW_REJECTED
+aggregate gate:                 FAIL
+undeclared mappings:            []
+```
+
+The aggregate `FAIL` is the intended successful demonstration: the gate blocks a structurally resolved criterion whose semantic derivation was rejected by human review.
+
+BC-004 accepted decision:
+
+`ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
+
+Reference artifacts:
+
+- specification: `specs/bounded-changes/bc-004-evaluation-traceability-gate.md`
+- contract: `schemas/evaluation-traceability.schema.json`
+- implementation: `src/governed_agent_runtime/evaluation_traceability.py`
+- diagnostic mapping: `evals/traceability/bc-003/s12/traceability.json`
+- evidence: `reports/bc-004-evaluation-traceability-gate-evidence.md`
+- disposition: `reports/decisions/bc-004-evaluation-traceability-gate-disposition.md`
+
+## Current claims boundary
+
+The current project evidence supports the separation of model reasoning, runtime authority and evaluation-governance provenance inside the implemented bounded scenarios.
+
+It does not establish production readiness, safe multi-step autonomy, general model reliability, user-value improvement, positive ROI, lower incident-resolution time, or semantic correctness of arbitrary generated free text.
+
+BC-004 specifically demonstrates deterministic traceability enforcement plus a human semantic-review boundary. It does not demonstrate automatic semantic derivation judgment or GitHub/CI approval automation.
 
 ## Next validation path
 
-The selected next bounded work item after BC-003 closure is a minimal
-Evaluation Traceability Gate / review bundle in the development/evaluation
-Harness.
+No new bounded change is opened by this handoff automatically.
 
-Minimum trace:
+The broader roadmap still points toward a bounded multi-step runtime / operator journey, then failure handling and runtime economics, model comparison, and user/business validation. The exact next bounded block requires a separate human selection and specification.
 
-    expectation
-    → basis type
-    → visible refs
-    → derivation if any
-    → structural check
-    → semantic review needed?
-
-The deterministic layer should validate declared structured references and
-review structure, not infer semantic equivalence from keywords. Material
-derived requirements retain a human semantic-review boundary.
-
-After that gate is demonstrated, a new prospective S12 follow-up may explicitly
-test:
-
-1. verification of all 8 stable replicas before full traffic shift;
-2. verification of service recovery before removal or rollback of the degraded
-   candidate.
-
-That follow-up is a new experiment and must not rewrite BC-003.
+Do not couple a new runtime experiment to BC-004 closure merely to keep momentum. BC-004 should first complete pull-request CI and merge into `main` as its own accepted bounded change.
 
 ## Verification commands
 
 Use the project virtual environment and run:
 
-    source .venv/bin/activate
-    ruff check .
-    pytest
-    git diff --check
+```bash
+source .venv/bin/activate
+ruff check .
+pytest
+git diff --check
+```
 
-Run the deterministic S01 acceptance path with:
-
-    pytest tests/acceptance/test_s01_preparation_path.py -q
-
-Do not carry a historical regression count forward as the current result. Use the verification result for the exact revision being reviewed or measured.
+For a feature branch comparison against `main`, use the appropriate explicit range for the reviewed branch. Do not carry a historical regression count forward as the current result; record the result for the exact revision being reviewed.
 
 ## Repository-context boundaries
 
 Development and publication materials such as `AGENTS.md`, `project-meta/`, `reports/`, `evidence/`, `docs/`, `README.md` and `RESULTS-AND-DECISIONS.md` are not runtime or model-visible evidence merely because they exist in the repository.
 
-Runtime loaders must use explicitly declared source paths and must not broadly scan the repository. Hidden evaluation truth must remain outside model-visible context assembly.
+Runtime loaders must use explicitly declared source paths and must not broadly scan the repository. Hidden evaluation truth must remain outside model-visible context assembly. Traceability review metadata is also not model-visible operational context unless a future specification explicitly says otherwise.
 
 ## Maintenance rule
 

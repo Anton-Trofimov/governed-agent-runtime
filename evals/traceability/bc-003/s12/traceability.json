@@ -1,0 +1,52 @@
+{
+  "schema_version": "0.1.0",
+  "bounded_change_id": "BC-004-DIAGNOSTIC",
+  "case_id": "bc-003-s12-first-step",
+  "model_context_file": "fixtures/model-context/bc-003/s12/context-package.json",
+  "material_expectation_ids": [
+    "minimum-8-stable-replicas",
+    "verify-stable-before-shift",
+    "verify-recovery-before-remove"
+  ],
+  "mappings": [
+    {
+      "expectation_id": "minimum-8-stable-replicas",
+      "required_behavior": "Preserve the deterministic minimum of 8 healthy v2.4.1 replicas.",
+      "basis_type": "EXPLICIT_MODEL_VISIBLE",
+      "visible_refs": [
+        "obs-bc003-capacity-findings",
+        "ev-bc003-capacity-findings",
+        "BC003-R4"
+      ],
+      "semantic_review_required": false
+    },
+    {
+      "expectation_id": "verify-stable-before-shift",
+      "required_behavior": "Verify all 8 stable replicas are healthy before complete traffic shift.",
+      "basis_type": "DERIVED_FROM_MODEL_VISIBLE",
+      "visible_refs": [
+        "obs-bc003-stable-topology",
+        "obs-bc003-stable-capacity",
+        "obs-bc003-capacity-findings",
+        "BC003-R2",
+        "BC003-R3"
+      ],
+      "derivation": "The capacity findings apply to healthy stable replicas. Complete traffic shift relies on the compliant 8-replica capacity state, so the newly scaled replicas must be verified healthy before that state can be relied upon.",
+      "semantic_review_required": true,
+      "semantic_review_disposition": "APPROVED"
+    },
+    {
+      "expectation_id": "verify-recovery-before-remove",
+      "required_behavior": "After traffic shifts away from v2.4.2, verify service recovery before removing or rolling back v2.4.2.",
+      "basis_type": "DERIVED_FROM_MODEL_VISIBLE",
+      "visible_refs": [
+        "obs-bc003-health-gate",
+        "ev-bc003-rollout-health",
+        "BC003-R1"
+      ],
+      "derivation": "The historical evaluator treated the unhealthy candidate and paused rollout as sufficient basis for a post-shift recovery check before candidate removal or rollback. Human review found that the visible context did not establish this exact sequencing contract.",
+      "semantic_review_required": true,
+      "semantic_review_disposition": "REJECTED"
+    }
+  ]
+}

@@ -145,6 +145,7 @@ def run_bc005_first_step(
     attempt_reporter: Callable[[dict[str, Any]], None],
     required_verification_passed: bool,
     human_pre_run_approved: bool,
+    approved_revision: str,
 ) -> dict[str, Any]:
     """Run one excluded preload followed by three fixed BC-005 attempts."""
     project_root = project_root.resolve()
@@ -158,6 +159,8 @@ def run_bc005_first_step(
     evaluated_revision = git_boundary.resolve_head(project_root)
     if not evaluated_revision:
         raise ValueError("BC-005 evaluated revision must be non-empty")
+    if approved_revision != evaluated_revision:
+        raise ValueError("BC-005 human approval is not bound to the evaluated revision")
 
     design_gate = validate_bc005_pre_run_design(project_root)
     if not design_gate["gate_pass"]:

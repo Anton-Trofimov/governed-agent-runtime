@@ -146,6 +146,7 @@ def test_bc005_live_boundary_persists_preload_and_three_measured_attempts(
         ROOT,
         evidence_directory=evidence,
         human_pre_run_approved=True,
+        approved_revision=REVISION,
     )
 
     assert len(factory.calls) == 1
@@ -159,6 +160,7 @@ def test_bc005_live_boundary_persists_preload_and_three_measured_attempts(
     manifest = json.loads((evidence / "manifest.json").read_text())
     assert manifest["bounded_change_id"] == "BC-005"
     assert manifest["human_pre_run_approved"] is True
+    assert manifest["approved_revision"] == REVISION
     assert manifest["traceability_gate"]["gate_pass"] is True
     assert manifest["expected_measured_call_count"] == 3
     assert manifest["model_artifact_identity"] == DIGEST
@@ -184,6 +186,7 @@ def test_bc005_live_human_gate_blocks_before_provider_construction(
             ROOT,
             evidence_directory=tmp_path / "bc005-staging",
             human_pre_run_approved=False,
+            approved_revision=REVISION,
         )
 
     assert factory.calls == []
@@ -201,7 +204,25 @@ def test_bc005_live_dirty_git_blocks_before_provider_construction(
                 ROOT,
                 evidence_directory=tmp_path / "bc005-staging",
                 human_pre_run_approved=True,
+                approved_revision=REVISION,
             )
     finally:
         GitStub.clean = True
+    assert factory.calls == []
+
+
+def test_bc005_live_approval_revision_mismatch_blocks_before_provider_construction(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    live, factory = configure(monkeypatch)
+
+    with pytest.raises(ValueError, match="not bound to the evaluated revision"):
+        live.run_bc005_live_evaluation(
+            ROOT,
+            evidence_directory=tmp_path / "bc005-staging",
+            human_pre_run_approved=True,
+            approved_revision="ffffffffffffffffffffffffffffffffffffffff",
+        )
+
     assert factory.calls == []

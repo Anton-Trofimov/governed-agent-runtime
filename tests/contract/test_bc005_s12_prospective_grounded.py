@@ -131,6 +131,7 @@ def test_bc005_runs_one_preload_and_three_measured_calls_after_all_gates() -> No
         attempt_reporter=lambda event: reported.append(deepcopy(event)),
         required_verification_passed=True,
         human_pre_run_approved=True,
+        approved_revision=REVISION,
     )
 
     exact_input = assemble_llm_probe_input(ROOT, load_bc005_context(ROOT))
@@ -159,6 +160,7 @@ def test_bc005_valid_hypothesis_routes_without_execution_or_state_mutation() -> 
         attempt_reporter=lambda event: None,
         required_verification_passed=True,
         human_pre_run_approved=True,
+        approved_revision=REVISION,
     )
 
     for record in result["measured_runs"]:
@@ -186,6 +188,7 @@ def test_bc005_human_pre_run_gate_blocks_before_provider_inference() -> None:
             attempt_reporter=lambda event: None,
             required_verification_passed=True,
             human_pre_run_approved=False,
+            approved_revision=REVISION,
         )
 
     assert model.received_inputs == []
@@ -203,6 +206,24 @@ def test_bc005_configuration_drift_blocks_before_provider_inference() -> None:
             attempt_reporter=lambda event: None,
             required_verification_passed=True,
             human_pre_run_approved=True,
+            approved_revision=REVISION,
+        )
+
+    assert model.received_inputs == []
+
+
+def test_bc005_approval_revision_mismatch_blocks_before_provider_inference() -> None:
+    model = ModelStub()
+
+    with pytest.raises(ValueError, match="not bound to the evaluated revision"):
+        run_bc005_first_step(
+            ROOT,
+            model=model,
+            git_boundary=GitStub(),
+            attempt_reporter=lambda event: None,
+            required_verification_passed=True,
+            human_pre_run_approved=True,
+            approved_revision="ffffffffffffffffffffffffffffffffffffffff",
         )
 
     assert model.received_inputs == []

@@ -41,6 +41,7 @@ def run_bc005_live_evaluation(
     *,
     evidence_directory: Path,
     human_pre_run_approved: bool,
+    approved_revision: str,
     base_url: str = "http://127.0.0.1:11434",
 ) -> dict[str, Any]:
     """Run the fixed BC-005 probe after all blocking pre-run gates."""
@@ -60,6 +61,8 @@ def run_bc005_live_evaluation(
     evaluated_revision = git.resolve_head(project_root)
     if not evaluated_revision:
         raise ValueError("BC-005 evaluated revision must be non-empty")
+    if approved_revision != evaluated_revision:
+        raise ValueError("BC-005 human approval is not bound to the evaluated revision")
 
     verification = _run_required_verification(project_root)
     if verification.get("status") != "PASSED":
@@ -120,6 +123,7 @@ def run_bc005_live_evaluation(
         schema_sha256=schema_sha256,
         design_gate=design_gate,
         artifact_hashes=artifact_hashes,
+        approved_revision=approved_revision,
     )
     _atomic_write_json(manifest_path, manifest)
 
@@ -140,6 +144,7 @@ def run_bc005_live_evaluation(
             attempt_reporter=report_attempt,
             required_verification_passed=True,
             human_pre_run_approved=True,
+            approved_revision=approved_revision,
         )
     except Exception as error:
         manifest.update(
@@ -185,6 +190,7 @@ def _initial_manifest(
     schema_sha256: str,
     design_gate: dict[str, Any],
     artifact_hashes: dict[str, str],
+    approved_revision: str,
 ) -> dict[str, Any]:
     expected_files = ["preload/bc-005-s12-preload.raw.json"]
     expected_files.extend(
@@ -201,6 +207,7 @@ def _initial_manifest(
         "decision_evidence_eligible": True,
         "evaluated_revision": evaluated_revision,
         "human_pre_run_approved": True,
+        "approved_revision": approved_revision,
         "verification": deepcopy(verification),
         "traceability_gate": deepcopy(design_gate),
         "prospective_artifact_sha256": deepcopy(artifact_hashes),

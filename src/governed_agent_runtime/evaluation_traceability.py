@@ -8,7 +8,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
 VISIBLE_ID_KEYS = frozenset({"context_id", "evidence_id", "constraint_id"})
 
 

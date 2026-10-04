@@ -10,7 +10,6 @@ from governed_agent_runtime.evaluation_traceability import (
     evaluate_traceability,
 )
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 

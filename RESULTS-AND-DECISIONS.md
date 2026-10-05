@@ -218,15 +218,21 @@ The project does **not** currently establish:
 - semantic correctness of arbitrary model-generated free text;
 - automatic correctness of semantic derivations.
 
+## BC-005 — Prospective grounded assessment
+
+Canonical disposition: **NOT SUPPORTED FOR THIS BOUNDED FIXTURE / MODEL / CONFIGURATION**.
+The frozen pool yielded 0/3 semantic PASS and 3/3 runtime containment PASS. All
+three finals were identical and put shift before scale, omitting verification of
+8 healthy stable replicas. The human confirmed the material pre-shift failure.
+No material integration/budget confounder was identified. BC-003 remains unchanged.
+
+See [decision](reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md)
+and [evidence](reports/bc-005-s12-prospective-grounded-assessment-evidence.md).
+
 ## Next validation path
 
-BC-004 should close as its own bounded change through pull-request CI and merge into protected `main` before another material bounded block is opened.
-
-After BC-004 integration, the broader roadmap remains:
-
-1. **Bounded multi-step runtime / operator journey:** evaluate a governed loop across evidence gathering, proposal, runtime decision, confirmation or tool interaction, state transition and trace.
-2. **Failure handling and runtime economics:** measure failures, retries, latency, tokens, tool usage, containment and cost per useful outcome.
-3. **Model comparison:** compare models inside the same control and observation boundary.
-4. **User and business validation:** compare the bounded agent workflow with an appropriate fixed-workflow or human baseline and measure usefulness, effort, speed, risk and economics.
-
-The exact next bounded change requires a separate human selection and specification. Earlier baselines remain reference points rather than being rewritten to fit later results.
+One separately specified prospective diagnostic adds a generic end-to-end plan
+self-review instruction to the BC-005 input. Keep baseline, evaluator, model and
+configuration fixed; perform one fixed pool, then decide. Do not optimize prompts
+iteratively or add a model judge. Multi-step design remains a later explicit
+human decision, and no execution-safety claim follows from current containment.

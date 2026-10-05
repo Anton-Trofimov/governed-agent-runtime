@@ -234,6 +234,15 @@ def test_bc005_real_pending_gate_blocks_even_with_pre_run_flag(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     live = importlib.import_module("governed_agent_runtime.bc005_live_evaluation")
+    original_load = live._probe._load_json
+
+    def pending_traceability(path):
+        value = original_load(path)
+        if path.name == "traceability.json":
+            value["mappings"][2]["semantic_review_disposition"] = "PENDING"
+        return value
+
+    monkeypatch.setattr(live._probe, "_load_json", pending_traceability)
     factory = Factory()
     monkeypatch.setattr(live, "OllamaChatModel", factory)
     with pytest.raises(ValueError, match="traceability gate"):

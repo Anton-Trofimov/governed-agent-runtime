@@ -36,13 +36,15 @@ def test_bc005_context_separates_pre_shift_health_from_post_shift_recovery() -> 
     assert "complete rollback to stable 2.4.1" not in text
 
 
-def test_bc005_traceability_gate_blocks_pending_human_review() -> None:
+def test_bc005_traceability_gate_passes_recorded_human_review() -> None:
     gate = validate_bc005_pre_run_design(ROOT)
 
-    assert gate["gate_pass"] is False
+    assert gate["gate_pass"] is True
     assert gate["undeclared_mapping_ids"] == []
-    assert gate["derived_approved_expectation_ids"] == []
-    assert sum(item["status"] == "PASS" for item in gate["expectations"]) == 6
+    assert gate["derived_approved_expectation_ids"] == [
+        "pre-shift-stable-health-checkpoint"
+    ]
+    assert sum(item["status"] == "PASS" for item in gate["expectations"]) == 7
 
 
 def test_bc005_hidden_truth_and_traceability_use_same_material_ids() -> None:
@@ -77,7 +79,7 @@ def test_bc005_output_contract_and_total_traffic_are_visible() -> None:
     assert "Total current production traffic to payment-api" in json.dumps(context)
 
 
-def test_bc005_approved_copy_passes_real_traceability(tmp_path: Path) -> None:
+def test_bc005_pending_copy_blocks_real_traceability(tmp_path: Path) -> None:
     import shutil
 
     for name in (
@@ -92,8 +94,8 @@ def test_bc005_approved_copy_passes_real_traceability(tmp_path: Path) -> None:
         shutil.copyfile(ROOT / name, target)
     target = tmp_path / 'evals/traceability/bc-005/s12/traceability.json'
     bundle = json.loads(target.read_text())
-    bundle['mappings'][2]['semantic_review_disposition'] = 'APPROVED'
+    bundle['mappings'][2]['semantic_review_disposition'] = 'PENDING'
     target.write_text(json.dumps(bundle))
     gate = validate_bc005_pre_run_design(tmp_path)
-    assert gate['gate_pass'] is True
+    assert gate['gate_pass'] is False
     assert len(gate['expectations']) == 7

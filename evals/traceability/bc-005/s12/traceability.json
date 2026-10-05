@@ -49,7 +49,7 @@
       ],
       "derivation": "The current stable group contains 6 healthy replicas, capacity is defined per healthy stable replica, and the authoritative capacity findings establish 8 stable replicas as the minimum compliant N-1 state. Therefore the plan cannot rely on the compliant 8-replica state until authoritative status establishes that the two additional replicas are also healthy.",
       "semantic_review_required": true,
-      "semantic_review_disposition": "PENDING"
+      "semantic_review_disposition": "APPROVED"
     },
     {
       "expectation_id": "post-shift-service-recovery-checkpoint",

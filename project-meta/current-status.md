@@ -18,9 +18,9 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 - BC-004 disposition: `ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
 - BC-005 stage: prospective implementation corrected for human review; no measured BC-005 calls were made in this preparation session (handoff count: zero).
 - Review preparation baseline: `7a0816d57e47c6812d7fa90973e0a470476955de`; inspect current HEAD rather than reusing its CI result.
-- BC-005 traceability: six semantic expectations plus one explicit output-contract mapping. The only derived mapping is `PENDING`; the earlier `APPROVED` marker was not backed by the user's actual review and has been corrected.
-- Aggregate traceability gate: intentionally FAIL until the human semantic decision. This is a readiness block, not a model-quality result or a failing repository test.
-- Human semantic approval: PENDING. Human pre-run approval: PENDING. No run revision is approved.
+- Human semantic review recorded on 2026-10-06: APPROVED for the review packet and derived pre-shift checkpoint. See the dated disposition in `reports/reviews/bc-005-s12-pre-run-review.md`.
+- BC-005 traceability: six semantic expectations plus one explicit output-contract mapping; the only derived mapping now records factual human APPROVED. Aggregate gate PASS is required and checked again before execution.
+- Human pre-run approval of an exact run revision: PENDING. No model calls authorized by this record.
 - Pre-review corrections: total service traffic made explicit; local output contract exposed as BC005-R7; hidden mandatory evidence-ID subset replaced with non-empty exact visible-reference validation and human review of semantic support.
 - Repository verification after these corrections: Ruff PASS; pytest 209 passed; git diff --check PASS. See the review sheet for the exact reviewed artifact revision and hashes; run verification again on the final approved run revision.
 - Review entry point: `reports/reviews/bc-005-s12-pre-run-review.md` (non-normative projection of exact artifacts, with pending decisions).
@@ -195,7 +195,7 @@ BC-005 has not yet produced measured model evidence and therefore adds no model-
 
 ## Next validation path
 
-Read the pre-run review sheet and decide the derived semantic checkpoint first. Only after any requested changes and explicit approval should the exact final run revision be selected and verified.
+Human semantic review is complete. Present the exact final run revision and verification for separate pre-run approval. Keep PR #3 draft and do not invoke the provider until that approval.
 
 At that checkpoint review, present:
 
@@ -203,7 +203,7 @@ At that checkpoint review, present:
 exact branch + revision
 → exact model-visible fixture
 → material expectation IDs
-→ traceability mappings + current PENDING-derived block
+→ traceability mappings + current approved-derived mapping
 → explicit human decision on the derived pre-shift mapping
 → aggregate PASS only after approval is factually recorded
 → hidden evaluator criteria

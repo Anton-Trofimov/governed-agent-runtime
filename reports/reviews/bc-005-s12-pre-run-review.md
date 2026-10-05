@@ -1,6 +1,24 @@
 # BC-005 — S12 Human Pre-Run Review
 
-Дата подготовки: 2026-10-05. Статус: **PENDING HUMAN REVIEW — MEASUREMENT BLOCKED**.
+Дата подготовки: 2026-10-05. Текущий статус: **HUMAN SEMANTIC REVIEW APPROVED — RUN NOT AUTHORIZED**.
+
+## Human disposition — 2026-10-06
+
+Антон прочитал review, уточнил смысл R5, расположение R6 и необязательность
+confidence, затем написал: «увидел, просто не промотал перевод в окне до конца
+на R6, остальное ок. Запиши этот файл как ревью до run. и идем дальше».
+
+Решение зафиксировано как APPROVED для содержания review, включая specification,
+model-visible contract, evaluator criteria и derived pre-shift-stable-health-checkpoint.
+В canonical traceability disposition изменён с PENDING на APPROVED.
+Human pre-run approval конкретной run revision остаётся PENDING; inference не запускался.
+
+Ниже сохранён исходный review snapshot ревизии `39133f1eec454b2b5e82add504622145cf9736c2`:
+его PENDING, gate FAIL и hashes описывают состояние ДО решения человека.
+Это исторические исходные фрагменты, а не текущий статус approval.
+Model-visible input, evaluator и параметры после review не менялись.
+
+---
 
 Это ненормативный review packet: представление исходных артефактов для человека.
 Английские исходные фрагменты ниже скопированы дословно; русский текст — пояснения

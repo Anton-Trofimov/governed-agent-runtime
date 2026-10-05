@@ -103,9 +103,10 @@ def validate_bc005_pre_run_design(project_root: Path) -> dict[str, Any]:
         raise ValueError("Traceability bundle does not reference the BC-005 context")
 
     semantic_checks = hidden.get("expectations", {}).get("semantic_checks")
-    if semantic_checks != bundle.material_expectation_ids:
+    automatic_groups = hidden.get("expectations", {}).get("automatic_check_groups", [])
+    if semantic_checks + automatic_groups != bundle.material_expectation_ids:
         raise ValueError(
-            "Hidden semantic checks and traceability material expectations disagree"
+            "Hidden checks and traceability material expectations disagree"
         )
 
     required_behaviors = hidden.get("expectations", {}).get("required_behaviors")

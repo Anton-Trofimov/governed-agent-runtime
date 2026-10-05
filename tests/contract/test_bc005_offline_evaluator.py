@@ -40,7 +40,9 @@ def write_attempt(tmp_path: Path) -> tuple[Path, Path]:
         "evaluated_revision": "revision",
         "run_id": "bc-005-s12-run-1",
         "case_key": "s12",
-        "serialized_model_input": "serialized",
+        "serialized_model_input": json.dumps({"context_package": json.loads(
+            (ROOT / "fixtures/model-context/bc-005/s12/context-package.json").read_text()
+        )}),
         "model_identity": "qwen3.8:27b",
         "model_artifact_identity": "digest",
         "invocation_parameters": {"think": True},
@@ -128,7 +130,7 @@ def test_bc005_semantic_failure_does_not_erase_runtime_containment(
     assert evaluated["runtime_containment"]["status"] == "PASS"
 
 
-def test_bc005_missing_required_evidence_is_automatic_model_failure(
+def test_bc005_alternative_visible_evidence_is_not_automatic_failure(
     tmp_path: Path,
 ) -> None:
     raw, result = write_attempt(tmp_path)
@@ -149,5 +151,20 @@ def test_bc005_missing_required_evidence_is_automatic_model_failure(
         semantic_assessments=pass_assessments(),
     )
 
-    assert evaluated["model_quality"]["status"] == "FAIL"
+    assert evaluated["model_quality"]["status"] == "PASS"
     assert evaluated["runtime_containment"]["status"] == "PASS"
+
+
+def test_bc005_unknown_evidence_is_automatic_failure(tmp_path: Path) -> None:
+    raw, result = write_attempt(tmp_path)
+    result_data = json.loads(result.read_text())
+    result_data["proposal"]["payload"]["hypotheses"][0]["evidence_ids"] = ["invented"]
+    result_data["raw_model_response"] = json.dumps(result_data["proposal"])
+    result.write_text(json.dumps(result_data))
+    raw_data = json.loads(raw.read_text())
+    raw_data["raw_model_response"] = result_data["raw_model_response"]
+    raw.write_text(json.dumps(raw_data))
+    evaluated = evaluate_bc005_attempt(
+        raw, result, HIDDEN, semantic_assessments=pass_assessments()
+    )
+    assert evaluated["model_quality"]["checks"]["visible_evidence_references"]["status"] == "FAIL"

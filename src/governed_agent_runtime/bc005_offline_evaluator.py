@@ -94,12 +94,15 @@ def _automatic_model_checks(
         "Cause status matches the supplied supported evidence.",
         "Cause status does not match the approved supported status.",
     )
-    required_evidence = set(expectations["required_evidence_ids"])
+    visible_context = json.loads(result["serialized_model_input"])["context_package"]
+    visible_evidence = {
+        entry["evidence_id"] for entry in visible_context["evidence_summary"]
+    }
     actual_evidence = set(hypothesis.get("evidence_ids", []))
-    checks["required_evidence"] = _pass_fail(
-        required_evidence.issubset(actual_evidence),
-        "Required rollout-health and capacity evidence is referenced.",
-        "One or more required evidence references are missing.",
+    checks["visible_evidence_references"] = _pass_fail(
+        bool(actual_evidence) and actual_evidence.issubset(visible_evidence),
+        "Non-empty evidence references resolve to the exact model-visible context.",
+        "Evidence references are empty or do not resolve to the visible context.",
     )
     checks["missing_evidence"] = _pass_fail(
         hypothesis.get("missing_evidence") == [],

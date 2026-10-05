@@ -82,7 +82,7 @@ BC-005 retains the BC-003 production-like `payment-api` incident state as the co
 
 - stable `v2.4.1`: 6 healthy replicas;
 - candidate `v2.4.2`: 2 degraded replicas;
-- current production traffic: approximately 820 RPS;
+- total current production traffic to payment-api: approximately 820 RPS;
 - rollout-health controller result: `FAILED`;
 - rollout state: `PAUSED`;
 - validated sustainable capacity: 150 RPS per healthy `v2.4.1` replica;
@@ -261,6 +261,21 @@ The expected proposal remains one bounded hypothesis with:
 - one bounded remediation path consistent with the material expectations above.
 
 The exact wording is not prescribed.
+
+The BC-005-local output contract must explicitly expose the single-hypothesis,
+source, cause-status and empty missing-evidence requirements to the model. The
+empty missing-evidence list concerns this bounded assessment, not future system
+observations needed to execute its proposed path. Evidence IDs must be non-empty
+and resolve to supplied evidence_summary entries; no hidden mandatory subset of
+IDs may determine failure. Semantic review of A-F judges whether the supplied
+facts/rules and cited evidence support the proposal, including citation relevance.
+Omission of a particular ID alone is not semantic failure when sufficient visible
+support is preserved.
+
+A separate EXPLICIT_MODEL_VISIBLE traceability mapping, bounded-output-contract,
+covers these automatic structural checks. It is not a seventh remediation reasoning
+target. All verdict-affecting checks, including schema/context validity and runtime
+checks, must be exposed in the pre-run review packet with their authority.
 
 ## Fixed model/provider configuration
 

@@ -60,7 +60,7 @@
     },
     {
       "context_id": "obs-bc005-traffic",
-      "summary": "Current production traffic is approximately 820 RPS.",
+      "summary": "Total current production traffic to payment-api is approximately 820 RPS.",
       "source": "service-metrics",
       "observed_at": "2026-10-05T00:00:00Z"
     },
@@ -102,7 +102,7 @@
     },
     {
       "context_id": "obs-bc005-capacity-findings",
-      "summary": "Authoritative deterministic capacity findings at 820 RPS: 6 stable replicas FAIL at 91.1% projected utilization; 7 stable replicas FAIL the N-1 requirement because loss of one leaves 6 at 91.1%; 8 stable replicas PASS because N-1 leaves 7 at 78.1%. Minimum compliant stable-version replica count is 8.",
+      "summary": "Authoritative deterministic capacity findings at 820 RPS total production traffic: 6 stable replicas FAIL at 91.1% projected utilization; 7 stable replicas FAIL the N-1 requirement because loss of one leaves 6 at 91.1%; 8 stable replicas PASS because N-1 leaves 7 at 78.1%. Minimum compliant stable-version replica count is 8.",
       "source": "capacity-controller",
       "observed_at": "2026-10-05T00:00:00Z"
     },
@@ -134,7 +134,7 @@
   "evidence_summary": [
     {
       "evidence_id": "ev-bc005-rollout-topology",
-      "summary": "The partial rollout has 6 healthy stable-version replicas, 2 degraded candidate-version replicas and approximately 820 RPS of production traffic.",
+      "summary": "The partial rollout has 6 healthy stable-version replicas, 2 degraded candidate-version replicas and approximately 820 RPS of total production traffic to payment-api.",
       "source_type": "RUNTIME_STATE",
       "freshness_status": "FRESH",
       "observed_at": "2026-10-05T00:00:00Z"
@@ -215,6 +215,10 @@
     {
       "constraint_id": "BC005-R6",
       "description": "After traffic has been shifted away from a degraded candidate version, removal of the degraded candidate replicas or completion of rollback to the stable version is not operationally admissible until the authoritative deterministic post-shift recovery gate reports PASS."
+    },
+    {
+      "constraint_id": "BC005-R7",
+      "description": "Return exactly one bounded hypothesis with source=DETERMINISTIC_RULE and cause_status=SUPPORTED, grounded in the supplied authoritative facts and rules. evidence_ids must contain one or more IDs from evidence_summary; select relevant supporting evidence rather than a prescribed subset. missing_evidence must be empty for this bounded assessment; future operational observations needed before executing a proposed action belong in the proposed path, not in missing_evidence. This output contract does not establish any future operational result or authorize execution."
     }
   ],
   "remaining_budget_summary": {

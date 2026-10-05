@@ -124,6 +124,8 @@ class Factory:
 
 def configure(monkeypatch: pytest.MonkeyPatch):
     live = importlib.import_module("governed_agent_runtime.bc005_live_evaluation")
+    monkeypatch.setattr(live._probe, "validate_bc005_pre_run_design",
+                        lambda root: {"gate_pass": True})
     factory = Factory()
     monkeypatch.setattr(live, "_SubprocessGitBoundary", GitStub)
     monkeypatch.setattr(live, "OllamaChatModel", factory)
@@ -226,3 +228,18 @@ def test_bc005_live_approval_revision_mismatch_blocks_before_provider_constructi
         )
 
     assert factory.calls == []
+
+
+def test_bc005_real_pending_gate_blocks_even_with_pre_run_flag(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    live = importlib.import_module("governed_agent_runtime.bc005_live_evaluation")
+    factory = Factory()
+    monkeypatch.setattr(live, "OllamaChatModel", factory)
+    with pytest.raises(ValueError, match="traceability gate"):
+        live.run_bc005_live_evaluation(
+            ROOT, evidence_directory=tmp_path / "blocked",
+            human_pre_run_approved=True, approved_revision=REVISION,
+        )
+    assert factory.calls == []
+    assert not (tmp_path / "blocked").exists()

@@ -227,3 +227,12 @@ def test_bc005_approval_revision_mismatch_blocks_before_provider_inference() -> 
         )
 
     assert model.received_inputs == []
+
+
+@pytest.fixture(autouse=True)
+def approved_design_stub(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Only runner mechanics are tested here; the real fixture remains PENDING.
+    monkeypatch.setattr(
+        "governed_agent_runtime.bc005_s12_prospective_grounded.validate_bc005_pre_run_design",
+        lambda root: {"gate_pass": True},
+    )

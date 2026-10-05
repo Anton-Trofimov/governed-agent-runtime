@@ -16,13 +16,15 @@ Before relying on this file, inspect `git status`, recent Git history, the relev
 - Draft integration surface: PR #3, `BC-005: prepare prospective grounded assessment`
 - BC-004 integration: PR #2 merged; pull-request CI and post-merge `main` CI completed successfully
 - BC-004 disposition: `ACCEPTED — TRACEABILITY GATE DEMONSTRATED`
-- BC-005 prospective implementation revision before this handoff-only update: `b4099a6e01ca066f01c0401cc1a301f909a789b2`
-- BC-005 stage: prospective fixture, hidden evaluator, traceability bundle, guarded runner/live staging support, offline evaluator and focused contract tests are implemented; no measured BC-005 model call has run
-- BC-005 traceability design: all six material expectations are mapped; the pre-shift stable-health checkpoint is the only derived mapping and records human `APPROVED`; the aggregate deterministic gate passes in focused verification
-- BC-005 measurement boundary: provider inference remains blocked unless repository verification passes, the traceability gate passes and the explicit human pre-run approval flag is true
-- Pull-request CI for prospective implementation revision `b4099a6e01ca066f01c0401cc1a301f909a789b2`: `git diff --check` PASS; `ruff check .` PASS; `pytest` `203 passed in 12.41s`; workflow run `37243084274` PASS
-- Because this handoff update creates a later exact revision, use the latest PR CI result for the actual reviewed HEAD before any measurement; do not carry the `b4099a6e...` verification forward if HEAD changes again
-- Current BC-005 design distinguishes pre-shift stable-replica health/readiness from post-shift service recovery; the former remains a human-approved derivation target, while the latter has an explicit model-visible recovery-gate rule
+- BC-005 stage: prospective implementation corrected for human review; no measured BC-005 calls were made in this preparation session (handoff count: zero).
+- Review preparation baseline: `7a0816d57e47c6812d7fa90973e0a470476955de`; inspect current HEAD rather than reusing its CI result.
+- BC-005 traceability: six semantic expectations plus one explicit output-contract mapping. The only derived mapping is `PENDING`; the earlier `APPROVED` marker was not backed by the user's actual review and has been corrected.
+- Aggregate traceability gate: intentionally FAIL until the human semantic decision. This is a readiness block, not a model-quality result or a failing repository test.
+- Human semantic approval: PENDING. Human pre-run approval: PENDING. No run revision is approved.
+- Pre-review corrections: total service traffic made explicit; local output contract exposed as BC005-R7; hidden mandatory evidence-ID subset replaced with non-empty exact visible-reference validation and human review of semantic support.
+- Repository verification after these corrections: Ruff PASS; pytest 209 passed; git diff --check PASS. See the review sheet for the exact reviewed artifact revision and hashes; run verification again on the final approved run revision.
+- Review entry point: `reports/reviews/bc-005-s12-pre-run-review.md` (non-normative projection of exact artifacts, with pending decisions).
+- PR #3 must remain draft. No measurement, merge, freeze or BC-006 work is authorized by this preparation checkpoint.
 - S01 status: frozen under tag `exp-18-0-s01-deterministic-freeze`
 - Exp 18.1A status: implemented, measured, evaluated, published and formally frozen under tag `exp-18-1a-qwen38-baseline-freeze`
 - Primary publication entry point: `README.md`
@@ -193,7 +195,7 @@ BC-005 has not yet produced measured model evidence and therefore adds no model-
 
 ## Next validation path
 
-BC-005 prospective implementation is ready for the explicit human pre-run checkpoint after the exact reviewed HEAD receives green repository verification.
+Read the pre-run review sheet and decide the derived semantic checkpoint first. Only after any requested changes and explicit approval should the exact final run revision be selected and verified.
 
 At that checkpoint review, present:
 
@@ -201,8 +203,9 @@ At that checkpoint review, present:
 exact branch + revision
 → exact model-visible fixture
 → material expectation IDs
-→ traceability mappings + aggregate PASS
-→ human-approved derived pre-shift mapping
+→ traceability mappings + current PENDING-derived block
+→ explicit human decision on the derived pre-shift mapping
+→ aggregate PASS only after approval is factually recorded
 → hidden evaluator criteria
 → exact Qwen/provider configuration
 → exact repository verification for reviewed HEAD

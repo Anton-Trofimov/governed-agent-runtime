@@ -18,6 +18,15 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
+## Latest bounded result: BC-005
+
+The prospectively traceability-approved S12 assessment produced 0/3 semantic PASS
+and 3/3 runtime containment PASS. Qwen preserved supplied facts but proposed traffic
+shift before scaling and omitted the pre-shift healthy-capacity checkpoint.
+The runtime admitted the bounded proposal without executing it; it did not detect
+that free-text ordering error. See the [evidence](reports/bc-005-s12-prospective-grounded-assessment-evidence.md)
+and [disposition](reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md).
+
 ## Problem, user, and hypotheses
 
 The working product context is an on-call or operations specialist supporting a synthetic `payment-api` backend that represents payment routing and processing. The system receives operational requests, assembles bounded evidence, lets the LLM interpret the situation, and keeps operational authority in the surrounding runtime.

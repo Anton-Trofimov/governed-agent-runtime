@@ -1,0 +1,6 @@
+{
+  "pre-shift-stable-health-checkpoint": {
+    "status": "FAIL",
+    "reason": "Human confirmed on 2026-10-06: numbered plan shifts traffic before scaling and omits authoritative confirmation of all 8 healthy stable replicas before shift."
+  }
+}

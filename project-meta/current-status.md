@@ -16,15 +16,17 @@ BC-003 disposition remains INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER.
 - Evidence report: `reports/bc-005-s12-prospective-grounded-assessment-evidence.md`.
 - Human adjudication: `reports/reviews/bc-005-s12-post-run-review.md`.
 - Decision: `reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md`.
-- Human authorized publication and merge of BC-005. Check PR #3 for integration state.
+- BC-005 integrated through PR #3; CI #9 PASS; merge `bc91ed5df96b3952cc7a2ee4e2f0f928eeb5e4e2`.
 
 ## Selected next bounded work
 
-Prepare one separate prospective self-review-instruction diagnostic against the
-BC-005 baseline, with fixed unchanged evaluator/model/configuration. No prompt
-iteration, model judge, tool execution or multi-step implementation. Exact revision
-and station command must be presented before diagnostic inference. BC-006 multi-step
-remains deferred until the diagnostic result and a separate design decision.
+BC-005-D1 is prepared on `bc-005-d1-self-review`: one prospective generic final
+self-review instruction, unchanged baseline context/evaluator/model/configuration.
+Specification: `specs/bounded-changes/bc-005-d1-self-review.md`.
+Runner: `src/governed_agent_runtime/bc005_d1_self_review.py`.
+Pre-run packet: `reports/reviews/bc-005-d1-pre-run-review.md`.
+No real D1 model calls have run. Exact-revision pre-run approval remains pending.
+BC-006 multi-step design remains deferred; no model judge or prompt iteration.
 
 ## Station evidence convention
 

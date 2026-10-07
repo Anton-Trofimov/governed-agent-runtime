@@ -18,20 +18,28 @@ BC-003 disposition remains INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER.
 - Decision: `reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md`.
 - BC-005 integrated through PR #3; CI #9 PASS; merge `bc91ed5df96b3952cc7a2ee4e2f0f928eeb5e4e2`.
 
-## Selected next bounded work
+## BC-005-D1 closure — 2026-10-07
 
-BC-005-D1 is prepared on `bc-005-d1-self-review`: one prospective generic final
-self-review instruction, unchanged baseline context/evaluator/model/configuration.
-Specification: `specs/bounded-changes/bc-005-d1-self-review.md`.
-Runner: `src/governed_agent_runtime/bc005_d1_self_review.py`.
-Pre-run packet: `reports/reviews/bc-005-d1-pre-run-review.md`.
-D1 ran after exact-revision approval at `cd58890caebf7267b523db37ffd92390499a2e41`: one excluded preload + three measured calls, COMPLETED.
-Evidence: `evidence/bc-005-d1-self-review/`. Human post-run packet: `reports/reviews/bc-005-d1-post-run-review.md`.
-Automatic checks and containment PASS 3/3; agent semantic assessment 0/3 due to repeated pre-shift ordering/health-checkpoint failure.
-Human accepted the D1 report on 2026-10-07: semantic 0/3; the generic self-review intervention did not correct the failure. D1 merge has not occurred.
-Discussion now concerns input ordering and R3 post-state wording versus explicit pre-action constraints; no new experiment is authorized by this discussion.
-Possible D2 independent Codex comparison is discussed only; not designed or run.
-BC-006 multi-step design remains deferred; no model judge or prompt iteration.
+D1 completed one excluded preload + three measured calls at
+`cd58890caebf7267b523db37ffd92390499a2e41`. Human accepted the complete review on
+2026-10-07 and authorized documentary closure/publication/merge through PR #4.
+Disposition: NOT SUPPORTED for this bounded fixture/model/configuration.
+Semantic 0/3; automatic checks and runtime containment 3/3 PASS. All finals are
+identical and repeat the pre-shift ordering/health-checkpoint failure.
+
+- Evidence: `evidence/bc-005-d1-self-review/` (original bytes plus separate adjudication).
+- Report: `reports/bc-005-d1-self-review-evidence.md`.
+- Human review: `reports/reviews/bc-005-d1-post-run-review.md`.
+- Decision: `reports/decisions/bc-005-d1-self-review-disposition.md`.
+- Historical pre-run review and original pending offline evaluations remain snapshots.
+- No further D1 inference or prompt iteration.
+
+## Selected next direction
+
+Separate D2 independent Codex comparison with the exact D1 input, no Qwen answer,
+our discussion or evaluator. D2 has not run; session/configuration differences must
+be recorded. Context order and R3 post-state versus pre-action wording remain
+untested hypotheses. BC-006 multi-step implementation and model judge remain deferred.
 
 ## Station evidence convention
 

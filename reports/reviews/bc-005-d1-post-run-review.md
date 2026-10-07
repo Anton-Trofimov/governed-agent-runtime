@@ -790,3 +790,11 @@ dependency headroom и отсутствие конфликтов, но не со
 После review остановимся на результате этой проверки. Новых прогонов, вариаций prompt,
 model judge и multi-step implementation в D1 нет. Возможный D2 с независимой сессией Codex
 только обсуждался; он не запущен и требует отдельного дизайна.
+
+## 8. Закрытие D1 — 2026-10-07
+
+Человек поручил завершить D1 до независимого Codex сравнения.
+[Итоговый отчёт](../bc-005-d1-self-review-evidence.md),
+[decision note](../decisions/bc-005-d1-self-review-disposition.md),
+[финальные offline evaluations после adjudication](../../evidence/bc-005-d1-self-review/adjudication/).
+Более ранние формулировки о pending JSON описывают исторический снимок до решения человека.

@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1.0",
+  "proposal_id": "proposal-bc005-s12-bounded-mitigation",
+  "proposal_type": "PROVIDE_BOUNDED_HYPOTHESIS",
+  "confidence": "HIGH",
+  "rationale": "The authoritative rollout-health gate is FAILED, so candidate progression must remain paused. Authoritative capacity findings establish 8 healthy stable replicas as the minimum compliant capacity for a complete traffic shift with N-1 tolerance. Compatibility, dependency headroom, and operation-conflict findings support a conditional mitigation proposal, without establishing future recovery or authorizing execution.",
+  "payload": {
+    "hypotheses": [
+      {
+        "hypothesis_id": "hyp-bc005-capacity-gated-stable-recovery",
+        "statement": "The degraded 2.4.2 rollout must remain PAUSED, and the current 6 healthy 2.4.1 replicas cannot compliantly absorb all production traffic; 7 also fail N-1, while 8 are the authoritative minimum compliant stable replica count. Propose one conditional mitigation path: prepare a concrete action candidate to increase stable capacity from 6 to 8 healthy replicas, with deterministic pre-confirmation checks passing before any applicable execution confirmation or authorization. Following authorization, establish and verify 8 healthy stable replicas and authoritative capacity compliance for the traffic to be shifted, retaining confirmed compatibility, adequate dependency headroom, and absence of conflicting operations. Only after those preconditions pass, and the traffic-shift action has the required authorization, shift all traffic to 2.4.1 while keeping candidate progression paused. After the shift, obtain the authoritative deterministic post-shift recovery result. Remove degraded 2.4.2 replicas or complete rollback only if that recovery gate reports PASS and the corresponding action is authorized; otherwise retain the candidate replicas and keep rollout progression paused. No proposed action has occurred, no future gate outcome is established, and execution confirmation is not applicable in the current EVIDENCE_EVALUATED state.",
+        "source": "DETERMINISTIC_RULE",
+        "cause_status": "SUPPORTED",
+        "evidence_ids": [
+          "ev-bc005-rollout-topology",
+          "ev-bc005-rollout-health",
+          "ev-bc005-capacity-policy",
+          "ev-bc005-capacity-findings",
+          "ev-bc005-rollback-compatibility",
+          "ev-bc005-dependency-headroom",
+          "ev-bc005-operation-conflicts"
+        ],
+        "missing_evidence": []
+      }
+    ]
+  }
+}

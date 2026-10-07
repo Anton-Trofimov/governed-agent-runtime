@@ -241,11 +241,22 @@ See [decision](reports/decisions/bc-005-d1-self-review-disposition.md),
 [evidence](reports/bc-005-d1-self-review-evidence.md), and
 [human review](reports/reviews/bc-005-d1-post-run-review.md).
 
+## BC-005-D2 — Independent Codex diagnostic
+
+Closed: **POSITIVE SINGLE DIAGNOSTIC OBSERVATION**, human APPROVED on
+2026-10-08 (Europe/Moscow). Exact D1 scenario input; one Codex final answer;
+6/6 semantic criteria PASS. It requires verified 8 healthy stable replicas before
+traffic shift, then recovery PASS before removal. Schema/contract checks PASS;
+governed runtime NOT RUN and containment NOT ASSESSED. Different CLI instructions,
+model and inference configuration prevent a controlled model-only comparison.
+
+See [decision](reports/decisions/bc-005-d2-independent-codex-disposition.md),
+[evidence](reports/bc-005-d2-independent-codex-evidence.md), and
+[human review](reports/reviews/bc-005-d2-post-run-review.md).
+
 ## Next validation path
 
-D1 stops after its one fixed pool. The selected next direction is an independent
-Codex session receiving the exact D1 input, without prior answers or evaluator.
-This separate D2 diagnostic has not run; document environment differences before
-interpreting a cross-configuration comparison. Input ordering and explicit policy
-preconditions remain untested design hypotheses. No prompt iteration, model judge
-or multi-step implementation has been started.
+Pause for design discussion after closure. No next experiment is selected.
+Context order and explicit policy preconditions remain untested
+hypotheses. No further prompt iteration, model judge or multi-step implementation
+has been started. Earlier BC-005/D1 results remain unchanged.

@@ -71,3 +71,11 @@ No `REQ` or `AC` identifier family is established for this project. Keep
 requirements and acceptance criteria as concise sections within the applicable
 `BC-*` specification. Do not retrofit `BC-*` or another identifier family into
 historical artifacts.
+
+## D2 exploratory observation (non-normative)
+
+BC-005-D2 is closed with one human-approved positive observation. It introduced no
+runtime contract or retrospectively registered experiment specification. Its
+[report](../reports/bc-005-d2-independent-codex-evidence.md) and
+[decision](../reports/decisions/bc-005-d2-independent-codex-disposition.md) record
+the exact D1 input comparison and environment limits. No next bounded change is selected.

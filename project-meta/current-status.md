@@ -34,12 +34,27 @@ identical and repeat the pre-shift ordering/health-checkpoint failure.
 - Historical pre-run review and original pending offline evaluations remain snapshots.
 - No further D1 inference or prompt iteration.
 
+## BC-005-D2 closure — 2026-10-08
+
+One manual observation outside the project, exact D1 scenario input, passed all
+six semantic criteria. Human explicitly APPROVED the review and requested closure.
+Configuration and provenance remain in the linked review materials. Schema and
+bounded contract checks PASS; governed runtime NOT RUN; containment NOT ASSESSED.
+
+- [Human review](../reports/reviews/bc-005-d2-post-run-review.md).
+- [Evidence report](../reports/bc-005-d2-independent-codex-evidence.md).
+- [Decision](../reports/decisions/bc-005-d2-independent-codex-disposition.md).
+- Final adjudication: `evidence/bc-005-d2-independent-codex/adjudication/human-assessments.json`.
+- Original pending agent assessment/provenance remain historical snapshots.
+- Two earlier in-project attempts are excluded; one positive observation is not
+  a controlled model benchmark or a general reliability result.
+
 ## Selected next direction
 
-Separate D2 independent Codex comparison with the exact D1 input, no Qwen answer,
-our discussion or evaluator. D2 has not run; session/configuration differences must
-be recorded. Context order and R3 post-state versus pre-action wording remain
-untested hypotheses. BC-006 multi-step implementation and model judge remain deferred.
+Pause for design discussion. No next experiment or implementation selected.
+No additional inference during documentary closure. Context order and R3 wording remain untested hypotheses. Model judge and BC-006 multi-step
+work remain deferred. D1 merged through PR #4 at
+`070d7733dc90fc214959cbf941a39d02c2e47866`; earlier baselines are unchanged.
 
 ## Station evidence convention
 

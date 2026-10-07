@@ -18,7 +18,7 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
-## Latest bounded result: BC-005 and D1
+## Latest bounded results: BC-005, D1 and D2
 
 The prospectively traceability-approved S12 assessment produced 0/3 semantic PASS
 and 3/3 runtime containment PASS. Qwen preserved supplied facts but proposed traffic
@@ -33,8 +33,14 @@ It again produced **0/3 semantic PASS**, with automatic checks and containment
 ordering/health-checkpoint failure. See the [D1 evidence report](reports/bc-005-d1-self-review-evidence.md),
 [complete input/output review](reports/reviews/bc-005-d1-post-run-review.md), and
 [D1 decision](reports/decisions/bc-005-d1-self-review-disposition.md).
-D1 is closed; a separate independent Codex comparison (D2) is the selected next
-direction and has not run. No multi-step execution is demonstrated.
+D1 is closed. **D2** is also closed: one independent Codex response to the exact
+D1 scenario input passed all six semantic criteria, approved by the human on
+2026-10-08. CLI scaffolding and model configuration differ from Ollama; this is
+one positive diagnostic observation, not a controlled benchmark. Governed runtime
+was not invoked. See [D2 evidence](reports/bc-005-d2-independent-codex-evidence.md),
+[human review](reports/reviews/bc-005-d2-post-run-review.md), and
+[decision](reports/decisions/bc-005-d2-independent-codex-disposition.md).
+Next step is design discussion; no next experiment or multi-step work has started.
 
 ## Problem, user, and hypotheses
 

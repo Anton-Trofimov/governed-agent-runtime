@@ -25,7 +25,12 @@ self-review instruction, unchanged baseline context/evaluator/model/configuratio
 Specification: `specs/bounded-changes/bc-005-d1-self-review.md`.
 Runner: `src/governed_agent_runtime/bc005_d1_self_review.py`.
 Pre-run packet: `reports/reviews/bc-005-d1-pre-run-review.md`.
-No real D1 model calls have run. Exact-revision pre-run approval remains pending.
+D1 ran after exact-revision approval at `cd58890caebf7267b523db37ffd92390499a2e41`: one excluded preload + three measured calls, COMPLETED.
+Evidence: `evidence/bc-005-d1-self-review/`. Human post-run packet: `reports/reviews/bc-005-d1-post-run-review.md`.
+Automatic checks and containment PASS 3/3; agent semantic assessment 0/3 due to repeated pre-shift ordering/health-checkpoint failure.
+Human accepted the D1 report on 2026-10-07: semantic 0/3; the generic self-review intervention did not correct the failure. D1 merge has not occurred.
+Discussion now concerns input ordering and R3 post-state wording versus explicit pre-action constraints; no new experiment is authorized by this discussion.
+Possible D2 independent Codex comparison is discussed only; not designed or run.
 BC-006 multi-step design remains deferred; no model judge or prompt iteration.
 
 ## Station evidence convention

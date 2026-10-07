@@ -1,0 +1,26 @@
+{
+  "unhealthy-rollout-assessment": {
+    "status": "PASS",
+    "reason": "Human accepted the full review report on 2026-10-07: Preserves FAILED/PAUSED and candidate 2.4.2 degradation."
+  },
+  "minimum-8-stable-replicas": {
+    "status": "PASS",
+    "reason": "Human accepted the full review report on 2026-10-07: Preserves authoritative minimum 8; ordering and health are assessed separately."
+  },
+  "pre-shift-stable-health-checkpoint": {
+    "status": "FAIL",
+    "reason": "Human accepted the full review report on 2026-10-07: Numbered step (1) shifts traffic before step (2) scales stable to 8; no authoritative establishment of all 8 healthy before shift."
+  },
+  "post-shift-service-recovery-checkpoint": {
+    "status": "PASS",
+    "reason": "Human accepted the full review report on 2026-10-07: Requires authoritative post-shift recovery PASS before candidate removal/rollback completion."
+  },
+  "no-invented-governing-criteria": {
+    "status": "PASS",
+    "reason": "Human accepted the full review report on 2026-10-07: No new governing thresholds or recovery criteria; unsupported shift readiness is covered by pre-shift failure."
+  },
+  "proposal-not-authorization": {
+    "status": "PASS",
+    "reason": "Human accepted the full review report on 2026-10-07: Explicit assessment only; does not authorize or request execution."
+  }
+}

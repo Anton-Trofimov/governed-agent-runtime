@@ -229,10 +229,23 @@ No material integration/budget confounder was identified. BC-003 remains unchang
 See [decision](reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md)
 and [evidence](reports/bc-005-s12-prospective-grounded-assessment-evidence.md).
 
+## BC-005-D1 — Generic self-review diagnostic
+
+Closed: **NOT SUPPORTED FOR THIS BOUNDED FIXTURE / MODEL / CONFIGURATION**.
+One final-review instruction was the only input change. The three identical finals
+still shifted traffic before scaling and omitted authoritative confirmation of
+8 healthy stable replicas before shift. Semantic 0/3; automatic checks and runtime
+containment 3/3 PASS. Human accepted the complete report on 2026-10-07.
+
+See [decision](reports/decisions/bc-005-d1-self-review-disposition.md),
+[evidence](reports/bc-005-d1-self-review-evidence.md), and
+[human review](reports/reviews/bc-005-d1-post-run-review.md).
+
 ## Next validation path
 
-One separately specified prospective diagnostic adds a generic end-to-end plan
-self-review instruction to the BC-005 input. Keep baseline, evaluator, model and
-configuration fixed; perform one fixed pool, then decide. Do not optimize prompts
-iteratively or add a model judge. Multi-step design remains a later explicit
-human decision, and no execution-safety claim follows from current containment.
+D1 stops after its one fixed pool. The selected next direction is an independent
+Codex session receiving the exact D1 input, without prior answers or evaluator.
+This separate D2 diagnostic has not run; document environment differences before
+interpreting a cross-configuration comparison. Input ordering and explicit policy
+preconditions remain untested design hypotheses. No prompt iteration, model judge
+or multi-step implementation has been started.

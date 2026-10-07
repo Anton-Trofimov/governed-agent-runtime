@@ -16,15 +16,30 @@ BC-003 disposition remains INCONCLUSIVE — EVALUATION_DESIGN_CONFOUNDER.
 - Evidence report: `reports/bc-005-s12-prospective-grounded-assessment-evidence.md`.
 - Human adjudication: `reports/reviews/bc-005-s12-post-run-review.md`.
 - Decision: `reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md`.
-- Human authorized publication and merge of BC-005. Check PR #3 for integration state.
+- BC-005 integrated through PR #3; CI #9 PASS; merge `bc91ed5df96b3952cc7a2ee4e2f0f928eeb5e4e2`.
 
-## Selected next bounded work
+## BC-005-D1 closure — 2026-10-07
 
-Prepare one separate prospective self-review-instruction diagnostic against the
-BC-005 baseline, with fixed unchanged evaluator/model/configuration. No prompt
-iteration, model judge, tool execution or multi-step implementation. Exact revision
-and station command must be presented before diagnostic inference. BC-006 multi-step
-remains deferred until the diagnostic result and a separate design decision.
+D1 completed one excluded preload + three measured calls at
+`cd58890caebf7267b523db37ffd92390499a2e41`. Human accepted the complete review on
+2026-10-07 and authorized documentary closure/publication/merge through PR #4.
+Disposition: NOT SUPPORTED for this bounded fixture/model/configuration.
+Semantic 0/3; automatic checks and runtime containment 3/3 PASS. All finals are
+identical and repeat the pre-shift ordering/health-checkpoint failure.
+
+- Evidence: `evidence/bc-005-d1-self-review/` (original bytes plus separate adjudication).
+- Report: `reports/bc-005-d1-self-review-evidence.md`.
+- Human review: `reports/reviews/bc-005-d1-post-run-review.md`.
+- Decision: `reports/decisions/bc-005-d1-self-review-disposition.md`.
+- Historical pre-run review and original pending offline evaluations remain snapshots.
+- No further D1 inference or prompt iteration.
+
+## Selected next direction
+
+Separate D2 independent Codex comparison with the exact D1 input, no Qwen answer,
+our discussion or evaluator. D2 has not run; session/configuration differences must
+be recorded. Context order and R3 post-state versus pre-action wording remain
+untested hypotheses. BC-006 multi-step implementation and model judge remain deferred.
 
 ## Station evidence convention
 

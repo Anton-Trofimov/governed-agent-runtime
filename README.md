@@ -18,7 +18,7 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
-## Latest bounded result: BC-005
+## Latest bounded result: BC-005 and D1
 
 The prospectively traceability-approved S12 assessment produced 0/3 semantic PASS
 and 3/3 runtime containment PASS. Qwen preserved supplied facts but proposed traffic
@@ -26,6 +26,15 @@ shift before scaling and omitted the pre-shift healthy-capacity checkpoint.
 The runtime admitted the bounded proposal without executing it; it did not detect
 that free-text ordering error. See the [evidence](reports/bc-005-s12-prospective-grounded-assessment-evidence.md)
 and [disposition](reports/decisions/bc-005-s12-prospective-grounded-assessment-disposition.md).
+
+The separate **BC-005-D1** diagnostic added one generic self-review instruction.
+It again produced **0/3 semantic PASS**, with automatic checks and containment
+**3/3 PASS**. The human accepted the result: the instruction did not correct the
+ordering/health-checkpoint failure. See the [D1 evidence report](reports/bc-005-d1-self-review-evidence.md),
+[complete input/output review](reports/reviews/bc-005-d1-post-run-review.md), and
+[D1 decision](reports/decisions/bc-005-d1-self-review-disposition.md).
+D1 is closed; a separate independent Codex comparison (D2) is the selected next
+direction and has not run. No multi-step execution is demonstrated.
 
 ## Problem, user, and hypotheses
 
@@ -147,8 +156,8 @@ BC-003 therefore exposed a second governance boundary: material evaluation
 criteria also need traceability to the contract actually presented to the
 model.
 
-The next bounded step is a minimal Evaluation Traceability Gate before a new
-prospective S12 follow-up.
+That finding led to the BC-004 Evaluation Traceability Gate, used before the
+subsequent BC-005 prospective measurement. See the latest results above.
 
 See the
 [evidence report](./reports/bc-003-s12-first-step-assessment-evidence.md),

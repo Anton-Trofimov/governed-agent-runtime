@@ -1,0 +1,134 @@
+{
+  "diagnostic_id": "BC-005-D3",
+  "status": "COMPLETED_PENDING_HUMAN_REVIEW",
+  "config": {
+    "diagnostic_id": "BC-005-D3",
+    "status": "PREPARED_NOT_RUN",
+    "expected_model": "qwen3.8:27b",
+    "expected_digest": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+    "expected_ollama_version": "0.32.14",
+    "timeout_seconds": 300,
+    "endpoint": "http://127.0.0.1:11434",
+    "system_sha256": "88d7768fbb794cb197676619f141fc5000739a0225a73ee699c51e44a972a7ee",
+    "cases": [
+      "A",
+      "B"
+    ],
+    "preload_calls": 0,
+    "maximum_inference_calls": 2,
+    "source_revision": "cd58890caebf7267b523db37ffd92390499a2e41",
+    "case_A_source": "D1 run-1 exact Qwen final",
+    "case_B_source": "D2 accepted exact Codex final; same exact D1 scenario input",
+    "reviewed_input_sha256": "c034ecab199767da49fd71e0609c0bdabc76c73cc3956c3b4f5d8604e06114b7"
+  },
+  "preflight": {
+    "version": {
+      "version": "0.32.14"
+    },
+    "model": {
+      "name": "qwen3.8:27b",
+      "model": "qwen3.8:27b",
+      "modified_at": "2026-08-18T19:56:30.6088747+03:00",
+      "size": 17741872154,
+      "digest": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+      "details": {
+        "parent_model": "qwen3.8:27b-q4_K_M",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "27.3B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 5120
+      },
+      "capabilities": [
+        "completion",
+        "tools",
+        "thinking",
+        "vision"
+      ]
+    }
+  },
+  "started_at": "20261007T235039393180Z",
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "approved_system_sha256": "88d7768fbb794cb197676619f141fc5000739a0225a73ee699c51e44a972a7ee",
+  "kit_sha256sums_sha256": "9f0e1e18d66f0e7081fa20e75c92128538e566bd092a6b8be3ef920819605669",
+  "attempted_inference_calls": 2,
+  "completed_response_count": 2,
+  "preload_calls": 0,
+  "cases": {
+    "A": {
+      "preflight": {
+        "version": {
+          "version": "0.32.14"
+        },
+        "model": {
+          "name": "qwen3.8:27b",
+          "model": "qwen3.8:27b",
+          "modified_at": "2026-08-18T19:56:30.6088747+03:00",
+          "size": 17741872154,
+          "digest": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+          "details": {
+            "parent_model": "qwen3.8:27b-q4_K_M",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "27.3B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 5120
+          },
+          "capabilities": [
+            "completion",
+            "tools",
+            "thinking",
+            "vision"
+          ]
+        }
+      },
+      "request_sha256": "dffa5fd2193550078275645602227d90b7639908d738147bd1bf7a36db2d1583",
+      "response_sha256": "6c90c600029678b536aa8000fa210adab5fbb83ff054cff60f6eda0674e56f87",
+      "verdict": "PASS"
+    },
+    "B": {
+      "preflight": {
+        "version": {
+          "version": "0.32.14"
+        },
+        "model": {
+          "name": "qwen3.8:27b",
+          "model": "qwen3.8:27b",
+          "modified_at": "2026-08-18T19:56:30.6088747+03:00",
+          "size": 17741872154,
+          "digest": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+          "details": {
+            "parent_model": "qwen3.8:27b-q4_K_M",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "27.3B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 5120
+          },
+          "capabilities": [
+            "completion",
+            "tools",
+            "thinking",
+            "vision"
+          ]
+        }
+      },
+      "request_sha256": "59d39a1c1a35d27f09ea99280d308e8bbcf5502ec2f8950d276d2df69d8a6fbd",
+      "response_sha256": "dc7ad87e24bd18f4cfb31600f961ae6c329b70cf430127e5411b2c6cfa320994",
+      "verdict": "PASS"
+    }
+  },
+  "ended_at": "2026-10-07T23:54:15.989101+00:00"
+}

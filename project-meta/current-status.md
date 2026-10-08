@@ -49,12 +49,27 @@ bounded contract checks PASS; governed runtime NOT RUN; containment NOT ASSESSED
 - Two earlier in-project attempts are excluded; one positive observation is not
   a controlled model benchmark or a general reliability result.
 
+## BC-005-D3 closure — 2026-10-08
+
+Two isolated Qwen judge calls completed; exact kit requests/hashes and finals verified.
+Both returned PASS. A missed the known D1 material violation; B agrees with the
+accepted D2 review. Disposition NOT SUPPORTED for this bounded judge configuration.
+User supplied approval with results, then requested closure after the analysis.
+
+- [Evidence](../reports/bc-005-d3-independent-judge-evidence.md).
+- [Post-run review](../reports/reviews/bc-005-d3-judge-post-run-review.md).
+- [Decision](../reports/decisions/bc-005-d3-independent-judge-disposition.md).
+- Immutable original pool: `evidence/bc-005-d3-independent-judge/`.
+- Original pending pre-run/kit labels remain historical; closure does not rewrite them.
+
 ## Selected next direction
 
-Pause for design discussion. No next experiment or implementation selected.
-No additional inference during documentary closure. Context order and R3 wording remain untested hypotheses. Model judge and BC-006 multi-step
-work remain deferred. D1 merged through PR #4 at
-`070d7733dc90fc214959cbf941a39d02c2e47866`; earlier baselines are unchanged.
+Scope/value discussion, not implementation or another run. No judge/prompt tuning.
+BC-006 design draft is preserved separately on local branch
+`bc-006-bounded-remediation-design`, commit `4eb2354`; it is not on main and has
+not been implemented. Review its action/lifecycle scope, useful completion goal,
+workflow comparator and fallback provider before proceeding. D3 changed no runtime
+execution contracts; previous baseline dispositions remain unchanged.
 
 ## Station evidence convention
 

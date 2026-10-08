@@ -18,7 +18,7 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
-## Latest bounded results: BC-005, D1 and D2
+## Latest bounded results: BC-005 and D1–D3
 
 The prospectively traceability-approved S12 assessment produced 0/3 semantic PASS
 and 3/3 runtime containment PASS. Qwen preserved supplied facts but proposed traffic
@@ -40,7 +40,15 @@ one positive diagnostic observation, not a controlled benchmark. Governed runtim
 was not invoked. See [D2 evidence](reports/bc-005-d2-independent-codex-evidence.md),
 [human review](reports/reviews/bc-005-d2-post-run-review.md), and
 [decision](reports/decisions/bc-005-d2-independent-codex-disposition.md).
-Next step is design discussion; no next experiment or multi-step work has started.
+**D3** is closed: a separate Qwen judge returned PASS for both the faulty D1
+proposal and the accepted D2 proposal. It noticed possible overload in D1 but
+excused the action order; the selected-pair discrimination criterion was not met.
+See [D3 evidence](reports/bc-005-d3-independent-judge-evidence.md),
+[full judge review](reports/reviews/bc-005-d3-judge-post-run-review.md), and
+[decision](reports/decisions/bc-005-d3-independent-judge-disposition.md).
+This two-example result does not support using that judge for execution admission.
+Next step is scope/value discussion of the unimplemented BC-006 design; no further
+inference or multi-step implementation is selected by D3 closure.
 
 ## Problem, user, and hypotheses
 

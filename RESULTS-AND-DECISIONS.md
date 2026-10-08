@@ -254,9 +254,23 @@ See [decision](reports/decisions/bc-005-d2-independent-codex-disposition.md),
 [evidence](reports/bc-005-d2-independent-codex-evidence.md), and
 [human review](reports/reviews/bc-005-d2-post-run-review.md).
 
+## BC-005-D3 — Independent Qwen judge
+
+Closed: **NOT SUPPORTED FOR THIS BOUNDED JUDGE CONFIGURATION**.
+Two separate requests with identical D1 task input returned PASS for A (known
+materially faulty D1 proposal) and B (accepted D2 proposal). A's judge explanation
+notices overload but excuses the sequence. Structural validation passed; the
+predefined discrimination criterion did not. User requested closure on 2026-10-08.
+No inference about general accuracy, model-size causality or lack of N-1 knowledge.
+No governed runtime evaluation; no execution-admission role for this judge.
+
+See [evidence](reports/bc-005-d3-independent-judge-evidence.md),
+[human-readable review](reports/reviews/bc-005-d3-judge-post-run-review.md), and
+[decision](reports/decisions/bc-005-d3-independent-judge-disposition.md).
+
 ## Next validation path
 
-Pause for design discussion after closure. No next experiment is selected.
-Context order and explicit policy preconditions remain untested
-hypotheses. No further prompt iteration, model judge or multi-step implementation
-has been started. Earlier BC-005/D1 results remain unchanged.
+Discuss scope/value before implementing the separate BC-006 design. Stop judge and
+prompt optimization for this slice. Joint task completion and execution control
+remain the goal; a scripted comparator and alternative provider must not be
+misrepresented as a successful Qwen run. No next measurement is selected here.

@@ -1,0 +1,20 @@
+{
+  "diagnostic_id": "BC-005-D3",
+  "status": "PREPARED_NOT_RUN",
+  "expected_model": "qwen3.8:27b",
+  "expected_digest": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+  "expected_ollama_version": "0.32.14",
+  "timeout_seconds": 300,
+  "endpoint": "http://127.0.0.1:11434",
+  "system_sha256": "88d7768fbb794cb197676619f141fc5000739a0225a73ee699c51e44a972a7ee",
+  "cases": [
+    "A",
+    "B"
+  ],
+  "preload_calls": 0,
+  "maximum_inference_calls": 2,
+  "source_revision": "cd58890caebf7267b523db37ffd92390499a2e41",
+  "case_A_source": "D1 run-1 exact Qwen final",
+  "case_B_source": "D2 accepted exact Codex final; same exact D1 scenario input",
+  "reviewed_input_sha256": "c034ecab199767da49fd71e0609c0bdabc76c73cc3956c3b4f5d8604e06114b7"
+}

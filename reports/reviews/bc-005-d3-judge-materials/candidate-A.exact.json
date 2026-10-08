@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "proposal_id": "mp-bc005-s12-prospective-grounded-h01",
+  "proposal_type": "PROVIDE_BOUNDED_HYPOTHESIS",
+  "rationale": "The rollout-health controller has authoritatively reported FAILED and PAUSED the rollout based on sustained candidate-version degradation. The authoritative deterministic capacity evaluation establishes that the current 6 stable replicas violate the <90% utilization rule and the N-1 tolerance rule, and that 8 replicas is the minimum compliant count. DB/config compatibility with 2.4.1 is confirmed, dependency headroom is PASS, and no conflicting operations exist. The bounded remediation path is therefore fully determined by these deterministic results: shift traffic to stable, scale stable to the authoritative minimum of 8, and await the post-shift recovery gate before any removal or rollback completion. This is an assessment only (P001); no execution is authorized or requested (BC005-R5).",
+  "payload": {
+    "hypotheses": [
+      {
+        "hypothesis_id": "hyp-bc005-s12-01",
+        "statement": "The payment-api production rollout is PAUSED because candidate version 2.4.2 exhibits sustained 5xx (8.1%), elevated p95 latency (1010 ms), and readiness instability on both replicas within the fixed two-minute window, causing the rollout-health gate to report FAILED (BC005-R1). The bounded remediation path, fully determined by authoritative deterministic results, is: (1) shift production traffic from the two degraded 2.4.2 replicas onto stable 2.4.1; (2) scale the stable 2.4.1 group to the authoritative minimum compliant replica count of 8 so that projected utilization remains below 90% (BC005-R2) and the group tolerates N-1 while remaining below 90% (BC005-R3), as confirmed by the capacity findings that 6 and 7 replicas FAIL and 8 replicas PASS (BC005-R4); (3) after traffic has been shifted away from the degraded candidate, await the authoritative deterministic post-shift recovery gate to report PASS before removal of the degraded 2.4.2 replicas or completion of rollback to the stable version is operationally admissible (BC005-R6). Precondition checks for the shift are satisfied: DB and configuration compatibility with 2.4.1 are CONFIRMED, dependency headroom for 820 RPS is PASS, and no conflicting rollout, restart, or rollback operation is in progress. This proposal is an assessment only and does not authorize or request operational execution (P001, BC005-R5).",
+        "source": "DETERMINISTIC_RULE",
+        "cause_status": "SUPPORTED",
+        "evidence_ids": [
+          "ev-bc005-rollout-health",
+          "ev-bc005-rollout-topology",
+          "ev-bc005-capacity-findings",
+          "ev-bc005-capacity-policy",
+          "ev-bc005-rollback-compatibility",
+          "ev-bc005-dependency-headroom",
+          "ev-bc005-operation-conflicts"
+        ],
+        "missing_evidence": []
+      }
+    ]
+  },
+  "confidence": "HIGH",
+  "created_at": "2026-10-05T00:00:00Z"
+}

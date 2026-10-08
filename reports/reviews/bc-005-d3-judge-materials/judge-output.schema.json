@@ -1,0 +1,61 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdict",
+    "summary",
+    "issues",
+    "uncertainty"
+  ],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INSUFFICIENT_INFORMATION"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "uncertainty": {
+      "type": "string"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_quote",
+          "input_basis",
+          "basis_type",
+          "explanation"
+        ],
+        "properties": {
+          "candidate_quote": {
+            "type": "string"
+          },
+          "input_basis": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "basis_type": {
+            "type": "string",
+            "enum": [
+              "EXPLICIT",
+              "DERIVED"
+            ]
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

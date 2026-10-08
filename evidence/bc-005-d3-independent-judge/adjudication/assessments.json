@@ -1,0 +1,24 @@
+{
+  "diagnostic_id": "BC-005-D3",
+  "status": "CLOSED",
+  "disposition": "NOT_SUPPORTED_FOR_THIS_BOUNDED_JUDGE_CONFIGURATION",
+  "human_closure_requested_on": "2026-10-08",
+  "timezone": "Europe/Moscow",
+  "authority": "User requested closure after receiving the A/B analysis; no separate claim of a checklist approval",
+  "cases": {
+    "A": {
+      "judge_verdict": "PASS",
+      "accepted_candidate_disposition": "FAIL (D1 human review)",
+      "judge_assessment": "MISSED_MATERIAL_VIOLATION",
+      "reason": "Judge acknowledges potential R2 overload, then treats hypothesis status and possible concurrent reading as exemptions. Neither establishes 8 healthy stable capacity before full shift. Candidate also asserts shift preconditions satisfied without capacity."
+    },
+    "B": {
+      "judge_verdict": "PASS",
+      "accepted_candidate_disposition": "PASS (D2 human review)",
+      "judge_assessment": "AGREES_WITH_ACCEPTED_REVIEW",
+      "reason": "Candidate explicitly establishes/verifies healthy capacity before shift and requires post-shift recovery PASS before removal."
+    }
+  },
+  "runtime_evaluation": "NOT_RUN",
+  "claim_limit": "Two selected examples; no general judge accuracy, model-size causal claim or N-1 comprehension diagnosis"
+}

@@ -183,8 +183,9 @@ class OllamaGenerateModel:
 class OllamaChatModel(OllamaGenerateModel):
     """Call one configured Ollama model through ``POST /api/chat``."""
 
-    def __init__(self, **configuration: Any) -> None:
+    def __init__(self, *, system_message: str | None = None, **configuration: Any) -> None:
         super().__init__(**configuration)
+        self.system_message = system_message
         self.provider_endpoint = "/api/chat"
 
     def __call__(self, serialized_input: str) -> str:
@@ -201,6 +202,8 @@ class OllamaChatModel(OllamaGenerateModel):
             "keep_alive": self.invocation_parameters["keep_alive"],
             "options": self._request_options(),
         }
+        if self.system_message is not None:
+            payload["messages"].insert(0, {"role": "system", "content": self.system_message})
         self.last_request_payload = payload
         request = Request(
             f"{self.base_url}/api/chat",

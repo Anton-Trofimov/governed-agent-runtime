@@ -28,6 +28,7 @@ Load only the rows relevant to the bounded task, then inspect the affected schem
 | BC-005 S12 prospective grounded assessment | [`bounded-changes/bc-005-s12-prospective-grounded-assessment.md`](./bounded-changes/bc-005-s12-prospective-grounded-assessment.md) | First prospective single-step S12 model-quality evaluation using BC-004 traceability before measurement; separates pre-shift stable health from post-shift service recovery | Completed; disposition: Not supported | Historical measured baseline; 0/3 semantic PASS, runtime containment 3/3 PASS |
 | BC-005-D1 self-review instruction diagnostic | [`bounded-changes/bc-005-d1-self-review.md`](./bounded-changes/bc-005-d1-self-review.md) | Single generic final-review instruction; frozen BC-005 comparator/evaluator, one diagnostic pool | Completed; disposition: Not supported | Historical diagnostic; semantic 0/3, containment 3/3; human review accepted |
 | BC-005-D3 independent Qwen judge | [`bounded-changes/bc-005-d3-independent-judge.md`](./bounded-changes/bc-005-d3-independent-judge.md) | Two isolated reviews of D1/D2 answers against identical D1 input | Completed; disposition: Not supported | Two calls; judge missed known A violation, B agreed with human review |
+| BC-006 bounded remediation and step context | [`bounded-changes/bc-006-s12-bounded-remediation-loop.md`](./bounded-changes/bc-006-s12-bounded-remediation-loop.md) | One synthetic loop with real admission checks and explicit per-step context | Design accepted; implemented, pre-run review pending | Scripted controls verified; no model measurement |
 
 The `Lifecycle` and `Relevance` columns are the project-local authority for current applicability. Existing artifact-local `Status`, `Spec version`, specification-family markers and similar legacy metadata are non-authoritative for current lifecycle and applicability and must not override this router.
 
@@ -78,4 +79,4 @@ BC-005-D2 is closed with one human-approved positive observation. It introduced 
 runtime contract or retrospectively registered experiment specification. Its
 [report](../reports/bc-005-d2-independent-codex-evidence.md) and
 [decision](../reports/decisions/bc-005-d2-independent-codex-disposition.md) record
-the exact D1 input comparison and environment limits. No next bounded change is selected.
+the exact D1 input comparison and environment limits. BC-006 was subsequently selected and implemented; see the current router row.

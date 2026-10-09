@@ -165,3 +165,9 @@ runtime_outcomes:
   valid_confirmation:
     decision: ALLOW
     next_step: revalidate_preconditions_and_execute
+
+# Explicit BC-006 profile; legacy/default contracts above remain unchanged.
+bounded_remediation_profile:
+  profile_id: BC-006
+  contract: specs/core/bounded-remediation.yaml
+  activation: explicit_bc006_runner_only

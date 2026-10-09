@@ -1,0 +1,207 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "observation_id",
+    "source",
+    "scope",
+    "observed_at",
+    "logical_tick",
+    "desired",
+    "healthy",
+    "candidate_count",
+    "stable_traffic_rps",
+    "total_rps",
+    "safe_rps_per_replica",
+    "rollout_state",
+    "rollout_health",
+    "database_compatible",
+    "configuration_compatible",
+    "dependency_headroom",
+    "conflicting_operation",
+    "quota",
+    "scale_operation_id",
+    "scale_status",
+    "shift_id",
+    "recovery",
+    "stable_version_id",
+    "candidate_version_id"
+  ],
+  "properties": {
+    "observation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "const": "synthetic-status-controller"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "environment_id",
+        "deployment_target_id"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deployment_target_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "logical_tick": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "desired": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "healthy": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "stable_traffic_rps": {
+      "type": "number",
+      "minimum": 0
+    },
+    "total_rps": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "safe_rps_per_replica": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "rollout_state": {
+      "enum": [
+        "PAUSED",
+        "ROLLED_BACK"
+      ]
+    },
+    "rollout_health": {
+      "const": "FAILED"
+    },
+    "database_compatible": {
+      "type": "boolean"
+    },
+    "configuration_compatible": {
+      "type": "boolean"
+    },
+    "dependency_headroom": {
+      "type": "boolean"
+    },
+    "conflicting_operation": {
+      "type": "boolean"
+    },
+    "quota": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scale_operation_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scale_status": {
+      "enum": [
+        "NONE",
+        "PENDING",
+        "SUCCEEDED"
+      ]
+    },
+    "shift_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "shift_id",
+        "observed_at",
+        "logical_tick"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "UNKNOWN",
+            "PENDING",
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "shift_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "logical_tick": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "stable_version_id": {
+      "const": "2.4.1"
+    },
+    "candidate_version_id": {
+      "const": "2.4.2"
+    }
+  }
+}

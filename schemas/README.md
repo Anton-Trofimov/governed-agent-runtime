@@ -21,3 +21,6 @@ Schemas use JSON Schema Draft 2020-12.
 
 The Markdown and YAML specifications define behavior. JSON Schemas define the
 machine-checkable structure of runtime and evaluation objects.
+
+BC-006 uses scoped `bc006-proposal`, `bc006-context` and `bc006-observation` schemas;
+see `specs/core/bounded-remediation.yaml`. Historical model schemas are unchanged.

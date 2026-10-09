@@ -47,8 +47,23 @@ See [D3 evidence](reports/bc-005-d3-independent-judge-evidence.md),
 [full judge review](reports/reviews/bc-005-d3-judge-post-run-review.md), and
 [decision](reports/decisions/bc-005-d3-independent-judge-disposition.md).
 This two-example result does not support using that judge for execution admission.
-Next step is scope/value discussion of the unimplemented BC-006 design; no further
-inference or multi-step implementation is selected by D3 closure.
+
+## Current implementation: BC-006 bounded remediation
+
+BC-006 implements one synthetic multi-step S12 loop: fresh context → one model
+proposal → runtime admission → exact human confirmation for a write → emulated
+result → validated state and next context. Scale acceptance, observed readiness,
+traffic shift, observed recovery and final rollback verification remain separate.
+The same core profile supports scripted controls, fixed-config Qwen API and a
+manual response transport for a separately selected alternative model.
+
+Scripted nominal completion takes 5 proposal turns, 9 tools and 3 mock writes;
+the reject-then-repair control completes in 6 turns. These are runtime controls,
+**not model success**. No BC-006 LLM inference has run. Historical BC-005/D1–D3
+results remain unchanged. See [design](specs/bounded-changes/bc-006-s12-bounded-remediation-loop.md),
+[exact pre-run review](reports/reviews/bc-006-pre-run-review.md), and
+[runner](scripts/bc-006.md). Next: human review of the exact packet before one Qwen
+trajectory. No UI, production adapter, model judge or sampling search is included.
 
 ## Problem, user, and hypotheses
 

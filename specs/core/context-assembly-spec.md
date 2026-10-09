@@ -249,3 +249,12 @@ A previous context package cannot authorize execution when:
 - Tool availability does not imply action permission.
 - Confirmation does not replace technical preconditions.
 - Every context package is traceable to its source records.
+
+## BC-006 bounded profile
+
+`bounded-remediation.yaml` and the `bc006-*` schemas define the explicit synthetic
+loop. Every inference gets a fresh system message plus one JSON context; no
+provider history. Current observations, pending operations, last proposal/decision,
+normalized result and compact event ledger are assembled after validated updates.
+Raw traces, confirmation secrets/hashes, emulator schedule and evaluator remain
+runtime-only. All substantial events are retained; overflow stops, never truncates.

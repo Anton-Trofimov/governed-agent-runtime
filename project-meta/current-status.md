@@ -62,14 +62,23 @@ User supplied approval with results, then requested closure after the analysis.
 - Immutable original pool: `evidence/bc-005-d3-independent-judge/`.
 - Original pending pre-run/kit labels remain historical; closure does not rewrite them.
 
-## Selected next direction
+## BC-006 implementation — 2026-10-10
 
-Scope/value discussion, not implementation or another run. No judge/prompt tuning.
-BC-006 design draft is preserved separately on local branch
-`bc-006-bounded-remediation-design`, commit `4eb2354`; it is not on main and has
-not been implemented. Review its action/lifecycle scope, useful completion goal,
-workflow comparator and fallback provider before proceeding. D3 changed no runtime
-execution contracts; previous baseline dispositions remain unchanged.
+The project owner approved the multi-step design and authorized implementation on 2026-10-10.
+The bounded loop, synthetic environment, explicit core profile, per-step context,
+action-bound confirmation, API and manual transport are implemented on branch
+`bc-006-bounded-remediation`. The profile retains historical baseline schemas/evidence.
+
+- [Exact pre-run review](../reports/reviews/bc-006-pre-run-review.md).
+- [Generated packet](../reports/reviews/bc-006-materials/pre-run-packet.json).
+- [Core contract](../specs/core/bounded-remediation.yaml).
+- [Runner instructions](../scripts/bc-006.md).
+- 259 tests, Ruff and diff checks PASS locally; no remote CI claimed.
+- Scripted nominal: 5 turns / 9 tools / 3 writes; reject-repair: 6 / 9 / 3.
+- Actual model calls: 0. These controls are not model-quality evidence.
+- Exact packet human review and live-run approval are PENDING. Template cannot run.
+- Next: review task/context/tool contracts, then one approved fixed-config Qwen run.
+- No further prompt/seed/judge diagnostics and no automatic Codex fallback run.
 
 ## Station evidence convention
 

@@ -62,23 +62,26 @@ User supplied approval with results, then requested closure after the analysis.
 - Immutable original pool: `evidence/bc-005-d3-independent-judge/`.
 - Original pending pre-run/kit labels remain historical; closure does not rewrite them.
 
-## BC-006 implementation — 2026-10-10
+## BC-006 documentary closure — 2026-10-12
 
-The project owner approved the multi-step design and authorized implementation on 2026-10-10.
-The bounded loop, synthetic environment, explicit core profile, per-step context,
-action-bound confirmation, API and manual transport are implemented on branch
-`bc-006-bounded-remediation`. The profile retains historical baseline schemas/evidence.
+**ACCEPTED for one nominal synthetic trajectory; documentary closure complete.**
+Run-001 human acceptance: 2026-10-12 01:18:14 +03:00. Closure requested at
+01:47:39 +03:00. Evaluated revision: `a4eb739017b058a8d2b425db4942f7c722f1eb98`.
+5 actual Qwen calls, 9 tools, 3 individually confirmed writes, 0 rejections;
+runtime-verified COMPLETED. Recovery-after-rejection NOT OBSERVED.
 
-- [Exact pre-run review](../reports/reviews/bc-006-pre-run-review.md).
-- [Generated packet](../reports/reviews/bc-006-materials/pre-run-packet.json).
-- [Core contract](../specs/core/bounded-remediation.yaml).
-- [Runner instructions](../scripts/bc-006.md).
-- 259 tests, Ruff and diff checks PASS locally; no remote CI claimed.
-- Scripted nominal: 5 turns / 9 tools / 3 writes; reject-repair: 6 / 9 / 3.
-- Actual model calls: 0. These controls are not model-quality evidence.
-- Exact packet human review and live-run approval are PENDING. Template cannot run.
-- Next: review task/context/tool contracts, then one approved fixed-config Qwen run.
-- No further prompt/seed/judge diagnostics and no automatic Codex fallback run.
+- [Accepted measured review](../reports/reviews/bc-006-run-001-measured-review.md).
+- [Original evidence / integrity](../evidence/bc-006-bounded-remediation/README.md).
+- [Closure decision and findings](../reports/decisions/bc-006-bounded-remediation-disposition.md).
+- [Non-normative pre-run human-review aid](../reports/reviews/bc-006-human-review-state-snapshots.md).
+- [Historical exact pre-run review](../reports/reviews/bc-006-pre-run-review.md),
+  generated packet and pending template remain unchanged; their labels are historical.
+- Fixed goal/rules and synthetic adapters: no natural operator UX, independent
+  strategy selection, general reliability, production or model-comparison claim.
+- Last implementation verification: 259 tests, Ruff and diff checks PASS locally;
+  documentary closure verification is recorded in the pre-PR handoff. No remote CI claim.
+- PR/merge pending explicit human decision; no new model calls, automatic Codex
+  follow-up, runtime/contracts changes or reusable SDD changes in this closure.
 
 ## Station evidence convention
 

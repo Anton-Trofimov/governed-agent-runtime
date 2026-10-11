@@ -7,5 +7,14 @@ Reports will separate:
 3. Limitations
 4. Next-step decision
 
-BC-006: [implementation and exact pre-run review](reviews/bc-006-pre-run-review.md);
-scripted controls only, no measured model result.
+BC-006 is documentary-closed: **ACCEPTED for one nominal synthetic trajectory**.
+
+- [Accepted measured review](reviews/bc-006-run-001-measured-review.md).
+- [Disposition and closure findings](decisions/bc-006-bounded-remediation-disposition.md).
+- [Original measured evidence](../evidence/bc-006-bounded-remediation/README.md).
+- [Human-review aid](reviews/bc-006-human-review-state-snapshots.md): non-normative
+  pre-run snapshot, including scripted B1–B6 excerpts; not a source of truth.
+- [Historical pre-run review](reviews/bc-006-pre-run-review.md): original packet
+  and pending template preserved. Their labels do not describe current lifecycle.
+
+PR/merge pending. No further model calls are part of documentary closure.

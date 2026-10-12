@@ -149,12 +149,18 @@ class RemediationRuntime:
         user_id="local-oncall",
         role_authorized=True,
         session_id=None,
+        goal_variant=None,
     ):
         self.root = Path(root)
         self.clock = clock
         self.profile = yaml.safe_load(
             (self.root / "specs/core/bounded-remediation.yaml").read_text()
         )
+        if goal_variant is not None:
+            if goal_variant not in {"A", "B"}:
+                raise ValueError("Unsupported BC-008 goal variant")
+            goals = json.loads((self.root / "specs/core/bc008-goal-framing.json").read_text())
+            self.profile["rules"][0]["description"] = goals["goals"][goal_variant]
         self.schemas = {
             key: json.loads((self.root / self.profile[key]).read_text())
             for key in ("proposal_schema", "context_schema", "observation_schema")

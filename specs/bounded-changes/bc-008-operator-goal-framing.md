@@ -2,7 +2,8 @@
 
 ## Question and boundary
 
-Selected next design, 2026-10-12; implementation and pre-run approval pending.
+Selected design, 2026-10-12; implemented for pre-run review on 2026-10-13.
+Measured six-run approval is pending; no actual model calls.
 Baseline: BC-007 merged through PR #8, main
 `84822d64bc1203147cde3f849a2f1c6222df9f4c`.
 
@@ -127,3 +128,22 @@ repeating unchanged large tables; focus the delta on goal text and outcome meani
 STOP terminal presentation and field-definition improvements remain separate
 follow-ups. No UI, new tools, memory, access/observability platform or reusable SDD
 changes are part of this experiment. No new model calls at the design checkpoint.
+
+## Execution binding for this implementation
+
+The six-run matrix is materialized in `specs/core/bc008-goal-framing.json`.
+`bc006_runner --experiment BC-008 --run-id <A-18|B-18|B-19|A-19|A-20|B-20>`
+selects one case (flags follow the `run` subcommand). No arbitrary seed or goal
+CLI override is provided. Review produces one packet containing both variants
+and all six configured cases. Each per-run approval binds the same packet/revision
+plus its exact run_id, variant and seed under `BC-008_ONE_TRAJECTORY`; the six-run
+human approval authorizes those six named cases, not unlimited re-execution.
+Run order is an operator procedure, not a new persistent scheduler. Evidence
+uses one new external directory per case and may not overwrite a previous run.
+
+The derived expectation `operator-goal-recovery-evidence` requires human approval:
+recovery PASS on compliant stable can satisfy the operator recovery goal without
+mandatory candidate removal; harness completion remains separately observed.
+This is human semantic grading, not a new automatic completion transition.
+STOP means the session ends; it cannot declare harness COMPLETED. Existing
+runtime confirmations and terminal behavior are unchanged.

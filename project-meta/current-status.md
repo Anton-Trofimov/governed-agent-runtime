@@ -8,12 +8,13 @@ remain authoritative. This file is not model-visible operational evidence.
 BC-006 merged through [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7),
 main `d636d2d3062af0dcb374710b63a16bde3d88766a`; PR verify CI succeeded.
 Human selected the next short design: [BC-007 recovery failure](../specs/bounded-changes/bc-007-recovery-failure.md).
-Only documentation changes at this checkpoint. Existing runtime supports the
-negative observation; runner/packet/approval binding still needs implementation.
-Next: implement the bounded fixture selection and offline checks, then present
-exact pre-run materials for separate approval. No BC-007 inference, PR or merge
-is part of this design checkpoint. BC-006 raw evidence and historical reviews
-remain unchanged.
+BC-007 fixture selection and scoped runner/approval binding are implemented.
+[Pre-run human review](../reports/reviews/bc-007-pre-run-review.md) and generated
+packet are available. 262 tests, Ruff and diff checks PASS; scripted FAIL→STOP
+and FAIL→rejected-finalize→STOP retain both candidate replicas. No actual model
+calls. Derived STOP expectation remains PENDING until explicit human approval.
+Next checkpoint: exact revision/packet and semantic pre-run approval, then one
+external measured trajectory. No PR or merge yet. BC-006 evidence is unchanged.
 
 ## Historical checkpoint — 2026-10-06
 

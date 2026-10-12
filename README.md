@@ -72,8 +72,9 @@ Historical BC-005/D1–D3 results, [design](specs/bounded-changes/bc-006-s12-bou
 [pre-run review](reports/reviews/bc-006-pre-run-review.md) and packet remain unchanged.
 BC-006 merged via [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7).
 Next: [BC-007 design](specs/bounded-changes/bc-007-recovery-failure.md), testing response
-to observed recovery FAIL with the same bounded task and controls. Implementation
-and separate pre-run approval are pending; no BC-007 model calls have been made.
+to observed recovery FAIL with the same bounded task and controls. Implementation and offline checks are complete;
+[pre-run human review](reports/reviews/bc-007-pre-run-review.md) awaits separate
+approval. No BC-007 model calls have been made.
 
 ## Problem, user, and hypotheses
 

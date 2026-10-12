@@ -3,7 +3,8 @@
 ## Decision and scope
 
 Design selected by the human on 2026-10-12. This document specifies the next
-bounded experiment; implementation and a measured run are not claimed complete.
+bounded experiment. Implementation is now available for offline review; a measured
+run has not been performed.
 A measured run requires a separate exact-revision / review-packet approval.
 
 Baseline: BC-006, accepted for one nominal synthetic trajectory and merged in
@@ -99,7 +100,7 @@ are measured outcomes, not a hardcoded five-call/two-write success criterion.
 
 ## Implementation boundary and verification before measurement
 
-Existing support was inspected, not newly implemented here:
+At design selection, the following existing support was inspected:
 
 - `bc006_runtime.py`: fixture injection and scheduled recovery FAIL already exist;
   STOP uses the existing terminal transition.
@@ -107,9 +108,9 @@ Existing support was inspected, not newly implemented here:
   `test_recovery_failure_is_observed_but_not_admitted_for_removal` already checks
   that failed recovery does not reach the removal adapter.
 - `bc006_runner.py`: review packet, default fixture, manifest scope and approval
-  remain BC-006-specific. The current CLI is not a BC-007 measured runner.
+  remain BC-006-specific. At that checkpoint the CLI was not a BC-007 measured runner.
 
-The next implementation must select the BC-007 fixture explicitly and bind its
+Implementation requirements: select the BC-007 fixture explicitly and bind its
 bytes, scope and affected executable sources into the review packet, approval
 and manifest. Preserve the BC-006 default and previously generated evidence;
 reject a BC-006 approval for BC-007. Avoid building a general scenario framework.
@@ -134,3 +135,15 @@ No UI implementation, new repair strategy/tool, persistent memory, access-system
 redesign, observability platform or reusable SDD changes. Existing context assembly,
 runtime admission and trace events remain the conceptual extension points for
 memory, access and observability. This change implements none of those extensions.
+
+## Implemented pre-run binding
+
+The shared `bc006_runner` selects BC-007 only with `--experiment BC-007`; the
+default remains BC-006. The packet contains both scripted controls and a PENDING
+derived expectation `stop-after-failed-recovery`. Exact pre-run approval must
+include that identifier in `approved_derived_expectations`, in addition to the
+BC-007 scope, revision and packet hash. Runtime re-evaluates the traceability
+mapping with this human disposition before inference. The original packet stays
+PENDING as the reviewed snapshot; approval is stored separately in the manifest.
+This expectation does not require immediate STOP or knowledge of the hidden
+schedule; purposeful reads remain admissible and are assessed explicitly.

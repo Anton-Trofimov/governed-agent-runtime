@@ -62,14 +62,26 @@ User supplied approval with results, then requested closure after the analysis.
 - Immutable original pool: `evidence/bc-005-d3-independent-judge/`.
 - Original pending pre-run/kit labels remain historical; closure does not rewrite them.
 
-## Selected next direction
+## BC-006 documentary closure — 2026-10-12
 
-Scope/value discussion, not implementation or another run. No judge/prompt tuning.
-BC-006 design draft is preserved separately on local branch
-`bc-006-bounded-remediation-design`, commit `4eb2354`; it is not on main and has
-not been implemented. Review its action/lifecycle scope, useful completion goal,
-workflow comparator and fallback provider before proceeding. D3 changed no runtime
-execution contracts; previous baseline dispositions remain unchanged.
+**ACCEPTED for one nominal synthetic trajectory; documentary closure complete.**
+Run-001 human acceptance: 2026-10-12 01:18:14 +03:00. Closure requested at
+01:47:39 +03:00. Evaluated revision: `a4eb739017b058a8d2b425db4942f7c722f1eb98`.
+5 actual Qwen calls, 9 tools, 3 individually confirmed writes, 0 rejections;
+runtime-verified COMPLETED. Recovery-after-rejection NOT OBSERVED.
+
+- [Accepted measured review](../reports/reviews/bc-006-run-001-measured-review.md).
+- [Original evidence / integrity](../evidence/bc-006-bounded-remediation/README.md).
+- [Closure decision and findings](../reports/decisions/bc-006-bounded-remediation-disposition.md).
+- [Non-normative pre-run human-review aid](../reports/reviews/bc-006-human-review-state-snapshots.md).
+- [Historical exact pre-run review](../reports/reviews/bc-006-pre-run-review.md),
+  generated packet and pending template remain unchanged; their labels are historical.
+- Fixed goal/rules and synthetic adapters: no natural operator UX, independent
+  strategy selection, general reliability, production or model-comparison claim.
+- Last implementation verification: 259 tests, Ruff and diff checks PASS locally;
+  documentary closure verification is recorded in the pre-PR handoff. No remote CI claim.
+- PR/merge pending explicit human decision; no new model calls, automatic Codex
+  follow-up, runtime/contracts changes or reusable SDD changes in this closure.
 
 ## Station evidence convention
 

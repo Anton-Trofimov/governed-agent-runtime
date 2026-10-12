@@ -47,8 +47,31 @@ See [D3 evidence](reports/bc-005-d3-independent-judge-evidence.md),
 [full judge review](reports/reviews/bc-005-d3-judge-post-run-review.md), and
 [decision](reports/decisions/bc-005-d3-independent-judge-disposition.md).
 This two-example result does not support using that judge for execution admission.
-Next step is scope/value discussion of the unimplemented BC-006 design; no further
-inference or multi-step implementation is selected by D3 closure.
+
+## Current implementation: BC-006 bounded remediation
+
+BC-006 implements one synthetic multi-step S12 loop: fresh context → one model
+proposal → runtime admission → exact human confirmation for a write → emulated
+result → validated state and next context. Scale acceptance, observed readiness,
+traffic shift, observed recovery and final rollback verification remain separate.
+The same core profile supports scripted controls, fixed-config Qwen API and a
+manual response transport for a separately selected alternative model.
+
+**BC-006 documentary closure: ACCEPTED for one nominal synthetic trajectory**
+(2026-10-12). Qwen completed 5 model calls / 9 counted tools / 3 individually
+confirmed writes; runtime verified terminal completion. No rejections occurred:
+recovery-after-rejection is NOT OBSERVED. This does not establish natural operator
+UX, independent strategy selection, general reliability or production recovery.
+
+See [accepted measured review](reports/reviews/bc-006-run-001-measured-review.md),
+[unchanged raw evidence](evidence/bc-006-bounded-remediation/README.md), and
+[closure decision](reports/decisions/bc-006-bounded-remediation-disposition.md).
+The [human-review aid](reports/reviews/bc-006-human-review-state-snapshots.md)
+is a non-normative pre-run snapshot; its B1–B6 examples are scripted controls.
+Historical BC-005/D1–D3 results, [design](specs/bounded-changes/bc-006-s12-bounded-remediation-loop.md),
+[pre-run review](reports/reviews/bc-006-pre-run-review.md) and packet remain unchanged.
+Next: human pre-PR checkpoint; no additional inference or automatic alternative
+model run. No UI, production adapter, model judge or sampling search is included.
 
 ## Problem, user, and hypotheses
 

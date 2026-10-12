@@ -329,3 +329,12 @@ def _transition_matches_decision(
         return False
 
     return True
+
+
+def apply_remediation_event(task_state: str, event: str, *, profile: Mapping[str, Any]) -> str:
+    """Apply only an explicitly declared BC-006 profile transition."""
+    matches = [row for row in profile["transitions"]
+               if row["event"] == event and task_state in row["from"]]
+    if len(matches) != 1:
+        raise ValueError(f"Unsupported BC-006 transition: {task_state} / {event}")
+    return matches[0]["to"]

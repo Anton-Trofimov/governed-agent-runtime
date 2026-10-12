@@ -1,0 +1,33 @@
+{
+  "fixture_id": "bc006-s12-nominal-v1",
+  "target": {
+    "service_id": "payment-api",
+    "environment_id": "production",
+    "deployment_target_id": "payment-api-prod-eu-central-1"
+  },
+  "initial": {
+    "desired": 6,
+    "healthy": 6,
+    "candidate_count": 2,
+    "stable_traffic_rps": 615,
+    "total_rps": 820,
+    "safe_rps_per_replica": 150,
+    "rollout_state": "PAUSED",
+    "rollout_health": "FAILED",
+    "database_compatible": true,
+    "configuration_compatible": true,
+    "dependency_headroom": true,
+    "conflicting_operation": false,
+    "quota": 8,
+    "scale_operation_id": null,
+    "scale_status": "NONE",
+    "shift_id": null,
+    "stable_version_id": "2.4.1",
+    "candidate_version_id": "2.4.2"
+  },
+  "environment_schedule": {
+    "scale_ready_after_ticks": 1,
+    "recovery_after_ticks": 1,
+    "recovery_outcome": "PASS"
+  }
+}

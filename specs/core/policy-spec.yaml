@@ -262,3 +262,9 @@ successful_proposal_lifecycle_routing:
     - T034 remains reserved for execution budget exhaustion.
     - Clarification is a waiting lifecycle state, not a terminal outcome.
     - A successful proposal path has empty runtime reason codes.
+
+# Explicit BC-006 profile; legacy/default contracts above remain unchanged.
+bounded_remediation_profile:
+  profile_id: BC-006
+  contract: specs/core/bounded-remediation.yaml
+  activation: explicit_bc006_runner_only

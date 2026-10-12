@@ -216,3 +216,15 @@ observed fact
 → verification
 
 No earlier state may silently imply a later state.
+
+## BC-006 scoped state
+
+The explicit `bounded-remediation.yaml` profile has separate bounded storage:
+validated `observation` (see `bc006-observation.schema.json`), runtime task state,
+latest one-action candidate, pending input binding, private confirmation records,
+model/tool/write/rejection counters, chronological step ledger and raw audit trace.
+The emulator's world/scheduled events are separate from observed state. Accepted
+scale changes desired, not observed healthy. Only status observation supersedes
+healthy counts. Post-shift recovery has its own shift ID and observation freshness.
+This profile does not silently widen `normalized-state.schema.json` or frozen
+model inputs. Its task-state names and decision vocabulary retain core meanings.

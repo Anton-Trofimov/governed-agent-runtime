@@ -667,3 +667,127 @@ def _decision(
         "confirmation_request_required": confirmation_request_required,
         "decided_at": state["updated_at"],
     }
+
+
+def evaluate_remediation_proposal(state, proposal, *, profile, proposal_schema, now):
+    """BC-006 core profile: same ordered gates and decision vocabulary, explicit scope.
+
+    This profile never changes legacy evaluate_proposal behavior. State is supplied
+    by the bounded runtime, not by the proposal producer.
+    """
+    import math
+    from datetime import datetime
+
+    gates = []
+    observation = state["observation"]
+    name = proposal.get("tool_name") if isinstance(proposal, dict) else None
+    contract = next((t for t in profile["tools"] if t["tool_name"] == name), None)
+    write = bool(contract and contract["confirmation_required"])
+    args = proposal.get("arguments", {}) if isinstance(proposal, dict) else {}
+    failed = None
+    reason = None
+    recoverable = False
+    details = None
+    try:
+        Draft202012Validator(proposal_schema).validate(proposal)
+    except ValidationError as error:
+        failed, reason, details = "G01_SCHEMA_VALIDITY", "INVALID_PROPOSAL_SCHEMA", error.message
+    if failed is None and name != "STOP" and any(
+        args.get(k) != v for k, v in state["target"].items()
+    ):
+        failed, reason = "G02_TARGET_RESOLUTION", "TARGET_NOT_RESOLVED"
+    if failed is None and state["task_state"] not in profile["admission_states"]:
+        failed, reason = "G03_PHASE_PERMISSION", "TOOL_NOT_ALLOWED_IN_PHASE"
+    if failed is None and write and not state["role_authorized"]:
+        failed, reason = "G04_ROLE_AUTHORIZATION", "ROLE_NOT_AUTHORIZED"
+    if failed is None and write and not all(
+        observation.get(k) is True
+        for k in ("database_compatible", "configuration_compatible", "dependency_headroom")
+    ):
+        failed, reason = "G05_EVIDENCE_SUFFICIENCY", "EVIDENCE_INSUFFICIENT"
+    age = (now - datetime.fromisoformat(observation["observed_at"])).total_seconds()
+    fresh = (0 <= age <= profile["freshness"]["wall_seconds"] and
+             0 <= state["tick"] - observation["logical_tick"] <=
+             profile["freshness"]["logical_ticks"])
+    if failed is None and write and not fresh:
+        failed, reason, recoverable = (
+            "G06_FRESHNESS_AND_CONSISTENCY", "EVIDENCE_STALE_OR_CONFLICTING", True
+        )
+    technical = None
+    if name == "scale_stable":
+        if observation["scale_status"] == "PENDING":
+            technical = "readiness: a scale operation is already pending; do not resubmit it"
+        elif observation["shift_id"] is not None:
+            technical = "scale after traffic shift is outside this bounded capability"
+        elif not observation["desired"] < args.get("desired_replicas", 0) <= observation["quota"]:
+            technical = "desired count must increase within current stable quota"
+    if name == "shift_traffic_to_stable":
+        healthy = observation["healthy"]
+        capacity = healthy > 1 and (
+            observation["total_rps"] / ((healthy - 1) * observation["safe_rps_per_replica"])
+        ) < 0.9
+        if not capacity:
+            technical = f"capacity: observed healthy={healthy}; full traffic requires N-1 <90%"
+        elif observation["scale_status"] == "PENDING":
+            technical = "readiness: scale is pending"
+        elif observation["shift_id"] is not None:
+            technical = "traffic shift already applied; do not repeat it"
+    if (name in {"read_post_shift_recovery", "finalize_rollback"} and
+            (not observation["shift_id"] or args.get("shift_id") != observation["shift_id"])):
+        technical = "recovery: a matching applied shift is required"
+    if name == "finalize_rollback" and technical is None:
+        rec = observation["recovery"]
+        rec_age = math.inf if rec["observed_at"] is None else (
+            now - datetime.fromisoformat(rec["observed_at"])
+        ).total_seconds()
+        rec_tick = rec["logical_tick"]
+        if not (rec["status"] == "PASS" and rec["shift_id"] == observation["shift_id"]
+                and 0 <= rec_age <= profile["freshness"]["wall_seconds"]
+                and rec_tick is not None and 0 <= state["tick"] - rec_tick <=
+                profile["freshness"]["logical_ticks"]):
+            technical = "recovery: fresh PASS for current shift required"
+        elif not (observation["healthy"] > 1 and observation["total_rps"] <
+                  0.9 * (observation["healthy"] - 1) * observation["safe_rps_per_replica"]):
+            technical = "capacity: current N-1 capacity insufficient"
+        elif observation["stable_traffic_rps"] != observation["total_rps"]:
+            technical = "full traffic shift has not been observed"
+        elif observation["candidate_count"] == 0:
+            technical = "candidate already removed"
+    if write and observation["conflicting_operation"]:
+        technical = "conflicting operation present"
+    if failed is None and technical:
+        failed, reason, details = "G07_TECHNICAL_PRECONDITIONS", "TECHNICAL_PRECONDITION_FAILED", technical
+        recoverable = technical.startswith(("capacity:", "readiness:", "recovery:"))
+    required_tools = (3 if name == "finalize_rollback" else 2) if write else 1
+    if name == "STOP":
+        required_tools = 0
+    if failed is None and (
+        state["tool_calls"] + required_tools > profile["budgets"]["tool_calls"] or
+        (write and state["write_calls"] >= profile["budgets"]["state_changing_calls"])
+    ):
+        failed, reason = "G09_BUDGET_AND_REPETITION", "EXECUTION_BUDGET_EXCEEDED"
+    if failed is None and not state["audit_ready"]:
+        failed, reason = "G10_AUDIT_READINESS", "AUDIT_DATA_INCOMPLETE"
+    gate_ids = [
+        "G01_SCHEMA_VALIDITY", "G02_TARGET_RESOLUTION", "G03_PHASE_PERMISSION",
+        "G04_ROLE_AUTHORIZATION", "G05_EVIDENCE_SUFFICIENCY", "G06_FRESHNESS_AND_CONSISTENCY",
+        "G07_TECHNICAL_PRECONDITIONS", "G08_CONFIRMATION", "G09_BUDGET_AND_REPETITION",
+        "G10_AUDIT_READINESS",
+    ]
+    past_failure = False
+    for gate in gate_ids:
+        status = "SKIPPED" if past_failure else "PASSED"
+        if gate == failed:
+            status, past_failure = "FAILED", True
+        elif not past_failure and gate == "G08_CONFIRMATION":
+            status = "SKIPPED" if write else "NOT_APPLICABLE"  # Separate confirmation stage.
+        elif not past_failure and not write and gate in gate_ids[3:7]:
+            status = "NOT_APPLICABLE"
+        gates.append({"gate_id": gate, "status": status,
+                      "reason_code": reason if gate == failed else None,
+                      "details": {"message": details} if gate == failed else None})
+    decision = ("REPLACE_WITH_SAFER_PATH" if recoverable else "BLOCK") if failed else (
+        "SAFE_FALLBACK" if name == "STOP" else "REQUIRE_CONFIRMATION" if write else "ALLOW"
+    )
+    return {"decision": decision, "reason": reason, "details": details,
+            "recoverable": recoverable, "gates": gates}

@@ -1,0 +1,252 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "context_id",
+    "tool_name",
+    "arguments",
+    "rationale"
+  ],
+  "properties": {
+    "context_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool_name": {
+      "enum": [
+        "scale_stable",
+        "read_operational_status",
+        "shift_traffic_to_stable",
+        "read_post_shift_recovery",
+        "finalize_rollback",
+        "STOP"
+      ]
+    },
+    "arguments": {
+      "type": "object"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1200
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "scale_stable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service_id",
+              "environment_id",
+              "deployment_target_id",
+              "desired_replicas"
+            ],
+            "properties": {
+              "service_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deployment_target_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "desired_replicas": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 8
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "read_operational_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service_id",
+              "environment_id",
+              "deployment_target_id"
+            ],
+            "properties": {
+              "service_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deployment_target_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "shift_traffic_to_stable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service_id",
+              "environment_id",
+              "deployment_target_id"
+            ],
+            "properties": {
+              "service_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deployment_target_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "read_post_shift_recovery"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service_id",
+              "environment_id",
+              "deployment_target_id",
+              "shift_id"
+            ],
+            "properties": {
+              "service_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deployment_target_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shift_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "finalize_rollback"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service_id",
+              "environment_id",
+              "deployment_target_id",
+              "shift_id"
+            ],
+            "properties": {
+              "service_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deployment_target_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shift_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tool_name": {
+            "const": "STOP"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {}
+          }
+        }
+      }
+    }
+  ]
+}

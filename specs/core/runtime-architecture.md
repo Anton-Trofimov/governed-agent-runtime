@@ -423,3 +423,16 @@ Fixed workflow and bounded agent experiments must use the same:
 
 This allows the project to compare decision strategy rather than different
 infrastructure.
+
+## Explicit BC-006 execution profile
+
+BC-006 selects `bounded-remediation.yaml` as the normative synthetic S12 profile.
+Its concrete registry, schemas, preconditions, confirmation and transition table
+specialize the legacy single-step path only when the BC-006 runner is invoked.
+The shared `runtime_policy` and `state_transition` modules own its admission and
+lifecycle; `bc006_runtime` assembles context and dispatches only admitted adapters.
+The provider receives no adapter or mutation handle. Deterministic scripted controls,
+Ollama and manual proposal transport all use this same profile/runtime/environment.
+Preparation creates one immutable candidate per write proposal without a second
+inference. Legacy `create_remediation_plan`, T023 and T029 remain unchanged for
+historical paths. This does not introduce a general framework or production adapter.

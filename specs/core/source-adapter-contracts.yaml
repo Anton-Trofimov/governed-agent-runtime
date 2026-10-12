@@ -210,3 +210,10 @@ timestamp_validation_boundary:
     - Validate timestamps that enter normalized control and evidence fields.
     - Validate metric point timestamps because deterministic evidence logic selects the latest point.
     - Other nested timestamps remain outside the Exp 18.0 boundary unless they participate in deterministic decisions.
+
+bounded_remediation_profile:
+  profile_id: BC-006
+  contract: specs/core/bounded-remediation.yaml
+  observation_schema: schemas/bc006-observation.schema.json
+  source: synthetic-status-controller
+  validation: envelope_then_schema_scope_time_lineage_and_operation_semantics_before_application

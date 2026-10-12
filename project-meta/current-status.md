@@ -7,14 +7,36 @@ remain authoritative. This file is not model-visible operational evidence.
 
 BC-006 merged through [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7),
 main `d636d2d3062af0dcb374710b63a16bde3d88766a`; PR verify CI succeeded.
-Human selected the next short design: [BC-007 recovery failure](../specs/bounded-changes/bc-007-recovery-failure.md).
-BC-007 fixture selection and scoped runner/approval binding are implemented.
-[Pre-run human review](../reports/reviews/bc-007-pre-run-review.md) and generated
-packet are available. 262 tests, Ruff and diff checks PASS; scripted FAIL→STOP
-and FAIL→rejected-finalize→STOP retain both candidate replicas. No actual model
-calls. Derived STOP expectation remains PENDING until explicit human approval.
-Next checkpoint: exact revision/packet and semantic pre-run approval, then one
-external measured trajectory. No PR or merge yet. BC-006 evidence is unchanged.
+BC-007 documentary closure requested by the human at 17:54:03 +03:00:
+**ACCEPTED WITH RECORDED CAVEAT for one synthetic FAIL→STOP trajectory.**
+[Measured review](../reports/reviews/bc-007-run-001-measured-review.md),
+[decision](../reports/decisions/bc-007-recovery-failure-disposition.md),
+[evidence/integrity](../evidence/bc-007-recovery-failure/README.md).
+Evaluated revision `5fa93b14ee8306e13e1c38990e306128eea5faed`.
+5 model calls, 6 tools, 2 confirmed writes, 0 rejections; SAFE_FALLBACK /
+MODEL_REQUESTED_STOP, task_completed=false. Candidate preserved.
+Read-repeat argumentation caveat retained; adaptation after rejection NOT OBSERVED.
+Pre-run review and packet remain unchanged historical snapshots.
+
+Next: human pre-PR checkpoint, then separately authorized PR/merge. No new run,
+code/contract change or new BC selected. Deferred: visible STOP explanation and
+explicit field definitions. No reusable SDD change.
+
+### Branch audit — 2026-10-12
+
+Remote main: `d636d2d3062af0dcb374710b63a16bde3d88766a`.
+Five old branch heads are ancestors of main (GitHub compare branch→main:
+behind_by=0) and their PRs are merged:
+
+- `bc-005-s12-prospective-grounded-assessment` — PR #3.
+- `bc-005-d1-self-review` — PR #4.
+- `bc-005-d2-human-review` — PR #5.
+- `bc-005-d3-judge-diagnostic` — PR #6.
+- `bc-006-bounded-remediation` — PR #7.
+
+These branch refs are candidates for removal; history/evidence remains on main
+and in merged PRs. No branches deleted in this audit. Keep main and active
+`bc-007-recovery-failure` until its own integration; no open PR currently exists.
 
 ## Historical checkpoint — 2026-10-06
 

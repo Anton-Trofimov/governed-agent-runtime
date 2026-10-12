@@ -17,4 +17,10 @@ BC-006 is documentary-closed: **ACCEPTED for one nominal synthetic trajectory**.
 - [Historical pre-run review](reviews/bc-006-pre-run-review.md): original packet
   and pending template preserved. Their labels do not describe current lifecycle.
 
-PR/merge pending. No further model calls are part of documentary closure.
+BC-006 merged through PR #7.
+
+BC-007 is documentary-closed: accepted bounded STOP after FAIL, with recorded
+argumentation caveat. [Measured review](reviews/bc-007-run-001-measured-review.md),
+[decision](decisions/bc-007-recovery-failure-disposition.md),
+[original evidence](../evidence/bc-007-recovery-failure/README.md).
+BC-007 PR/merge pending; no additional model calls.

@@ -65,8 +65,14 @@ def scripted_path(root, *, reject_first=False):
     return rt
 
 
-def build_review_packet(root):
+def build_review_packet(root, *, experiment="BC-006"):
     """Exact generated contexts, boundary traces and BC-004 mappings for human review."""
+    if experiment == "BC-007":
+        from governed_agent_runtime.bc007_review import build_packet
+
+        return build_packet(Path(root))
+    if experiment != "BC-006":
+        raise ValueError("Unsupported experiment")
     root = Path(root)
     normal, repaired = scripted_path(root), scripted_path(root, reject_first=True)
     if not normal.summary()["task_completed"] or not repaired.summary()["task_completed"]:
@@ -159,7 +165,7 @@ def build_review_packet(root):
     }
 
 
-def verify_approval(root, approval, packet):
+def verify_approval(root, approval, packet, experiment="BC-006"):
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     dirty = subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).strip()
     if dirty:
@@ -168,11 +174,17 @@ def verify_approval(root, approval, packet):
         approval.get("disposition") != "APPROVED"
         or approval.get("approved_revision") != revision
         or approval.get("packet_sha256") != packet["packet_sha256"]
-        or approval.get("scope") != "BC-006_ONE_TRAJECTORY"
+        or approval.get("scope") != f"{experiment}_ONE_TRAJECTORY"
         or not approval.get("reviewer")
         or not approval.get("reviewed_at")
     ):
-        raise ValueError("Exact BC-006 packet/revision human pre-run approval required")
+        raise ValueError(f"Exact {experiment} packet/revision human pre-run approval required")
+    if experiment == "BC-007":
+        from governed_agent_runtime.bc007_review import verify_semantic_approval
+
+        verify_semantic_approval(approval, packet)
+    elif experiment != "BC-006":
+        raise ValueError("Unsupported experiment")
     return revision
 
 
@@ -193,10 +205,11 @@ def run_live(
     manual_metadata=None,
     confirm=human_confirmation,
     manual_read=input,
+    experiment="BC-006",
 ):
     root = Path(root)
-    packet = build_review_packet(root)
-    revision = verify_approval(root, approval, packet)
+    packet = build_review_packet(root, experiment=experiment)
+    revision = verify_approval(root, approval, packet, experiment)
     # Required repository gates precede any model call.
     for command in (
         [str(root / ".venv/bin/ruff"), "check", "."],
@@ -204,7 +217,7 @@ def run_live(
         ["git", "diff", "--check"],
     ):
         subprocess.run(command, cwd=root, check=True, capture_output=True, text=True)
-    verify_approval(root, approval, packet)
+    verify_approval(root, approval, packet, experiment)
     if provider not in {"ollama", "manual"}:
         raise ValueError("Unknown proposal provider")
     if provider == "manual" and (
@@ -218,9 +231,11 @@ def run_live(
     output = Path(output).resolve()
     if output.is_relative_to(root.resolve()):
         raise ValueError("Keep live evidence in an external unique run directory")
-    rt = RemediationRuntime(root, evidence_dir=output, user_id=user_id)
+    fixture = json.loads((root / f"fixtures/scenarios/{experiment.lower()}/s12.json").read_text())
+    rt = RemediationRuntime(root, fixture=fixture, evidence_dir=output, user_id=user_id)
     manifest = {
-        "scope": "BC-006",
+        "scope": experiment,
+        "fixture_id": fixture["fixture_id"],
         "evaluated_revision": revision,
         "approval": approval,
         "packet_sha256": packet["packet_sha256"],
@@ -340,9 +355,11 @@ def main():
     run.add_argument("--user-id", required=True)
     run.add_argument("--base-url", default="http://127.0.0.1:11434")
     run.add_argument("--manual-metadata", type=Path)
+    for command in (review, run):
+        command.add_argument("--experiment", choices=["BC-006", "BC-007"], default="BC-006")
     args = parser.parse_args()
     if args.command == "review":
-        packet = build_review_packet(ROOT)
+        packet = build_review_packet(ROOT, experiment=args.experiment)
         if args.output.exists():
             raise ValueError("Do not overwrite an existing review packet")
         write_json(args.output, packet)
@@ -351,13 +368,16 @@ def main():
                 {
                     "packet_sha256": packet["packet_sha256"],
                     "actual_model_calls": 0,
-                    "nominal": packet["packet"]["nominal"]["summary"],
+                    "control": packet["packet"][
+                        "nominal" if args.experiment == "BC-006" else "fail_then_stop"
+                    ]["summary"],
                 }
             )
         )
     else:
         manifest = run_live(
             ROOT,
+            experiment=args.experiment,
             output=args.output,
             provider=args.provider,
             approval=json.loads(args.approval.read_text()),

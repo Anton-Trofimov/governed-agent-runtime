@@ -70,8 +70,14 @@ The [human-review aid](reports/reviews/bc-006-human-review-state-snapshots.md)
 is a non-normative pre-run snapshot; its B1–B6 examples are scripted controls.
 Historical BC-005/D1–D3 results, [design](specs/bounded-changes/bc-006-s12-bounded-remediation-loop.md),
 [pre-run review](reports/reviews/bc-006-pre-run-review.md) and packet remain unchanged.
-Next: human pre-PR checkpoint; no additional inference or automatic alternative
-model run. No UI, production adapter, model judge or sampling search is included.
+BC-006 merged via [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7).
+BC-007 is documentary-closed: **accepted bounded STOP after observed recovery FAIL,
+with an argumentation caveat**. Five Qwen calls, two confirmed writes; candidate
+preserved, task incomplete. Adaptation after rejection NOT OBSERVED.
+[Measured review](reports/reviews/bc-007-run-001-measured-review.md),
+[decision](reports/decisions/bc-007-recovery-failure-disposition.md), and
+[original evidence](evidence/bc-007-recovery-failure/README.md). PR/merge pending;
+no further inference. STOP explanation UX is deferred, not implemented.
 
 ## Problem, user, and hypotheses
 

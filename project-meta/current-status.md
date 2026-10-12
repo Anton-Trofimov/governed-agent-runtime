@@ -3,7 +3,19 @@
 Non-normative handoff. Inspect actual Git state; specifications and recorded evidence
 remain authoritative. This file is not model-visible operational evidence.
 
-## Checkpoint — 2026-10-06
+## Current checkpoint — 2026-10-12
+
+BC-006 merged through [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7),
+main `d636d2d3062af0dcb374710b63a16bde3d88766a`; PR verify CI succeeded.
+Human selected the next short design: [BC-007 recovery failure](../specs/bounded-changes/bc-007-recovery-failure.md).
+Only documentation changes at this checkpoint. Existing runtime supports the
+negative observation; runner/packet/approval binding still needs implementation.
+Next: implement the bounded fixture selection and offline checks, then present
+exact pre-run materials for separate approval. No BC-007 inference, PR or merge
+is part of this design checkpoint. BC-006 raw evidence and historical reviews
+remain unchanged.
+
+## Historical checkpoint — 2026-10-06
 
 BC-005 measured baseline is closed with human-confirmed material semantic failure:
 `NOT SUPPORTED FOR THIS BOUNDED FIXTURE / MODEL / CONFIGURATION`.
@@ -80,8 +92,8 @@ runtime-verified COMPLETED. Recovery-after-rejection NOT OBSERVED.
   strategy selection, general reliability, production or model-comparison claim.
 - Last implementation verification: 259 tests, Ruff and diff checks PASS locally;
   documentary closure verification is recorded in the pre-PR handoff. No remote CI claim.
-- PR/merge pending explicit human decision; no new model calls, automatic Codex
-  follow-up, runtime/contracts changes or reusable SDD changes in this closure.
+- Integrated through PR #7 after explicit human PR and merge decisions. No new
+  model calls, runtime/contracts changes or reusable SDD changes in that closure.
 
 ## Station evidence convention
 

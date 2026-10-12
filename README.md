@@ -70,8 +70,10 @@ The [human-review aid](reports/reviews/bc-006-human-review-state-snapshots.md)
 is a non-normative pre-run snapshot; its B1–B6 examples are scripted controls.
 Historical BC-005/D1–D3 results, [design](specs/bounded-changes/bc-006-s12-bounded-remediation-loop.md),
 [pre-run review](reports/reviews/bc-006-pre-run-review.md) and packet remain unchanged.
-Next: human pre-PR checkpoint; no additional inference or automatic alternative
-model run. No UI, production adapter, model judge or sampling search is included.
+BC-006 merged via [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7).
+Next: [BC-007 design](specs/bounded-changes/bc-007-recovery-failure.md), testing response
+to observed recovery FAIL with the same bounded task and controls. Implementation
+and separate pre-run approval are pending; no BC-007 model calls have been made.
 
 ## Problem, user, and hypotheses
 

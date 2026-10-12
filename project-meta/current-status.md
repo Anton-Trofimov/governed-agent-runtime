@@ -18,9 +18,13 @@ MODEL_REQUESTED_STOP, task_completed=false. Candidate preserved.
 Read-repeat argumentation caveat retained; adaptation after rejection NOT OBSERVED.
 Pre-run review and packet remain unchanged historical snapshots.
 
-Next: human pre-PR checkpoint, then separately authorized PR/merge. No new run,
-code/contract change or new BC selected. Deferred: visible STOP explanation and
-explicit field definitions. No reusable SDD change.
+BC-007 merged via PR #8; verify CI PASS; main
+`84822d64bc1203147cde3f849a2f1c6222df9f4c`.
+Next selected design: [BC-008 operator goal framing](../specs/bounded-changes/bc-008-operator-goal-framing.md),
+two requests × three paired seeds in nominal recovery PASS environment. Design
+only; implementation and exact six-run pre-run approval pending. Distinguish
+operator recovery evidence from the stricter harness rollback-completion outcome.
+Deferred: visible STOP explanation and explicit field definitions. No SDD change.
 
 ### Branch audit — 2026-10-12
 

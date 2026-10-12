@@ -76,8 +76,10 @@ with an argumentation caveat**. Five Qwen calls, two confirmed writes; candidate
 preserved, task incomplete. Adaptation after rejection NOT OBSERVED.
 [Measured review](reports/reviews/bc-007-run-001-measured-review.md),
 [decision](reports/decisions/bc-007-recovery-failure-disposition.md), and
-[original evidence](evidence/bc-007-recovery-failure/README.md). PR/merge pending;
-no further inference. STOP explanation UX is deferred, not implemented.
+[original evidence](evidence/bc-007-recovery-failure/README.md). Merged via [PR #8](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/8).
+Next: [BC-008 design](specs/bounded-changes/bc-008-operator-goal-framing.md), two short
+operator requests with three paired seeds each. Implementation/pre-run approval
+pending; no new inference. STOP explanation UX remains deferred.
 
 ## Problem, user, and hypotheses
 

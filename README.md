@@ -18,6 +18,15 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
+## Latest checkpoint: BC-008 accepted
+
+Two short operator requests across three paired seeds produced six completed
+synthetic remediation trajectories with human-confirmed writes and runtime-verified
+rollback. Numerical/unit and goal-interpretation caveats remain in model rationales.
+[Measured review](reports/reviews/bc-008-measured-review.md) and
+[disposition](reports/decisions/bc-008-operator-goal-framing-disposition.md).
+Documentary closure accepted; PR/merge pending. No general reliability claim.
+
 ## Latest bounded results: BC-005 and D1–D3
 
 The prospectively traceability-approved S12 assessment produced 0/3 semantic PASS
@@ -77,10 +86,9 @@ preserved, task incomplete. Adaptation after rejection NOT OBSERVED.
 [Measured review](reports/reviews/bc-007-run-001-measured-review.md),
 [decision](reports/decisions/bc-007-recovery-failure-disposition.md), and
 [original evidence](evidence/bc-007-recovery-failure/README.md). Merged via [PR #8](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/8).
-Next: [BC-008 design](specs/bounded-changes/bc-008-operator-goal-framing.md), two short
-operator requests with three paired seeds each. Implementation/offline checks
-complete; [human pre-run review](reports/reviews/bc-008-pre-run-review.md) awaits
-six-run approval. No new inference. STOP explanation UX remains deferred.
+BC-008 short-goal comparison is now accepted with caveats; see the latest checkpoint
+above. Historical pre-run documents remain unchanged. STOP explanation UX remains
+a proposed next bounded change, not an approved new experiment.
 
 ## Problem, user, and hypotheses
 

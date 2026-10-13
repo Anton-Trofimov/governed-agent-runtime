@@ -23,10 +23,16 @@ BC-007 merged via PR #8; verify CI PASS; main
 Next selected design: [BC-008 operator goal framing](../specs/bounded-changes/bc-008-operator-goal-framing.md),
 two requests × three paired seeds in nominal recovery PASS environment.
 Implementation and offline controls complete (2026-10-13): 275 tests/Ruff/diff PASS.
-[Human pre-run review](../reports/reviews/bc-008-pre-run-review.md) and generated
-packet are available; exact six-run approval PENDING. No actual BC-008 model calls.
-Run IDs/seeds/variants are approval-bound, old defaults preserved. Distinguish
-operator recovery evidence from the stricter harness rollback-completion outcome.
+[Human pre-run review](../reports/reviews/bc-008-pre-run-review.md) approved
+2026-10-13 02:06:08 +03:00. Measured evidence received: six completed trajectories
+plus one KeyboardInterrupt-interrupted A-20; explicitly requested retry retained
+separately. 33 actual model calls total, no new calls during review.
+[Measured review](../reports/reviews/bc-008-measured-review.md): identical action
+sequences across completed A/B pairs; rationale numerical/semantic caveats retained.
+Human disposition 2026-10-13 03:30:46 +03:00: ACCEPTED WITH RECORDED CAVEATS.
+[Documentary closure](../reports/decisions/bc-008-operator-goal-framing-disposition.md)
+prepared; PR/merge pending. Next recommendation: bounded operator outcome
+presentation, using existing evidence; no new measured experiment approved.
 Deferred: visible STOP explanation and explicit field definitions. No SDD change.
 
 ### Branch audit — 2026-10-12

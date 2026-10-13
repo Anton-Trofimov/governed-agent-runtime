@@ -67,6 +67,10 @@ def scripted_path(root, *, reject_first=False):
 
 def build_review_packet(root, *, experiment="BC-006"):
     """Exact generated contexts, boundary traces and BC-004 mappings for human review."""
+    if experiment == "BC-008":
+        from governed_agent_runtime.bc008_review import build_packet
+
+        return build_packet(Path(root))
     if experiment == "BC-007":
         from governed_agent_runtime.bc007_review import build_packet
 
@@ -165,7 +169,7 @@ def build_review_packet(root, *, experiment="BC-006"):
     }
 
 
-def verify_approval(root, approval, packet, experiment="BC-006"):
+def verify_approval(root, approval, packet, experiment="BC-006", run_id=None):
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     dirty = subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).strip()
     if dirty:
@@ -179,7 +183,11 @@ def verify_approval(root, approval, packet, experiment="BC-006"):
         or not approval.get("reviewed_at")
     ):
         raise ValueError(f"Exact {experiment} packet/revision human pre-run approval required")
-    if experiment == "BC-007":
+    if experiment == "BC-008":
+        from governed_agent_runtime.bc008_review import verify_case_approval
+
+        verify_case_approval(approval, packet, run_id)
+    elif experiment == "BC-007":
         from governed_agent_runtime.bc007_review import verify_semantic_approval
 
         verify_semantic_approval(approval, packet)
@@ -206,10 +214,13 @@ def run_live(
     confirm=human_confirmation,
     manual_read=input,
     experiment="BC-006",
+    run_id=None,
 ):
     root = Path(root)
+    if experiment != "BC-008" and run_id is not None:
+        raise ValueError("run_id is only supported for BC-008")
     packet = build_review_packet(root, experiment=experiment)
-    revision = verify_approval(root, approval, packet, experiment)
+    revision = verify_approval(root, approval, packet, experiment, run_id)
     # Required repository gates precede any model call.
     for command in (
         [str(root / ".venv/bin/ruff"), "check", "."],
@@ -217,7 +228,7 @@ def run_live(
         ["git", "diff", "--check"],
     ):
         subprocess.run(command, cwd=root, check=True, capture_output=True, text=True)
-    verify_approval(root, approval, packet, experiment)
+    verify_approval(root, approval, packet, experiment, run_id)
     if provider not in {"ollama", "manual"}:
         raise ValueError("Unknown proposal provider")
     if provider == "manual" and (
@@ -232,7 +243,20 @@ def run_live(
     if output.is_relative_to(root.resolve()):
         raise ValueError("Keep live evidence in an external unique run directory")
     fixture = json.loads((root / f"fixtures/scenarios/{experiment.lower()}/s12.json").read_text())
-    rt = RemediationRuntime(root, fixture=fixture, evidence_dir=output, user_id=user_id)
+    case = None
+    if experiment == "BC-008":
+        from governed_agent_runtime.bc008_review import select_case
+
+        case = select_case(packet, run_id)
+        if provider != "ollama":
+            raise ValueError("BC-008 measured route requires the fixed Ollama provider")
+    rt = RemediationRuntime(
+        root,
+        fixture=fixture,
+        evidence_dir=output,
+        user_id=user_id,
+        goal_variant=case["variant"] if case else None,
+    )
     manifest = {
         "scope": experiment,
         "fixture_id": fixture["fixture_id"],
@@ -244,11 +268,13 @@ def run_live(
         "status": "STARTED",
         "actual_model_calls": 0,
     }
+    if case:
+        manifest["case"] = {k: case[k] for k in ("run_id", "variant", "seed", "operator_goal")}
     write_json(output / "manifest.json", manifest)
     model = None
     try:
         if provider == "ollama":
-            config = packet["packet"]["model_config"]
+            config = case["model_config"] if case else packet["packet"]["model_config"]
             parameters = deepcopy(config["invocation_parameters"])
             if parameters.pop("stream") is not False:
                 raise ValueError("Streaming config drift")
@@ -355,8 +381,11 @@ def main():
     run.add_argument("--user-id", required=True)
     run.add_argument("--base-url", default="http://127.0.0.1:11434")
     run.add_argument("--manual-metadata", type=Path)
+    run.add_argument("--run-id", help="BC-008 approved case, e.g. A-18")
     for command in (review, run):
-        command.add_argument("--experiment", choices=["BC-006", "BC-007"], default="BC-006")
+        command.add_argument(
+            "--experiment", choices=["BC-006", "BC-007", "BC-008"], default="BC-006"
+        )
     args = parser.parse_args()
     if args.command == "review":
         packet = build_review_packet(ROOT, experiment=args.experiment)
@@ -368,9 +397,16 @@ def main():
                 {
                     "packet_sha256": packet["packet_sha256"],
                     "actual_model_calls": 0,
-                    "control": packet["packet"][
-                        "nominal" if args.experiment == "BC-006" else "fail_then_stop"
-                    ]["summary"],
+                    "control": (
+                        {
+                            v: c["complete"]["summary"]
+                            for v, c in packet["packet"]["controls"].items()
+                        }
+                        if args.experiment == "BC-008"
+                        else packet["packet"][
+                            "nominal" if args.experiment == "BC-006" else "fail_then_stop"
+                        ]["summary"]
+                    ),
                 }
             )
         )
@@ -378,6 +414,7 @@ def main():
         manifest = run_live(
             ROOT,
             experiment=args.experiment,
+            run_id=args.run_id,
             output=args.output,
             provider=args.provider,
             approval=json.loads(args.approval.read_text()),

@@ -1,0 +1,101 @@
+{
+  "summary": {
+    "task_state": "EVIDENCE_EVALUATED",
+    "stop_reason": null,
+    "task_completed": false,
+    "model_calls": 1,
+    "tool_calls": 2,
+    "write_calls": 1,
+    "rejections": 0,
+    "recovery_after_rejection": "NOT_OBSERVED"
+  },
+  "last_step": {
+    "proposal_id": "proposal-1",
+    "proposal": {
+      "context_id": "ctx-912b9173116361e7b98454b4",
+      "tool_name": "scale_stable",
+      "arguments": {
+        "service_id": "payment-api",
+        "environment_id": "production",
+        "deployment_target_id": "payment-api-prod-eu-central-1",
+        "desired_replicas": 8
+      },
+      "rationale": "Capacity check FAILS at 6 replicas: normal_utilization=91.1% (>90%) and N-1=109.3% (>90%). Per BC006-capacity, 8 is the minimum count where both normal and N-1 utilization pass (<90%). Quota allows up to 8. Preconditions verified: no in-flight scale, no shift, config/db/headroom compatible, no conflicts. Scaling stable to 8 is the necessary first step before traffic shift and recovery can proceed."
+    },
+    "decision": "ALLOW",
+    "reason": null,
+    "details": null,
+    "execution_started": true,
+    "result": {
+      "desired": 8,
+      "healthy": 6,
+      "candidate_count": 2,
+      "stable_traffic_rps": 615,
+      "total_rps": 820,
+      "safe_rps_per_replica": 150,
+      "rollout_state": "PAUSED",
+      "rollout_health": "FAILED",
+      "database_compatible": true,
+      "configuration_compatible": true,
+      "dependency_headroom": true,
+      "conflicting_operation": false,
+      "quota": 8,
+      "scale_operation_id": "scale-1",
+      "scale_status": "PENDING",
+      "shift_id": null,
+      "stable_version_id": "2.4.1",
+      "candidate_version_id": "2.4.2",
+      "observation_id": "obs-1-0",
+      "source": "synthetic-status-controller",
+      "scope": {
+        "service_id": "payment-api",
+        "environment_id": "production",
+        "deployment_target_id": "payment-api-prod-eu-central-1"
+      },
+      "observed_at": "2026-10-12T23:36:19.886481+00:00",
+      "logical_tick": 1,
+      "recovery": {
+        "status": "UNKNOWN",
+        "shift_id": null,
+        "observed_at": null,
+        "logical_tick": null
+      }
+    },
+    "confirmation": "CONSUMED"
+  },
+  "state": {
+    "desired": 8,
+    "healthy": 6,
+    "candidate_count": 2,
+    "stable_traffic_rps": 615,
+    "total_rps": 820,
+    "safe_rps_per_replica": 150,
+    "rollout_state": "PAUSED",
+    "rollout_health": "FAILED",
+    "database_compatible": true,
+    "configuration_compatible": true,
+    "dependency_headroom": true,
+    "conflicting_operation": false,
+    "quota": 8,
+    "scale_operation_id": "scale-1",
+    "scale_status": "PENDING",
+    "shift_id": null,
+    "stable_version_id": "2.4.1",
+    "candidate_version_id": "2.4.2",
+    "observation_id": "obs-1-0",
+    "source": "synthetic-status-controller",
+    "scope": {
+      "service_id": "payment-api",
+      "environment_id": "production",
+      "deployment_target_id": "payment-api-prod-eu-central-1"
+    },
+    "observed_at": "2026-10-12T23:36:19.886481+00:00",
+    "logical_tick": 1,
+    "recovery": {
+      "status": "UNKNOWN",
+      "shift_id": null,
+      "observed_at": null,
+      "logical_tick": null
+    }
+  }
+}

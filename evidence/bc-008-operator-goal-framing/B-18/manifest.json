@@ -1,0 +1,63 @@
+{
+  "scope": "BC-008",
+  "fixture_id": "bc008-s12-nominal-v1",
+  "evaluated_revision": "d7193c05820ef2209d9bda98a70d7965e71163c9",
+  "approval": {
+    "disposition": "APPROVED",
+    "scope": "BC-008_ONE_TRAJECTORY",
+    "approved_revision": "d7193c05820ef2209d9bda98a70d7965e71163c9",
+    "packet_sha256": "c1d07bb8d393c1fbe347af274d3bb9cc9e259d5b2a8527f40cd6987a12489029",
+    "approved_derived_expectations": [
+      "operator-goal-recovery-evidence"
+    ],
+    "reviewer": "Anton Trofimov",
+    "reviewed_at": "2026-10-13T02:06:08+03:00",
+    "run_id": "B-18",
+    "variant": "B",
+    "seed": 18
+  },
+  "packet_sha256": "c1d07bb8d393c1fbe347af274d3bb9cc9e259d5b2a8527f40cd6987a12489029",
+  "provider": "ollama",
+  "manual_metadata": null,
+  "status": "COMPLETED",
+  "actual_model_calls": 5,
+  "case": {
+    "run_id": "B-18",
+    "variant": "B",
+    "seed": 18,
+    "operator_goal": "Восстанови работу сервиса"
+  },
+  "model_config": {
+    "model_identity": "qwen3.8:27b",
+    "model_artifact_identity": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+    "provider": {
+      "name": "Ollama",
+      "version": "0.32.14"
+    },
+    "invocation_parameters": {
+      "keep_alive": "10m",
+      "min_p": 0.0,
+      "num_ctx": 32768,
+      "num_predict": 8192,
+      "presence_penalty": 0.0,
+      "repeat_penalty": 1.0,
+      "seed": 18,
+      "stream": false,
+      "temperature": 1.0,
+      "think": true,
+      "top_k": 20,
+      "top_p": 0.95
+    },
+    "request_timeout_seconds": 300
+  },
+  "outcome": {
+    "task_state": "COMPLETED",
+    "stop_reason": null,
+    "task_completed": true,
+    "model_calls": 5,
+    "tool_calls": 9,
+    "write_calls": 3,
+    "rejections": 0,
+    "recovery_after_rejection": "NOT_OBSERVED"
+  }
+}

@@ -268,9 +268,22 @@ See [evidence](reports/bc-005-d3-independent-judge-evidence.md),
 [human-readable review](reports/reviews/bc-005-d3-judge-post-run-review.md), and
 [decision](reports/decisions/bc-005-d3-independent-judge-disposition.md).
 
+## Multi-step follow-through: BC-006–BC-008
+
+BC-006 demonstrated one accepted nominal synthetic completion; BC-007 demonstrated
+accepted bounded STOP after recovery FAIL, with an argumentation caveat. Both merged.
+BC-008 is documentary-closed: both short requests across seeds 18/19/20 reached
+recovery evidence and verified rollback in six completed trajectories. Runtime
+kept execution authority; explanation numerical/unit and goal-interpretation
+caveats remain. No general reliability or autonomous-process claim.
+
+See [BC-006 decision](reports/decisions/bc-006-bounded-remediation-disposition.md),
+[BC-007 decision](reports/decisions/bc-007-recovery-failure-disposition.md),
+[BC-008 review](reports/reviews/bc-008-measured-review.md) and
+[BC-008 decision](reports/decisions/bc-008-operator-goal-framing-disposition.md).
+
 ## Next validation path
 
-Discuss scope/value before implementing the separate BC-006 design. Stop judge and
-prompt optimization for this slice. Joint task completion and execution control
-remain the goal; a scripted comparator and alternative provider must not be
-misrepresented as a successful Qwen run. No next measurement is selected here.
+Integrate BC-008 through PR/merge, then agree a bounded operator-outcome presentation
+change using existing measured evidence. No additional inference, universal-core
+redesign, new tool or new measured experiment has been approved.

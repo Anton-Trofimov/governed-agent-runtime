@@ -23,4 +23,9 @@ BC-007 is documentary-closed: accepted bounded STOP after FAIL, with recorded
 argumentation caveat. [Measured review](reviews/bc-007-run-001-measured-review.md),
 [decision](decisions/bc-007-recovery-failure-disposition.md),
 [original evidence](../evidence/bc-007-recovery-failure/README.md).
-BC-007 PR/merge pending; no additional model calls.
+BC-007 merged through PR #8; no additional model calls.
+
+BC-008 is documentary-closed: accepted short-goal results with numerical/semantic
+explanation caveats. [Measured review](reviews/bc-008-measured-review.md),
+[decision](decisions/bc-008-operator-goal-framing-disposition.md),
+[evidence](../evidence/bc-008-operator-goal-framing/README.md). PR/merge pending.

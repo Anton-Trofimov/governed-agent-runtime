@@ -18,9 +18,22 @@ MODEL_REQUESTED_STOP, task_completed=false. Candidate preserved.
 Read-repeat argumentation caveat retained; adaptation after rejection NOT OBSERVED.
 Pre-run review and packet remain unchanged historical snapshots.
 
-Next: human pre-PR checkpoint, then separately authorized PR/merge. No new run,
-code/contract change or new BC selected. Deferred: visible STOP explanation and
-explicit field definitions. No reusable SDD change.
+BC-007 merged via PR #8; verify CI PASS; main
+`84822d64bc1203147cde3f849a2f1c6222df9f4c`.
+Next selected design: [BC-008 operator goal framing](../specs/bounded-changes/bc-008-operator-goal-framing.md),
+two requests × three paired seeds in nominal recovery PASS environment.
+Implementation and offline controls complete (2026-10-13): 275 tests/Ruff/diff PASS.
+[Human pre-run review](../reports/reviews/bc-008-pre-run-review.md) approved
+2026-10-13 02:06:08 +03:00. Measured evidence received: six completed trajectories
+plus one KeyboardInterrupt-interrupted A-20; explicitly requested retry retained
+separately. 33 actual model calls total, no new calls during review.
+[Measured review](../reports/reviews/bc-008-measured-review.md): identical action
+sequences across completed A/B pairs; rationale numerical/semantic caveats retained.
+Human disposition 2026-10-13 03:30:46 +03:00: ACCEPTED WITH RECORDED CAVEATS.
+[Documentary closure](../reports/decisions/bc-008-operator-goal-framing-disposition.md)
+prepared; PR/merge pending. Next recommendation: bounded operator outcome
+presentation, using existing evidence; no new measured experiment approved.
+Deferred: visible STOP explanation and explicit field definitions. No SDD change.
 
 ### Branch audit — 2026-10-12
 

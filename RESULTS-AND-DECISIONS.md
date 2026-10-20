@@ -313,7 +313,7 @@ and [BC-010 decision](reports/decisions/bc-010-recorded-run-ui-disposition.md).
 
 ## Next validation path
 
-Integrate BC-009 then BC-010. Plan a separate local live UI/runtime contract for
+BC-009 delivery: PR #10; BC-010 delivery: PR #11. Plan a separate local live UI/runtime contract for
 start, event delivery, action-bound confirmation, rejection/expiry and new runs.
 Public station access/security and hosting require separate decisions. No new
 measured experiment or reusable SDD process expansion is authorized here.

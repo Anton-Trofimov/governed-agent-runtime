@@ -10,7 +10,11 @@ at `6637dc9`. Human requested concise documentary closure of both BCs. See
 [BC-009 decision](../reports/decisions/bc-009-operator-outcome-disposition.md) and
 [BC-010 decision](../reports/decisions/bc-010-recorded-run-ui-disposition.md).
 Cosmetic iteration stops here; full browser/accessibility coverage and external
-usability are not claimed. GitHub integration remains pending, BC-009 before BC-010.
+usability are not claimed. BC-009 merged via PR #10 at `215f7b2`. BC-010 delivery
+is tracked in [PR #11](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/11);
+GitHub PR state is authoritative for integration status. Connector publication
+uses new commit SHAs with verified identical source trees; local review revisions
+remain provenance references. CI includes Python and UI tests/build/export checks.
 Latest implementation verification: 28 UI tests, 290 Python tests, Ruff,
 TypeScript/build, deterministic export and diff PASS.
 

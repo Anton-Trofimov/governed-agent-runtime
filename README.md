@@ -32,7 +32,8 @@ references remain inspectable.
 
 Basic desktop/mobile design accepted by the owner; external-user usability and
 exhaustive browser/accessibility coverage are not established. Live execution,
-public hosting and station access are not included. GitHub integration is pending.
+public hosting and station access are not included. Delivery: [BC-009 PR #10](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/10)
+and [BC-010 PR #11](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/11).
 
 ## Latest checkpoint: BC-008 accepted
 

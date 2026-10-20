@@ -4,7 +4,8 @@
 
 **Decision:** basic design and bounded recorded-viewer deliverable accepted by the
 human owner; documentary closure requested. Further cosmetic changes move to
-subsequent work. GitHub integration remains separate and pending.
+subsequent work. Delivery is tracked in [PR #11](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/11),
+based on BC-009 merged via PR #10; the PR records integration and CI status.
 
 - Portable React/TypeScript UI replays BC-006 success and BC-007 recovery-FAIL STOP.
   State changes follow accepted observations; final outcomes use BC-009 projection.

@@ -3,7 +3,37 @@
 Non-normative handoff. Inspect actual Git state; specifications and recorded evidence
 remain authoritative. This file is not model-visible operational evidence.
 
-## Current checkpoint — 2026-10-12
+## Current checkpoint — 2026-10-15
+
+BC-008 merged through PR #9; verify CI PASS. Main:
+`a0d09693cc14cc907c57f69e8b93fcd941d77c6e`.
+BC-009 authorized: evidence-derived operator outcome view before UI.
+[Specification](../specs/bounded-changes/bc-009-operator-outcome-view.md),
+[three human-review examples](../reports/reviews/bc-009-human-review.md).
+Standalone read-only text/JSON CLI implemented; execution runner unchanged.
+No new inference. Human accepted the r4 concept/readability on 2026-10-15 and
+requested implementation closure. Renderer aligned; 286 tests, Ruff and diff PASS.
+[Closure](../reports/decisions/bc-009-operator-outcome-disposition.md),
+[actual rendered examples](../reports/reviews/bc-009-implementation-check-2026-10-15.md).
+Local implementation closure complete; remote PR/merge pending.
+Operator UI planning is the next direction within this shared project; implementation
+and live integration have not begun. Shared product/architecture and runtime contracts
+retain authority. Plan bounded changes for UI, with cross-cutting changes when needed;
+API/integration remains an interface concern, not a new standalone subproject.
+No direction prefixes or additional document hierarchy are introduced.
+
+### Deferred non-normative hypothesis
+
+Explicit structured dependencies → simple deterministic CI checks → later
+agent-assisted consistency audit. Evaluate usefulness through actual incompatibilities
+caught, false positives, maintenance cost and reduction in manual checking.
+The empirical candidate boundary is **runner output contract → presentation layer**:
+BC-009 already consumes recorded runner outputs. Open automation only through a
+separate BC when a concrete need or change to that contract arises. No dependency
+manifest/graph, new CI checks, post-merge agent audit or automatic project-map
+construction is authorized by this hypothesis.
+
+### Previous checkpoints
 
 BC-006 merged through [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7),
 main `d636d2d3062af0dcb374710b63a16bde3d88766a`; PR verify CI succeeded.

@@ -30,7 +30,8 @@ Load only the rows relevant to the bounded task, then inspect the affected schem
 | BC-005-D3 independent Qwen judge | [`bounded-changes/bc-005-d3-independent-judge.md`](./bounded-changes/bc-005-d3-independent-judge.md) | Two isolated reviews of D1/D2 answers against identical D1 input | Completed; disposition: Not supported | Two calls; judge missed known A violation, B agreed with human review |
 | BC-006 bounded remediation and step context | [`bounded-changes/bc-006-s12-bounded-remediation-loop.md`](./bounded-changes/bc-006-s12-bounded-remediation-loop.md) | One synthetic loop with real admission checks and explicit per-step context | Completed; disposition: Accepted for one nominal synthetic trajectory | 5 model calls; 3 human-confirmed writes; terminal verified; recovery-after-rejection NOT OBSERVED. [Decision](../reports/decisions/bc-006-bounded-remediation-disposition.md); merged via [PR #7](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/7) |
 | BC-007 observed recovery failure | [`bounded-changes/bc-007-recovery-failure.md`](./bounded-changes/bc-007-recovery-failure.md) | Same bounded task; recovery FAIL, model response and runtime containment assessed separately | Completed; disposition: Accepted with recorded caveat | One measured FAIL→STOP trajectory; task incomplete; 0 rejections. [Decision](../reports/decisions/bc-007-recovery-failure-disposition.md); merged via PR #8 |
-| BC-008 operator goal framing | [`bounded-changes/bc-008-operator-goal-framing.md`](./bounded-changes/bc-008-operator-goal-framing.md) | Two short requests, three paired seeds each; nominal recovery environment | Documentary closed; accepted with caveats | [Measured review](../reports/reviews/bc-008-measured-review.md); six completed trajectories and one interrupted attempt |
+| BC-008 operator goal framing | [`bounded-changes/bc-008-operator-goal-framing.md`](./bounded-changes/bc-008-operator-goal-framing.md) | Two short requests, three paired seeds each; nominal recovery environment | Merged PR #9; accepted with caveats | [Measured review](../reports/reviews/bc-008-measured-review.md); six completed trajectories and one interrupted attempt |
+| BC-009 operator outcome presentation | [`bounded-changes/bc-009-operator-outcome-view.md`](./bounded-changes/bc-009-operator-outcome-view.md) | Read-only outcome projection and three recorded human-review examples | Accepted content; implementation verified; merge pending | [Closure](../reports/decisions/bc-009-operator-outcome-disposition.md); no new inference or execution changes |
 
 The `Lifecycle` and `Relevance` columns are the project-local authority for current applicability. Existing artifact-local `Status`, `Spec version`, specification-family markers and similar legacy metadata are non-authoritative for current lifecycle and applicability and must not override this router.
 
@@ -53,6 +54,15 @@ For a behavioral change, follow the applicable authority from this router into t
     -> evidence, review and human disposition when applicable
 
 See `AGENTS.md` for project-local execution, conflict-escalation and evidence-integrity rules. The external reusable SDD Operating Model is not required context for routine changes.
+
+### Material dependencies
+
+A bounded change declares its own material dependencies in its specification.
+Where needed for unambiguous compatibility or provenance, identify the concrete
+revision/version of the related contract or BC. A pinned revision records the
+basis; it does not by itself prove compatibility with the current implementation.
+This project-local rule does not require a separate dependency manifest, a central
+graph, a new lifecycle stage or retrospective metadata updates to every BC.
 
 ## Identifier legend
 

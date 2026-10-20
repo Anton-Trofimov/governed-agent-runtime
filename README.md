@@ -18,6 +18,15 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
+## BC-009 operator outcome view
+
+A read-only text/JSON presentation separates runtime-confirmed observations,
+termination causes, pending actions and the original model rationale.
+[Verified rendered examples](reports/reviews/bc-009-implementation-check-2026-10-15.md).
+Content concept accepted; implementation verified locally; merge pending.
+[Closure and limits](reports/decisions/bc-009-operator-outcome-disposition.md).
+No new inference, execution changes or UI implementation.
+
 ## Latest checkpoint: BC-008 accepted
 
 Two short operator requests across three paired seeds produced six completed
@@ -25,7 +34,7 @@ synthetic remediation trajectories with human-confirmed writes and runtime-verif
 rollback. Numerical/unit and goal-interpretation caveats remain in model rationales.
 [Measured review](reports/reviews/bc-008-measured-review.md) and
 [disposition](reports/decisions/bc-008-operator-goal-framing-disposition.md).
-Documentary closure accepted; PR/merge pending. No general reliability claim.
+Merged through [PR #9](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/9). No general reliability claim.
 
 ## Latest bounded results: BC-005 and D1–D3
 

@@ -1,26 +1,29 @@
 # Current Development Status
 
-Non-normative handoff. Inspect actual Git state; specifications and recorded evidence
-remain authoritative. This file is not model-visible operational evidence.
+Non-normative handoff. Specifications and recorded evidence remain authoritative.
+This file is not model-visible operational evidence.
 
-## Current checkpoint — 2026-10-15
+## Accepted operator presentation — 2026-10-21
 
-BC-008 merged through PR #9; verify CI PASS. Main:
-`a0d09693cc14cc907c57f69e8b93fcd941d77c6e`.
-BC-009 authorized: evidence-derived operator outcome view before UI.
-[Specification](../specs/bounded-changes/bc-009-operator-outcome-view.md),
-[three human-review examples](../reports/reviews/bc-009-human-review.md).
-Standalone read-only text/JSON CLI implemented; execution runner unchanged.
-No new inference. Human accepted the r4 concept/readability on 2026-10-15 and
-requested implementation closure. Renderer aligned; 286 tests, Ruff and diff PASS.
-[Closure](../reports/decisions/bc-009-operator-outcome-disposition.md),
-[actual rendered examples](../reports/reviews/bc-009-implementation-check-2026-10-15.md).
-Local implementation closure complete; remote PR/merge pending.
-Operator UI planning is the next direction within this shared project; implementation
-and live integration have not begun. Shared product/architecture and runtime contracts
-retain authority. Plan bounded changes for UI, with cross-cutting changes when needed;
-API/integration remains an interface concern, not a new standalone subproject.
-No direction prefixes or additional document hierarchy are introduced.
+BC-009 content/projection accepted; BC-010 basic desktop/mobile design accepted
+at `6637dc9`. Human requested concise documentary closure of both BCs. See
+[BC-009 decision](../reports/decisions/bc-009-operator-outcome-disposition.md) and
+[BC-010 decision](../reports/decisions/bc-010-recorded-run-ui-disposition.md).
+Cosmetic iteration stops here; full browser/accessibility coverage and external
+usability are not claimed. GitHub integration remains pending, BC-009 before BC-010.
+Latest implementation verification: 28 UI tests, 290 Python tests, Ruff,
+TypeScript/build, deterministic export and diff PASS.
+
+The viewer is recorded-only. It distinguishes proposals, runtime checks, operator
+decisions and accepted observations. Preserve original explanations and source
+references, unknown-effect warnings and the difference between stopped execution
+and recovered service. Initial demo text is illustrative, not an archived request.
+
+Next: plan a separate local live UI/runtime BC. One operator/run; real inference,
+modeled service. Specify start/events, exact-action confirmation, refusal/expiry,
+cooperative stop and new-environment restart. Existing confirmation is a blocking
+callback; arbitrary text must not become consent. Reconnect must not replay writes.
+Public access/security, hosting and GPU telemetry remain separate decisions.
 
 ### Deferred non-normative hypothesis
 

@@ -35,3 +35,26 @@ jobs:
 
       - name: Pytest
         run: pytest
+
+  verify-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Install UI dependencies
+        run: npm ci --prefix ui
+      - name: UI tests
+        run: npm --prefix ui test
+      - name: Type check and build
+        run: npm --prefix ui run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install projection dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Verify recorded UI assets
+        run: python ui/scripts/export_runs.py --check

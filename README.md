@@ -10,7 +10,7 @@ The project uses two related harness approaches, developed through a specificati
 - **`Operational Harness`:** surrounds the runtime LLM with controlled context, deterministic policy and state checks, confirmation, tool boundaries, and traceable execution.
 - **`Specification-Driven Development (SDD)`:** connects intent and hypotheses to specifications, contracts, implementation, verification, evidence, and decisions.
 
-The repository represents the current stage of the project rather than a finished production system. The first governed runtime path and a broader single-step model/runtime evaluation are implemented and measured; bounded multi-step behavior, runtime economics, and end-to-end user and business outcomes remain in progress.
+The repository represents the current stage of the project rather than a finished production system. The first governed runtime path and a broader single-step model/runtime evaluation are implemented and measured; bounded multi-step synthetic trajectories have since been evaluated; runtime economics and end-to-end user and business outcomes remain open.
 
 This README provides the short project overview. For a deeper review of the current concept, results, and supporting artifacts, use these entry points:
 
@@ -18,14 +18,22 @@ This README provides the short project overview. For a deeper review of the curr
 - [Product brief](./specs/core/product-brief.md)
 - [Exp 18.1A human-readable report](./reports/exp-18-1a-qwen38-baseline-evidence.md)
 
-## BC-009 operator outcome view
+## Operator experience — BC-009 / BC-010
 
-A read-only text/JSON presentation separates runtime-confirmed observations,
-termination causes, pending actions and the original model rationale.
-[Verified rendered examples](reports/reviews/bc-009-implementation-check-2026-10-15.md).
-Content concept accepted; implementation verified locally; merge pending.
-[Closure and limits](reports/decisions/bc-009-operator-outcome-disposition.md).
-No new inference, execution changes or UI implementation.
+Accepted locally: a read-only outcome projection and an adaptive React viewer of
+two recorded synthetic runs — verified rollback and safe fallback after a failed
+recovery check. The UI separates agent proposals, runtime checks, operator
+confirmations and observed service state; original explanations and evidence
+references remain inspectable.
+
+[Run locally](ui/README.md) · [Results and limits](RESULTS-AND-DECISIONS.md#operator-presentation--bc-009bc-010)
+· [BC-009 decision](reports/decisions/bc-009-operator-outcome-disposition.md)
+· [BC-010 decision](reports/decisions/bc-010-recorded-run-ui-disposition.md).
+
+Basic desktop/mobile design accepted by the owner; external-user usability and
+exhaustive browser/accessibility coverage are not established. Live execution,
+public hosting and station access are not included. Delivery: [BC-009 PR #10](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/10)
+and [BC-010 PR #11](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/11).
 
 ## Latest checkpoint: BC-008 accepted
 

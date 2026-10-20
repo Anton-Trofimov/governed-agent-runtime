@@ -282,8 +282,38 @@ See [BC-006 decision](reports/decisions/bc-006-bounded-remediation-disposition.m
 [BC-008 review](reports/reviews/bc-008-measured-review.md) and
 [BC-008 decision](reports/decisions/bc-008-operator-goal-framing-disposition.md).
 
+## Operator presentation — BC-009/BC-010
+
+**Accepted bounded result:** BC-009 derives a read-only text/JSON outcome from
+saved runner evidence. BC-010 presents two recorded trajectories with adaptive
+state, conversation and runtime panels. The owner accepted the basic design at
+`6637dc9`; remaining cosmetic iteration is deferred.
+
+**Public value:** a runnable demonstration makes the separation between model
+proposal, runtime permission, explicit operator confirmation and observed outcome
+inspectable without reconstructing the raw trace. It shows both verified rollback
+and a stop that leaves service recovery with the operator. This is a deliverable,
+not measured financial ROI or a demonstrated improvement in user productivity.
+
+**Project observation:** automated checks verified technical properties; human
+content review exposed ambiguous wording and decision consequences. Corrected
+presentation preserves the distinction between rationale, execution and recovery.
+No general review-effectiveness claim follows from this project.
+
+**Carry forward:** runner output contract → presentation layer is the material
+dependency. Preserve evidence provenance, unknown-effect warnings and the
+separation between terminal execution and restored service. Recorded events are
+a selected subset, not the entire runtime audit log. The initial demo request is
+illustrative; original model explanations remain unchanged.
+
+**Limits:** no new model calls, live UI/API, production-service operations,
+external-user study or measured ROI. Full viewport/zoom/keyboard verification is
+not claimed. See the [BC-009 decision](reports/decisions/bc-009-operator-outcome-disposition.md)
+and [BC-010 decision](reports/decisions/bc-010-recorded-run-ui-disposition.md).
+
 ## Next validation path
 
-Integrate BC-008 through PR/merge, then agree a bounded operator-outcome presentation
-change using existing measured evidence. No additional inference, universal-core
-redesign, new tool or new measured experiment has been approved.
+BC-009 delivery: PR #10; BC-010 delivery: PR #11. Plan a separate local live UI/runtime contract for
+start, event delivery, action-bound confirmation, rejection/expiry and new runs.
+Public station access/security and hosting require separate decisions. No new
+measured experiment or reusable SDD process expansion is authorized here.

@@ -22,7 +22,7 @@ const version = z.literal('live.v1');
 export const statusSchema = z.object({kind:z.literal('status'),version,
   availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
 export const sessionSchema = z.object({kind:z.literal('session'),version,session_id:text,
-  reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','stopping']),expires_at:text.nullable()}).nullable(),
+  reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','stopping']),expires_at:text.nullable(),service_view:observation}).nullable(),
   current_run_id:text.nullable(),model_status:model,
   preparation_error:z.object({code:text,message:text}).nullable()});
 export const snapshotSchema = z.object({kind:z.literal('snapshot'),version,run_id:text,
@@ -55,6 +55,7 @@ const eventSchema = z.discriminatedUnion('event_kind',[
 ]);
 const pageSchema = z.object({kind:z.literal('events'),version,run_id:text,
   events:z.array(eventSchema).max(100),next_cursor:count,has_more:z.boolean()});
+export type ServiceView = z.infer<typeof observation>;
 export type Snapshot = z.infer<typeof snapshotSchema>;
 export type LiveEvent = z.infer<typeof eventSchema>;
 export type Session = z.infer<typeof sessionSchema>;
@@ -72,7 +73,7 @@ export async function request(path:string, body?:Record<string,unknown>) {
   }
   return response.json();
 }
-export function command(path:string, command:string, fields:Record<string,unknown>={}) {
+export function command(path:string, command:string, fields:Record<string,unknown>={}):{path:string;body:Record<string,unknown>} {
   return {path,body:{command,command_id:crypto.randomUUID(),...fields}};
 }
 export async function ensureSession():Promise<Session> {

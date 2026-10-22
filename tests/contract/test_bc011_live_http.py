@@ -272,3 +272,48 @@ def test_second_coordinator_cannot_use_same_evidence_store(live):
     service, _ = live
     with pytest.raises(ValueError, match="active coordinator"):
         LiveService(ROOT, service.evidence)
+
+
+def test_reservation_exposes_environment_before_goal_and_provider_ready(tmp_path):
+    class Preparing(SimulatedModel):
+        def __init__(self):
+            self.release = Event()
+
+        def prepare(self):
+            self.release.wait(2)
+            return {"done": True}
+
+    model = Preparing()
+    service = LiveService(ROOT, tmp_path / "evidence", provider=model)
+    with TestClient(create_app(service), base_url=ORIGIN) as client:
+        post(client, "/api/session/bootstrap", "bootstrap")
+        response = post(client, "/api/sessions", "prepare")
+        try:
+            session = client.get("/api/session").json()
+            view = session["reservation"]["service_view"]
+            assert view["desired"] == 6 and view["candidate_count"] == 2
+            assert service.runs == {}
+            started = post(client, "/api/runs", "start_run",
+                           reservation_id=response.json()["reservation_id"], goal="Восстанови сервис")
+            run_id = started.json()["run_id"]
+            assert client.get(f"/api/runs/{run_id}").json()["service_view"] == view
+        finally:
+            model.release.set()
+        assert pending(client, run_id)["service_view"]["desired"] == 6
+
+
+def test_final_refusal_describes_recovered_service_and_remaining_replicas(live):
+    _, client = live
+    run_id = start(client)
+    for decision in ["approve", "approve", "reject"]:
+        snap = pending(client, run_id)
+        old_id = snap["pending_confirmation"]["confirmation_id"]
+        post(client, f"/api/runs/{run_id}/decisions", "decide",
+             confirmation_id=old_id, decision=decision)
+        wait_for(lambda: client.get(f"/api/runs/{run_id}").json(), lambda s, old=old_id:
+                 not s["pending_confirmation"] or s["pending_confirmation"]["confirmation_id"] != old)
+    result = pending(client, run_id)
+    assert result["phase"] == "terminal"
+    assert "2.4.2" in result["terminal"]["explanation"]
+    assert "пройдена" in result["terminal"]["explanation"]
+    assert "без трафика" in result["terminal"]["explanation"]

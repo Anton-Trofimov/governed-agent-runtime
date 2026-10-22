@@ -45,11 +45,32 @@ def confirmation(request, created_at, expires_at):
 
 
 def outcome(rt):
+    obs = rt.observation
+    recovered = (obs["shift_id"] is not None and obs["recovery"]["status"] == "PASS"
+                 and obs["recovery"]["shift_id"] == obs["shift_id"])
+    unknown = rt.stop_reason == "UNKNOWN_WRITE_OUTCOME"
+    reason = {
+        "CONFIRMATION_REJECTED": "Оператор отклонил предложенное действие.",
+        "CONFIRMATION_EXPIRED": "Срок подтверждения истёк.",
+        "OPERATOR_REQUESTED_STOP": "Выполнение остановлено по запросу оператора.",
+    }.get(rt.stop_reason, "Выполнение завершено.")
+    if unknown:
+        explanation = reason + " Исход изменения неизвестен. Оператору необходимо проверить состояние сервиса."
+    elif rt.task_state == "COMPLETED":
+        explanation = "Восстановление проверено runtime. Откат завершён."
+    else:
+        remaining = obs["total_rps"] - obs["stable_traffic_rps"]
+        explanation = (reason + f" По последнему наблюдению: версия {obs['stable_version_id']} "
+                       f"обслуживает {obs['stable_traffic_rps']} RPS; "
+                       f"реплик версии {obs['candidate_version_id']} — {obs['candidate_count']}" +
+                       (" без трафика. " if remaining == 0 else f", трафик — {remaining} RPS. "))
+        explanation += ("Проверка восстановления пройдена; откат не завершён. "
+                        "Дальнейшее решение по оставшимся репликам — за оператором." if recovered else
+                        "Восстановление не подтверждено. Дальнейшее восстановление — за оператором.")
     return {
         "origin": "runtime", "reason_code": rt.stop_reason or "COMPLETED",
-        "explanation": "Восстановление проверено runtime" if rt.task_state == "COMPLETED"
-        else "Выполнение завершено. Дальнейшее восстановление сервиса — за оператором.",
+        "explanation": explanation,
         "runtime_outcome": {"task_state": rt.task_state, "stop_reason": rt.stop_reason,
                             "rollback_completed": rt.task_state == "COMPLETED",
-                            "unknown_write_effect": rt.stop_reason == "UNKNOWN_WRITE_OUTCOME"},
+                            "unknown_write_effect": unknown},
     }

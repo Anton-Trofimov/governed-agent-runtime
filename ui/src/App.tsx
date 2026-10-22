@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { LiveWorkspace } from './LiveWorkspace';
-import { request, statusSchema, sessionSchema } from './live';
+import { request, statusSchema, sessionSchema, ensureSession, command, ApiError, explainError } from './live';
 import { loadRun, runs, readSelection, saveSelection, type Run, type Observation } from './data';
 
 type Loader = (id: string) => Promise<Run>;
@@ -10,6 +10,25 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const help=useRef<HTMLDialogElement>(null);
   const helpButton=useRef<HTMLButtonElement>(null);
   const [live,setLive]=useState(false);
+  const [liveBusy,setLiveBusy]=useState(false);
+  const [liveError,setLiveError]=useState('');
+  const [ownsRun,setOwnsRun]=useState(false);
+  const startCommand=useRef<ReturnType<typeof command>|null>(null);
+  async function enterLive(){
+    if(liveBusy)return;
+    setLiveBusy(true);setLiveError('');
+    try{
+      const session=await ensureSession();
+      if(!startCommand.current&&(session.current_run_id||session.reservation)){
+        const activeRun=session.current_run_id?await request(`/api/runs/${session.current_run_id}`):null;
+        if(session.reservation||activeRun?.phase!=='terminal'){setLive(true);return;}
+      }
+      startCommand.current??=command('/api/sessions','prepare');
+      await request(startCommand.current.path,startCommand.current.body);
+      startCommand.current=null;setLive(true);
+    }catch(error){if(error instanceof ApiError)startCommand.current=null;setLiveError(explainError(error));}
+    finally{setLiveBusy(false);}
+  }
   const [availability,setAvailability]=useState<string>();
   useEffect(()=>{
     if(loader!==loadRun)return;
@@ -18,6 +37,9 @@ export function App({loader=loadRun}:{loader?:Loader}) {
       try{
         const status=statusSchema.parse(await request('/api/status'));
         if(active)setAvailability(status.availability);
+        const session=await request('/api/session').then(value=>sessionSchema.parse(value)).catch(()=>null);
+        const run=session?.current_run_id?await request(`/api/runs/${session.current_run_id}`).catch(()=>null):null;
+        if(active)setOwnsRun(!!session?.reservation||!!(run&&run.phase!=='terminal'));
       }catch{if(active)setAvailability(undefined);}
     };
     void inspect();
@@ -41,13 +63,13 @@ export function App({loader=loadRun}:{loader?:Loader}) {
     <AboutDialog live={live} dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
     <main id="main"><div className="context"><h1>Восстановление сервиса <span className="service-name">payment-api</span></h1></div>
       {started&&!live&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}
-      {live?<LiveWorkspace onExit={()=>{setLive(false);setStarted(false);}} renderState={s=><StatePanel o={s.service_view!} live unknown={!!s.terminal?.runtime_outcome?.unknown_write_effect}/>} renderCompact={s=><CompactState o={s.service_view!} unknown={!!s.terminal?.runtime_outcome?.unknown_write_effect}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={setStarted} onLive={()=>setLive(true)} availability={availability}/>}
+      {live?<LiveWorkspace onExit={()=>{setLive(false);setStarted(false);}} renderState={(s,unknown)=><StatePanel o={s} live unknown={unknown}/>} renderCompact={(s,unknown)=><CompactState o={s} unknown={unknown}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={setStarted} onLive={()=>void enterLive()} availability={availability} liveBusy={liveBusy} liveError={liveError} ownsRun={ownsRun} retryStart={!!startCommand.current}/>}
     </main>
     <footer className="page-notes"><p>{live?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.'}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p>Доступны сохранённые примеры; локальный интерактивный режим использует имитатор модели.</p><p className="project-credit">Проект Антона Трофимова · <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a><br/>Разработано с участием AI-агентов по SDD Operating Model.</p></footer>
   </div>;
 }
 
-function Workspace({run,started,setStarted,onLive,availability}:{run:Run;started:boolean;setStarted:(value:boolean)=>void;onLive:()=>void;availability?:string}) {
+function Workspace({run,started,setStarted,onLive,availability,liveBusy,liveError,ownsRun,retryStart}:{run:Run;started:boolean;setStarted:(value:boolean)=>void;onLive:()=>void;availability?:string;liveBusy:boolean;liveError:string;ownsRun:boolean;retryStart:boolean}) {
   const [cursor,setCursor]=useState(0);
   const report=useRef<HTMLDetailsElement>(null);
   const journal=useRef<HTMLOListElement>(null);
@@ -73,10 +95,10 @@ function Workspace({run,started,setStarted,onLive,availability}:{run:Run;started
       <section className="chat" aria-label="Диалог с агентом">
         {started&&<CompactState o={observation} unknown={done&&run.view.unknown_write_effect}/>}
         <div className="chat-head"><div><h2>Агент управления сервисом</h2><div className="agent-controls"><span>{done?'Просмотр завершён':started?'Демонстрационный пример':'Готов к началу'}</span></div></div></div>
-        {!started?<div className="welcome"><h3>Восстановите сервис payment-api после неудачного обновления.</h3><ul><li>Вы задаёте цель и подтверждаете изменения.</li><li>Агент оценивает состояние среды и предлагает действия.</li><li>Runtime проверяет условия и управляет выполнением.</li></ul><p className="choose-mode">Выберите режим</p><div className="buttons"><button className="action" disabled={availability!=='available'} onClick={onLive}>Начать живой сценарий</button><button className="action primary" onClick={()=>setStarted(true)}>Посмотреть пример</button></div><p className="subtle">{availability==='busy'?'Живой режим занят. Пока можно посмотреть демонстрационный пример.':availability==='available'?'Доступна локальная проверка с имитатором модели.':availability==='unavailable'?'Живой режим временно недоступен.':'Живой режим пока не подключён.'}</p></div>:<>
+        {!started?<div className="welcome"><h3>Восстановите сервис payment-api после неудачного обновления.</h3><ul><li>Вы задаёте цель и подтверждаете изменения.</li><li>Агент оценивает состояние среды и предлагает действия.</li><li>Runtime проверяет условия и управляет выполнением.</li></ul><p className="choose-mode">Выберите режим</p><div className="buttons"><button className="action" disabled={liveBusy||(!ownsRun&&!retryStart&&availability!=='available')} onClick={onLive}>{liveBusy?'Подготовка…':retryStart?'Повторить запрос старта':ownsRun?'Вернуться к запуску':'Начать живой сценарий'}</button><button className="action primary" onClick={()=>setStarted(true)}>Посмотреть пример</button></div><p className={liveError||availability==='busy'?'admission-notice':'subtle'} role="status">{liveError||(availability==='busy'?'Живой режим занят. Пока можно посмотреть демонстрационный пример.':availability==='available'?'Доступна локальная проверка с имитатором модели.':availability==='unavailable'?'Живой режим временно недоступен.':'Живой режим пока не подключён.')}</p></div>:<>
           <div className="messages" ref={messages} aria-label="События диалога">
             <article className="user-message illustrative-request"><div className="author">Запрос для демонстрации</div><p>Восстанови работу сервиса</p><small className="subtle">Формулировка для интерфейса. Исходный текст запроса в этой записи не сохранён.</small></article>
-            {visible.filter(e=>['LLM','Оператор'].includes(e.actor)||['started','confirmation_pending','observation_applied','terminal','terminal_verified'].includes(e.kind)).map(e=><article key={e.source} data-event-source={e.source} className={e.actor==='Оператор'?'user-message':'runtime-message'}><div className="author">{e.actor==='LLM'?'Агент · предложение':e.actor} · {timestamp(e.at)}</div>{e.kind==='confirmation_consumed'&&<div className="recorded-decision"><small>Решение оператора в записи</small><div className="buttons"><button className="action selected-decision" disabled aria-pressed="true" aria-label="Подтвердить">✓ Подтвердить</button><button className="action" disabled aria-pressed="false">Отклонить</button></div></div>}<p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p>{e.actor==='LLM'&&<><p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p><p className="subtle original-label">Оригинальное пояснение модели</p><p lang="en">{e.text}</p></>}<EventDetails event={e}/></article>)}
+            {visible.filter(e=>['LLM','Оператор'].includes(e.actor)||['started','confirmation_pending','observation_applied','terminal','terminal_verified'].includes(e.kind)).map(e=><article key={e.source} data-event-source={e.source} className={e.actor==='Оператор'?'user-message':e.actor==='LLM'?'agent-message':'runtime-message'}><div className="author">{e.actor==='LLM'?'Агент · предложение':e.actor} · {timestamp(e.at)}</div>{e.kind==='confirmation_consumed'&&<div className="recorded-decision"><small>Решение оператора в записи</small><div className="buttons"><button className="action selected-decision" disabled aria-pressed="true" aria-label="Подтвердить">✓ Подтвердить</button><button className="action" disabled aria-pressed="false">Отклонить</button></div></div>}<p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p>{e.actor==='LLM'&&<><p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p><p className="subtle original-label">Оригинальное пояснение модели</p><p lang="en">{e.text}</p></>}<EventDetails event={e}/></article>)}
             {done&&<><Outcome run={run}/><button className="action" onClick={()=>{if(report.current){report.current.open=true;report.current.scrollIntoView?.({behavior:"smooth",block:"start"});}}}>Открыть итоговый отчёт</button></>}
           </div>
           <div className="playback" aria-label="Управление просмотром"><div className="event-counter"><span role="status">Событие {cursor+1} из {events.length}</span><RunSummary run={run}/></div><div className="buttons"><button className="action primary" disabled={done} onClick={()=>setCursor(n=>Math.min(n+1,events.length-1))}>Далее</button><button className="action" disabled={done} onClick={()=>setCursor(events.length-1)}>К результату</button><button className="action" onClick={reset}>К началу</button></div></div>

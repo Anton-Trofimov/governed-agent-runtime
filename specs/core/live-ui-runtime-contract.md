@@ -370,3 +370,22 @@ Provider references: [Ollama load-only request](https://github.com/ollama/ollama
 [Ollama generate](https://docs.ollama.com/api/generate),
 [Ollama loaded models](https://docs.ollama.com/api/ps),
 [Python urllib timeouts](https://docs.python.org/3/library/urllib.request.html).
+
+## Accepted interaction refinement — 2026-10-22
+
+One explicit start requests admission/preparation; no second start inside the chat.
+A successful reservation owns a fresh modeled environment and exposes its initial
+`service_view` before goal submission or provider readiness. The run uses that
+same environment. Reservation expiry/release discards it without executing tools.
+Only successful new admission replaces the displayed history; a busy rejection
+preserves the previous result. Refresh and result viewing never request admission.
+
+Confirmation controls live in the runtime request card. Once the backend accepts
+a decision, controls disappear and a separate operator card records the exact
+action, choice and time. Confirmation is not execution. During work, a compact
+disabled composer explains current state in muted italic text; no additional
+model conversation is enabled. Recorded/live modes share actor styling and labels.
+Navigation and admission errors stay outside message scrolling. Returning home
+releases an unused reservation; navigation alone does not stop an active run.
+Terminal explanations distinguish recovered service from incomplete rollback,
+using the last accepted observation and preserving unknown-effect warnings.

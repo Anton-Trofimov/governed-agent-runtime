@@ -81,7 +81,8 @@ No public rate limiter or multi-user scheduler is added by this planning update.
 ## User flow
 
 1. “Начать живой сценарий” first establishes/reuses an idle local session, then
-   separately requests admission and model preparation. Bootstrap alone never
+   separately requests admission and model preparation in the same user action,
+   with no second start button. Expose the new environment before goal entry. Bootstrap alone never
    loads a model. Show only observed availability/loading/inference states; no fake
    percentage, VRAM or power data. Health checks never load the model.
 2. Show two editable suggestions: “После обновления сервис работает нестабильно.

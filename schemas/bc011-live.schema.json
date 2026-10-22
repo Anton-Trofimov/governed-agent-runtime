@@ -732,7 +732,8 @@
               "required": [
                 "reservation_id",
                 "phase",
-                "expires_at"
+                "expires_at",
+                "service_view"
               ],
               "properties": {
                 "reservation_id": {
@@ -760,6 +761,9 @@
                       "type": "null"
                     }
                   ]
+                },
+                "service_view": {
+                  "$ref": "#/$defs/service_view"
                 }
               }
             },

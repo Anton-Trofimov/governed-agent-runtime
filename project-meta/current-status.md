@@ -14,13 +14,21 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 320 Python tests, 33 UI tests, Ruff, TypeScript/Vite build,
+Verification: 322 Python tests, 36 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.
 No real model calls, station connection, public deployment or browser/mobile
 visual acceptance are claimed. The simulator follows a fixed nominal path; it
 does not evaluate arbitrary goal semantics. Evidence remains outside the repo.
+
+Owner review refinement (2026-10-22): single-action admission, initial environment
+before goal entry, clean history on successful restart, in-chat confirmation and
+operator decision cards, persistent home navigation and contextual disabled input.
+Shared actor styling and denser desktop layout are implemented. Targeted React
+checks cover restart clearing, decision placement and terminal composer state.
+Browser visual acceptance remains pending: local Chromium download failed and
+the cloud browser could not reach the loopback server. No visual PASS claimed.
 
 [Local startup and limits](../docs/local-ui-simulator.md). Next: human review of
 local interaction; a concrete real-provider profile and real-inference smoke

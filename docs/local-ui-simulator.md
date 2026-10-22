@@ -19,7 +19,9 @@ origin. The entry point runs Python verification before serving; it binds only
 loopback and has no real-provider switch. A static Python file server still
 supports recorded examples but cannot run the interactive simulator.
 
-Choose live mode, then start the local scenario. Submit a goal and approve or
+Choose live mode: that single action requests admission and preparation. The
+initial service state is visible before submitting a goal, independently of
+provider readiness. Submit a goal and approve or
 reject each proposed change. Nominal completion requires three approvals.
 Refresh restores the same session/run; tabs in the same browser profile share
 ownership. Use another browser profile to check busy/foreign-session behavior.
@@ -46,3 +48,9 @@ Verification covers offline contracts and HTTP/React integration. It does not
 establish real provider cancellation, station availability, public abuse
 protection, or complete browser/mobile visual acceptance. See the
 [live contract](../specs/core/live-ui-runtime-contract.md) for the authority.
+
+New admission clears chat, journal and goal; a busy rejection preserves the old
+result. Confirmation controls appear in the runtime request card. The accepted
+choice remains in a separate operator card. The disabled composer explains
+progress without offering additional conversation. “К началу” is always above
+the workspace; it releases an unused reservation but does not stop an active run.

@@ -12,7 +12,13 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
-from governed_agent_runtime.bc006_runtime import ConfirmationResult, RemediationRuntime, canonical
+from governed_agent_runtime.bc006_runtime import (
+    ConfirmationResult,
+    RemediationRuntime,
+    SyntheticEnvironment,
+    canonical,
+    utcnow,
+)
 from governed_agent_runtime.live_projection import TOOLS, confirmation, observation, outcome
 
 
@@ -164,7 +170,8 @@ class LiveService:
         reservation = None
         if slot and not slot.get("run_id"):
             reservation = {"reservation_id": slot["id"], "phase": slot["phase"],
-                           "expires_at": slot.get("expires_at")}
+                           "expires_at": slot.get("expires_at"),
+                           "service_view": deepcopy(slot["service_view"])}
         return {"kind": "session", "version": "live.v1", "session_id": session["id"],
                 "session_state": "open", "expires_at": None if slot else (
                     datetime.now(UTC) + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
@@ -239,7 +246,10 @@ class LiveService:
                 raise LiveError("LIVE_BUSY")
             if len(session["runs"]) >= 8 or len(session["commands"]) > 430:
                 raise LiveError("SESSION_LIMIT")
-            self.slot = {"id": identifier(), "session_id": session["id"], "session": session,
+            fixture = json.loads((self.root / "fixtures/scenarios/bc-006/s12.json").read_text())
+            environment = SyntheticEnvironment(fixture, utcnow)
+            self.slot = {"environment": environment,
+                         "service_view": observation(environment.snapshot()), "id": identifier(), "session_id": session["id"], "session": session,
                          "phase": "preparing", "run_id": None, "cancel": False}
             reservation_id = self.slot["id"]
             session["preparation_error"] = None
@@ -254,7 +264,7 @@ class LiveService:
                 raise LiveError("LIVE_BUSY")
             run_id, reservation_id = identifier(), slot["id"]
             run = {"run_id": run_id, "phase": "preparing", "runtime_state": None,
-                   "goal": body["goal"], "service_view": None, "pending_confirmation": None,
+                   "goal": body["goal"], "service_view": deepcopy(slot["service_view"]), "pending_confirmation": None,
                    "stop_requested": False, "terminal": None, "events": [], "rt": None,
                    "model_status": self.model_status, "decision": None, "confirmation_deadline": None}
             self.runs[run_id] = run
@@ -462,6 +472,7 @@ class LiveService:
         try:
             with self.condition:
                 rt = RemediationRuntime(self.root, operator_goal=run["goal"],
+                                        initial_environment=slot["environment"],
                                         session_id=slot["session_id"],
                                         evidence_dir=self.evidence / run["run_id"],
                                         event_sink=lambda event: self._trace(run, event))

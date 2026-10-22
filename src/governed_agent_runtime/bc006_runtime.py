@@ -160,6 +160,7 @@ class RemediationRuntime:
         goal_variant=None,
         operator_goal=None,
         event_sink=None,
+        initial_environment=None,
     ):
         self.root = Path(root)
         self.clock = clock
@@ -185,7 +186,7 @@ class RemediationRuntime:
         fixture = fixture or json.loads(
             (self.root / "fixtures/scenarios/bc-006/s12.json").read_text()
         )
-        self.env = SyntheticEnvironment(fixture, clock)
+        self.env = initial_environment or SyntheticEnvironment(fixture, clock)
         self.observation = self.env.snapshot()
         self._validate_observation(self.observation)
         self.target = deepcopy(fixture["target"])

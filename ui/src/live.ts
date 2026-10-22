@@ -21,7 +21,7 @@ const terminal = z.object({origin:z.enum(['platform','runtime']),reason_code:tex
 const version = z.literal('live.v1');
 export const statusSchema = z.object({kind:z.literal('status'),version,
   availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
-export const sessionSchema = z.object({kind:z.literal('session'),version,session_id:text,
+export const sessionSchema = z.object({kind:z.literal('session'),version,session_id:text,server_time:text,
   reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','stopping']),expires_at:text.nullable(),service_view:observation}).nullable(),
   current_run_id:text.nullable(),model_status:model,
   preparation_error:z.object({code:text,message:text}).nullable()});

@@ -54,3 +54,7 @@ result. Confirmation controls appear in the runtime request card. The accepted
 choice remains in a separate operator card. The disabled composer explains
 progress without offering additional conversation. “К началу” is always above
 the workspace; it releases an unused reservation but does not stop an active run.
+
+Before goal submission, the countdown uses server time. After 300 seconds in
+ready state without a goal, the reservation expires and the slot is released;
+use “Начать заново” explicitly. A free slot does not extend an expired reservation.

@@ -14,7 +14,7 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 322 Python tests, 36 UI tests, Ruff, TypeScript/Vite build,
+Verification: 323 Python tests, 39 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.
@@ -29,6 +29,14 @@ Shared actor styling and denser desktop layout are implemented. Targeted React
 checks cover restart clearing, decision placement and terminal composer state.
 Browser visual acceptance remains pending: local Chromium download failed and
 the cloud browser could not reach the loopback server. No visual PASS claimed.
+
+Desktop/deadline refinement (2026-10-22): session server-time alignment fixes
+false zero countdowns before goal submission. Expiry is also checked at command
+admission, releases the reservation and requires explicit restart. Regression
+checks cover clock skew, zero-time submission and expiry without maintenance.
+Compact task navigation, common desktop panel bounds and actor labels are added;
+the heading font is bundled locally with its license. Visual acceptance of this
+revision remains pending (Chromium download returned a truncated archive).
 
 [Local startup and limits](../docs/local-ui-simulator.md). Next: human review of
 local interaction; a concrete real-provider profile and real-inference smoke

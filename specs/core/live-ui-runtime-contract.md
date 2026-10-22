@@ -389,3 +389,20 @@ Navigation and admission errors stay outside message scrolling. Returning home
 releases an unused reservation; navigation alone does not stop an active run.
 Terminal explanations distinguish recovered service from incomplete rollback,
 using the last accepted observation and preserving unknown-effect warnings.
+
+### Deadline and desktop review refinement
+
+The ready-without-goal deadline is checked at command admission as well as during
+maintenance. Expiry releases the reservation, records `READY_EXPIRED` for its
+owner and creates no run. A fresh start remains explicit. The browser uses the
+session's `server_time` before a run and snapshot time afterwards; local clock
+skew must not produce a false zero countdown. Zero remaining time disables goal
+submission while the authoritative session state is refreshed.
+
+Desktop workspaces use a compact brand header and a task-level navigation row.
+The state panel (safe-operation conditions initially expanded), chat including its
+composer/playback controls and runtime journal share a bottom edge. Message and
+journal streams scroll internally. Scenario-failure context stays above all three
+panels. Entry scroll happens only on mode entry, not on subsequent events.
+Actor labels remain explicit; denser desktop message spacing does not reduce
+mobile text sizes or enable any additional conversation.

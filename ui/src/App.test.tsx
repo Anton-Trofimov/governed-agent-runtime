@@ -132,7 +132,9 @@ it('highlights the compact state and advances without scrolling the page',async(
  const original=HTMLElement.prototype.scrollIntoView;
  HTMLElement.prototype.scrollIntoView=scroll;
  try {
-  render(<App loader={loader}/>);await start();finish();
+  render(<App loader={loader}/>);await start();
+  expect(scroll).toHaveBeenCalledTimes(1);
+  scroll.mockClear();finish();
   expect(document.querySelector('.compact-state .value-changed')).not.toBeNull();
   expect(scroll).not.toHaveBeenCalled();
  } finally {HTMLElement.prototype.scrollIntoView=original;}

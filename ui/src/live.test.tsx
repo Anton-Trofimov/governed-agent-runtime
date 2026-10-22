@@ -35,7 +35,7 @@ it('rejects a terminal snapshot without an outcome',()=>{
 });
 it('restores an existing session read-only after mounting',async()=>{
   const fetcher=vi.fn(async(path:string)=>({ok:true,json:async()=>{
-    if(path==='/api/session')return {kind:'session',version:'live.v1',session_id:'session-1',reservation:null,
+    if(path==='/api/session')return {kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null};
     if(path.includes('/events?'))return page;
     return snapshot;
@@ -51,7 +51,7 @@ it('restores an existing session read-only after mounting',async()=>{
 
 it('keeps only a disabled contextual composer after completion and exposes home navigation',async()=>{
   vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>
-    path==='/api/session'?{kind:'session',version:'live.v1',session_id:'session-1',reservation:null,
+    path==='/api/session'?{kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null}:path.includes('/events?')?page:snapshot})));
   render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
   await screen.findByRole('button',{name:'Начать заново'});
@@ -65,7 +65,7 @@ const initialView={observation_id:'obs-0-0',observed_at:'2026-10-22T12:00:00Z',
   stable_version_id:'2.4.1',candidate_version_id:'2.4.2',desired:6,healthy:6,candidate_count:2,
   stable_traffic_rps:615,total_rps:820,safe_rps_per_replica:150,conflicting_operation:false,
   rollout_state:'PAUSED',shift_id:null,recovery:{status:'UNKNOWN',shift_id:null}};
-const sessionBase={kind:'session',version:'live.v1',session_id:'session-1',reservation:null,
+const sessionBase={kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
   current_run_id:'run-1',model_status:'ready',preparation_error:null};
 it('clears previous chat and journal only after successful new admission, before a goal',async()=>{
   let admitted=false;
@@ -114,4 +114,34 @@ it('keeps confirmation in the runtime card and records an accepted choice once o
   expect(accepted.closest('article')).toHaveClass('user-message');
   expect(within(accepted.closest('article')!).getByText('Увеличить число реплик до 8.')).toBeVisible();
   expect(screen.queryByRole('button',{name:'Подтвердить'})).toBeNull();
+});
+
+it('uses server time before a run even when browser clock is years ahead',async()=>{
+  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({...sessionBase,
+    server_time:'2020-01-01T00:00:00Z',current_run_id:null,
+    reservation:{reservation_id:'ready',phase:'ready',expires_at:'2020-01-01T00:05:00Z',service_view:initialView}})})));
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  await screen.findByRole('textbox',{name:'Запрос агенту'});
+  expect(await screen.findByText('На отправку: 300 сек.')).toBeVisible();
+});
+
+it('disables goal submission at zero without creating a fresh reservation',async()=>{
+  const fetcher=vi.fn(async(_path:string,_options?:RequestInit)=>({ok:true,json:async()=>({...sessionBase,
+    server_time:'2020-01-01T00:05:00Z',current_run_id:null,
+    reservation:{reservation_id:'ready',phase:'ready',expires_at:'2020-01-01T00:05:00Z',service_view:initialView}})}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  expect(await screen.findByRole('textbox',{name:'Запрос агенту'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Отправить'})).toBeDisabled();
+  expect(fetcher.mock.calls.every(([,options])=>options?.method!=='POST')).toBe(true);
+});
+
+it('offers explicit restart after reservation expiry and keeps the composer disabled',async()=>{
+  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({...sessionBase,
+    server_time:snapshot.server_time,current_run_id:null,
+    preparation_error:{code:'READY_EXPIRED',message:'Время ожидания запроса истекло. Начните сценарий заново.'}})})));
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  await screen.findByRole('button',{name:'Начать заново'});
+  expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
+  expect(screen.queryByRole('button',{name:'Отправить'})).toBeNull();
 });

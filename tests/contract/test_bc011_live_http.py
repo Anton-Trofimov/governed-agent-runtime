@@ -317,3 +317,22 @@ def test_final_refusal_describes_recovered_service_and_remaining_replicas(live):
     assert "2.4.2" in result["terminal"]["explanation"]
     assert "пройдена" in result["terminal"]["explanation"]
     assert "без трафика" in result["terminal"]["explanation"]
+
+
+def test_expired_goal_is_rejected_at_command_boundary_without_maintenance(live):
+    service, client = live
+    post(client, "/api/session/bootstrap", "bootstrap")
+    prepared = post(client, "/api/sessions", "prepare").json()
+    wait_for(lambda: client.get("/api/session").json(),
+             lambda s: s["reservation"]["phase"] == "ready")
+    with service.condition:
+        session = service.slot["session"]
+        service.slot["deadline"] = service.monotonic() - 1
+        from governed_agent_runtime.live_service import LiveError
+        with pytest.raises(LiveError):
+            service.command(session, "/api/runs", {
+                "command": "start_run", "command_id": uuid4().hex,
+                "reservation_id": prepared["reservation_id"], "goal": "Восстанови сервис"})
+        assert service.slot is None
+        assert service.runs == {}
+        assert service.session_view(session)["preparation_error"]["code"] == "READY_EXPIRED"

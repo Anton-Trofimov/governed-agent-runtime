@@ -18,6 +18,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const [timedOut,setTimedOut]=useState(false);
   const eventsRef=useRef<LiveEvent[]>([]);
   const reservationRef=useRef<string|null>(null);
+  const lastServiceView=useRef<ServiceView|null>(null);
   const submittedDecision=useRef<string|null>(null);
   const runRef=useRef<string|null>(null);
   const pending=useRef<ReturnType<typeof command>|null>(null);
@@ -32,6 +33,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     const poll=async()=>{
       try{
         const s=sessionSchema.parse(await request('/api/session'));
+        offset.current=Date.parse(s.server_time)-Date.now();
         let snap:Snapshot|undefined;
         if(s.current_run_id){
           snap=snapshotSchema.parse(await request(`/api/runs/${s.current_run_id}`));
@@ -49,6 +51,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
           eventsRef.current=[];runRef.current=null;setEvents([]);
         }
         reservationRef.current=s.reservation?.reservation_id??null;
+        if(s.reservation)lastServiceView.current=s.reservation.service_view;
         setSession(s);setSnapshot(snap);setConnected(true);failedAt=undefined;
         setError(current=>current==='Восстанавливаем связь…'?'':current);
         if(s.preparation_error)setError(s.preparation_error.message);
@@ -104,7 +107,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const active=snapshot&&snapshot.phase!=='terminal';
   const pendingConfirmation=snapshot?.pending_confirmation;
   const canSubmit=!!session?.reservation&&!active&&connected&&!busy&&!pending.current&&
-    session.reservation.phase!=='stopping';
+    session.reservation.phase!=='stopping'&&seconds!==0;
   const currentEvents=events.filter(e=>!['phase_changed','model_status_changed'].includes(e.event_kind));
   const exit=async()=>{
     if(session?.reservation&&!active){
@@ -113,9 +116,10 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     }
     onExit();
   };
-  const serviceView=snapshot?.service_view??session?.reservation?.service_view;
+  const serviceView=snapshot?.service_view??session?.reservation?.service_view??
+    (session?.preparation_error?.code==='READY_EXPIRED'?lastServiceView.current:null);
   const unknown=!!snapshot?.terminal?.runtime_outcome?.unknown_write_effect;
-  const blockedText=!connected?'Восстанавливаем связь. Отправка временно недоступна.':
+  const blockedText=session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания запроса истекло. Начните сценарий заново.':!connected?'Восстанавливаем связь. Отправка временно недоступна.':
     snapshot?.phase==='terminal'?'Запуск завершён. Можно посмотреть результат или начать заново.':
     snapshot?.stop_requested?'Остановка запрошена. Ожидаем завершения текущего шага.':
     pendingConfirmation?'Ожидается ваше решение по действию выше.':
@@ -123,20 +127,20 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     active?'Агент готовит следующий шаг. Выполнение можно остановить.':
     'Для нового запроса начните сценарий.';
   return <>
-    <nav className="live-navigation" aria-label="Управление сценарием">
+    <div className="task-toolbar live-toolbar"><h1>Восстановление сервиса <span className="service-name">payment-api</span></h1><nav className="live-navigation" aria-label="Управление сценарием">
       <button className="action" disabled={busy} onClick={()=>void exit()}>К началу</button>
-      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot?'Начать заново':'Начать живой сценарий'}</button>}
+      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
       <span className="simulator-label" title="Фиксированный тестовый сценарий независимо от текста запроса; LLM не вызывается.">Локальная проверка · имитатор модели</span>
       {error&&<p role="alert" className="admission-notice">{error}</p>}
       {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}
       {pending.current&&!busy&&<button className="action" onClick={()=>void send(pending.current!)}>Проверить / повторить ту же команду</button>}
       {active&&<small>Переход к началу не останавливает выполнение.</small>}
-    </nav>
+    </nav></div>
     <div className="workspace replaying live-workspace">
-      {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>Получаем исходное состояние сценария…</p></section>}
+      {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}
       <section className="chat" aria-label="Интерактивный диалог">
         {serviceView&&renderCompact(serviceView,unknown)}
-        <div className="chat-head"><div><h2>Агент управления сервисом</h2><div className="agent-controls"><span role="status">{labels[snapshot?.phase??session?.reservation?.phase??'']??'Готов к началу'}</span>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
+        <div className="chat-head"><div><h2>Агент управления сервисом</h2><div className="agent-controls"><span role="status">{session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания истекло':labels[snapshot?.phase??session?.reservation?.phase??'']??'Готов к началу'}</span>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
         <div className="messages" ref={messages} aria-label="События интерактивного диалога">
           {currentEvents.filter(e=>['goal_accepted','proposal_recorded','operator_decision','confirmation_requested'].includes(e.event_kind)).map(e=>{
             const decision=e.event_kind==='operator_decision'?e:null;
@@ -146,13 +150,13 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
               submittedDecision.current!==confirmationEvent.payload.confirmation_id&&
               !events.some(x=>x.event_kind==='operator_decision'&&x.payload.confirmation_id===confirmationEvent.payload.confirmation_id);
             return <article key={e.sequence} className={e.actor==='operator'?'user-message':e.actor==='agent'?'agent-message':'runtime-message'}>
-              <div className="author">{e.actor==='agent'?'Агент · имитатор':e.actor==='operator'?'Оператор':'Runtime'} · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString('ru-RU')}</time></div>
+              <div className="author"><span className="actor-label">{e.actor==='agent'?'Агент · имитатор':e.actor==='operator'?'Оператор':'Runtime'}</span> · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString('ru-RU')}</time></div>
               {decision?<><div className="recorded-decision"><span className={'decision-choice '+(decision.payload.decision==='approve'?'approved':'rejected')}>{decision.payload.decision==='approve'?'✓ Подтверждено':'Отклонено'}</span></div><p>{context?.event_kind==='confirmation_requested'?context.payload.action_summary:'Решение по действию'}.</p></>:<EventText event={e}/>}
               {awaiting&&<div className="confirmation-actions"><p>{pendingConfirmation.target_summary}</p><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
             </article>;
           })}
           {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><details><summary>Итоговый отчёт</summary><p>Имитатор модели · без LLM inference</p><p>Начальный запрос: {snapshot.goal}</p><p>Результат: {snapshot.terminal.reason_code}</p><p>Событий интерфейса: {events.length}</p><p>Наблюдение: {snapshot.service_view?.observation_id??'Не получено'}</p></details></section>}
-          {!snapshot&&session?.reservation&&<p className="empty-dialog">Состояние сервиса показано слева. Задайте цель агенту.</p>}
+          {!snapshot&&session?.reservation&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте цель агенту.</p>}
         </div>
         {session?.reservation&&!active?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
           <div className="live-suggestions">{['Восстанови работу сервиса','После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'].map(text=><button type="button" className="action" key={text} disabled={!canSubmit} onClick={()=>setGoal(text)}>{text}</button>)}</div>

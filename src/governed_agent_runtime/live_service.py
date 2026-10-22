@@ -110,6 +110,9 @@ class LiveService:
     def _expire(self):
         tick = self.monotonic()
         if self.slot and self.slot["phase"] == "ready" and tick >= self.slot["deadline"]:
+            self.slot["session"]["preparation_error"] = {
+                "code": "READY_EXPIRED",
+                "message": "Время ожидания запроса истекло. Начните сценарий заново."}
             self._release()
         for key, session in list(self.sessions.items()):
             owned = self.slot and self.slot["session_id"] == session["id"]
@@ -235,6 +238,7 @@ class LiveService:
             if old[0] != key:
                 raise LiveError("COMMAND_CONFLICT")
             return deepcopy(old[1])
+        self._expire()
         # Reserve bounded emergency stop capacity; do not evict deduplication records.
         if len(session["commands"]) >= (512 if action == "stop" else 480):
             raise LiveError("SESSION_LIMIT")

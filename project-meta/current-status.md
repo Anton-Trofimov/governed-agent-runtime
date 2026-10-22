@@ -3,6 +3,30 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Local UI/runtime implementation — BC-011
+
+Main baseline: `5eaae4b`, BC-009 PR #10 and BC-010 PR #11 merged.
+Human authorized local implementation and deterministic model-simulator tests.
+The [BC-011 contract](../specs/core/live-ui-runtime-contract.md) now has a
+loopback-only HTTP implementation and React integration. One session owns one
+active slot; confirmations are action-bound, deadlines are backend-owned, and
+refresh retrieves state without replaying commands. Refusal/expiry terminates;
+new starts use a fresh modeled environment. Unknown provider completion blocks
+admission, including after backend restart.
+
+Verification: 320 Python tests, 33 UI tests, Ruff, TypeScript/Vite build,
+deterministic recorded-data export and diff checks PASS. Tests cover ownership,
+idempotency, confirmation expiry, cooperative stop, late/unknown completion and
+read-only restoration. Starlette's test client emits an httpx deprecation warning.
+No real model calls, station connection, public deployment or browser/mobile
+visual acceptance are claimed. The simulator follows a fixed nominal path; it
+does not evaluate arbitrary goal semantics. Evidence remains outside the repo.
+
+[Local startup and limits](../docs/local-ui-simulator.md). Next: human review of
+local interaction; a concrete real-provider profile and real-inference smoke
+remain separately gated. Public authentication, station exposure, resource
+limits and scheduling remain separate decisions. Keep_alive is unchanged.
+
 ## Accepted operator presentation — 2026-10-21
 
 BC-009 content/projection accepted; BC-010 basic desktop/mobile design accepted

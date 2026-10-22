@@ -35,6 +35,14 @@ exhaustive browser/accessibility coverage are not established. Live execution,
 public hosting and station access are not included. Delivery: [BC-009 PR #10](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/10)
 and [BC-010 PR #11](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/11).
 
+## Local interactive simulator — BC-011
+
+A loopback-only backend connects the UI to runtime confirmations, deadlines and
+live modeled state. One active run; refresh restores its session without
+replaying commands. The deterministic model simulator follows a fixed path:
+this checks integration, not LLM behavior or public deployment readiness.
+[Start locally and review limits](docs/local-ui-simulator.md).
+
 ## Latest checkpoint: BC-008 accepted
 
 Two short operator requests across three paired seeds produced six completed

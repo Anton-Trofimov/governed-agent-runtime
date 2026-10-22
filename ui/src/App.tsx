@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { LiveWorkspace } from './LiveWorkspace';
+import { request, statusSchema, sessionSchema } from './live';
 import { loadRun, runs, readSelection, saveSelection, type Run, type Observation } from './data';
 
 type Loader = (id: string) => Promise<Run>;
@@ -7,6 +9,22 @@ const timestamp = (value:string) => new Intl.DateTimeFormat('ru-RU', {dateStyle:
 export function App({loader=loadRun}:{loader?:Loader}) {
   const help=useRef<HTMLDialogElement>(null);
   const helpButton=useRef<HTMLButtonElement>(null);
+  const [live,setLive]=useState(false);
+  const [availability,setAvailability]=useState<string>();
+  useEffect(()=>{
+    if(loader!==loadRun)return;
+    let active=true;
+    const inspect=async()=>{
+      try{
+        const status=statusSchema.parse(await request('/api/status'));
+        if(active)setAvailability(status.availability);
+      }catch{if(active)setAvailability(undefined);}
+    };
+    void inspect();
+    request('/api/session').then(value=>{const session=sessionSchema.parse(value);if(active&&(session.current_run_id||session.reservation))setLive(true);}).catch(()=>{});
+    const timer=window.setInterval(inspect,3000);
+    return()=>{active=false;window.clearInterval(timer);};
+  },[loader]);
   const [id,setId]=useState(readSelection);
   const [started,setStarted]=useState(false);
   const [result,setResult]=useState<{id:string;run?:Run;error?:boolean}>();
@@ -20,16 +38,16 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const current=result?.id===id?result:undefined;
   return <div id="operator-workspace">
     <header className="brandbar"><a href="#main" className="brand">Governed Agent<small>OPERATOR WORKSPACE</small></a><div className="platform-concept"><strong>Агентная платформа с разделением ответственности</strong><p className="responsibility-line">LLM предлагает · Runtime контролирует · Оператор задаёт цель и принимает решения</p></div><button className="help-trigger" ref={helpButton} onClick={()=>help.current?.showModal()} aria-haspopup="dialog">ⓘ Как это работает</button></header>
-    <AboutDialog dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
+    <AboutDialog live={live} dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
     <main id="main"><div className="context"><h1>Восстановление сервиса <span className="service-name">payment-api</span></h1></div>
-      {started&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}
-      {!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={setStarted}/>}
+      {started&&!live&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}
+      {live?<LiveWorkspace onExit={()=>{setLive(false);setStarted(false);}} renderState={s=><StatePanel o={s.service_view!} live unknown={!!s.terminal?.runtime_outcome?.unknown_write_effect}/>} renderCompact={s=><CompactState o={s.service_view!} unknown={!!s.terminal?.runtime_outcome?.unknown_write_effect}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={setStarted} onLive={()=>setLive(true)} availability={availability}/>}
     </main>
-    <footer className="page-notes"><p>В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p>В этой версии доступен просмотр сохранённых запусков. Живой режим пока не подключён.</p><p className="project-credit">Проект Антона Трофимова · <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a><br/>Разработано с участием AI-агентов по SDD Operating Model.</p></footer>
+    <footer className="page-notes"><p>{live?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.'}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p>Доступны сохранённые примеры; локальный интерактивный режим использует имитатор модели.</p><p className="project-credit">Проект Антона Трофимова · <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a><br/>Разработано с участием AI-агентов по SDD Operating Model.</p></footer>
   </div>;
 }
 
-function Workspace({run,started,setStarted}:{run:Run;started:boolean;setStarted:(value:boolean)=>void}) {
+function Workspace({run,started,setStarted,onLive,availability}:{run:Run;started:boolean;setStarted:(value:boolean)=>void;onLive:()=>void;availability?:string}) {
   const [cursor,setCursor]=useState(0);
   const report=useRef<HTMLDetailsElement>(null);
   const journal=useRef<HTMLOListElement>(null);
@@ -55,7 +73,7 @@ function Workspace({run,started,setStarted}:{run:Run;started:boolean;setStarted:
       <section className="chat" aria-label="Диалог с агентом">
         {started&&<CompactState o={observation} unknown={done&&run.view.unknown_write_effect}/>}
         <div className="chat-head"><div><h2>Агент управления сервисом</h2><div className="agent-controls"><span>{done?'Просмотр завершён':started?'Демонстрационный пример':'Готов к началу'}</span></div></div></div>
-        {!started?<div className="welcome"><h3>Восстановите сервис payment-api после неудачного обновления.</h3><ul><li>Вы задаёте цель и подтверждаете изменения.</li><li>Агент оценивает состояние среды и предлагает действия.</li><li>Runtime проверяет условия и управляет выполнением.</li></ul><p className="choose-mode">Выберите режим</p><div className="buttons"><button className="action" disabled>Начать живой сценарий</button><button className="action primary" onClick={()=>setStarted(true)}>Посмотреть пример</button></div><p className="subtle">Живой режим пока не подключён.</p></div>:<>
+        {!started?<div className="welcome"><h3>Восстановите сервис payment-api после неудачного обновления.</h3><ul><li>Вы задаёте цель и подтверждаете изменения.</li><li>Агент оценивает состояние среды и предлагает действия.</li><li>Runtime проверяет условия и управляет выполнением.</li></ul><p className="choose-mode">Выберите режим</p><div className="buttons"><button className="action" disabled={availability!=='available'} onClick={onLive}>Начать живой сценарий</button><button className="action primary" onClick={()=>setStarted(true)}>Посмотреть пример</button></div><p className="subtle">{availability==='busy'?'Живой режим занят. Пока можно посмотреть демонстрационный пример.':availability==='available'?'Доступна локальная проверка с имитатором модели.':availability==='unavailable'?'Живой режим временно недоступен.':'Живой режим пока не подключён.'}</p></div>:<>
           <div className="messages" ref={messages} aria-label="События диалога">
             <article className="user-message illustrative-request"><div className="author">Запрос для демонстрации</div><p>Восстанови работу сервиса</p><small className="subtle">Формулировка для интерфейса. Исходный текст запроса в этой записи не сохранён.</small></article>
             {visible.filter(e=>['LLM','Оператор'].includes(e.actor)||['started','confirmation_pending','observation_applied','terminal','terminal_verified'].includes(e.kind)).map(e=><article key={e.source} data-event-source={e.source} className={e.actor==='Оператор'?'user-message':'runtime-message'}><div className="author">{e.actor==='LLM'?'Агент · предложение':e.actor} · {timestamp(e.at)}</div>{e.kind==='confirmation_consumed'&&<div className="recorded-decision"><small>Решение оператора в записи</small><div className="buttons"><button className="action selected-decision" disabled aria-pressed="true" aria-label="Подтвердить">✓ Подтвердить</button><button className="action" disabled aria-pressed="false">Отклонить</button></div></div>}<p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p>{e.actor==='LLM'&&<><p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p><p className="subtle original-label">Оригинальное пояснение модели</p><p lang="en">{e.text}</p></>}<EventDetails event={e}/></article>)}
@@ -71,9 +89,9 @@ function Workspace({run,started,setStarted}:{run:Run;started:boolean;setStarted:
   </>;
 }
 
-function StatePanel({o,final}:{o:Observation;final?:Run['view']}) {
+function StatePanel({o,final,live=false,unknown:explicitUnknown=false}:{o:Observation;final?:Run['view'];live?:boolean;unknown?:boolean}) {
   const [expanded,setExpanded]=useState(()=>typeof window.matchMedia==='function'?!window.matchMedia('(max-width:620px)').matches:true);
-  const unknown=!!final?.unknown_write_effect;
+  const unknown=explicitUnknown||!!final?.unknown_write_effect;
   const recovered=!unknown&&!!o.shift_id&&o.shift_id===o.recovery.shift_id&&o.recovery.status==='PASS';
   const candidateRps=o.total_rps-o.stable_traffic_rps;
   const stableHealth=o.healthy===o.desired?'Healthy':'Scaling';
@@ -88,7 +106,7 @@ function StatePanel({o,final}:{o:Observation;final?:Run['view']}) {
   return <section className="state" id="service-state" aria-labelledby="state-title"><div className="state-head"><h2 id="state-title">Состояние системы</h2></div><div className="version-summary"><div>{o.stable_version_id} · <span className={!unknown&&stableHealth==='Healthy'?'health-ok':''}><Changed value={unknown?'Неизвестно':stableHealth}/></span></div><div>{o.candidate_version_id} · <span className={candidateRps>0?'issue':''}><Changed value={unknown?'Неизвестно':candidateHealth}/></span></div></div><dl className="total-traffic"><div><dt>Общий трафик</dt><dd><Changed value={o.total_rps}/> RPS</dd></div></dl><p className={'incident-description '+tone}><Changed value={incident}/></p>
       <div className="versions"><h3>Версии и реплики</h3><div className="table-scroll"><table><thead><tr><th>Версия</th><th>Реплик</th><th>Состояние</th><th>RPS</th></tr></thead><tbody><tr><td>{o.stable_version_id}</td><td><Changed value={o.desired}/><small>Ready: <Changed value={o.healthy}/></small></td><td className={!unknown&&stableHealth==='Healthy'?'health-ok':''}><Changed value={unknown?'Неизвестно':stableHealth}/></td><td><Changed value={o.stable_traffic_rps}/></td></tr><tr><td>{o.candidate_version_id}</td><td><Changed value={o.candidate_count}/></td><td className={!unknown&&candidateRps>0?'issue':''}><Changed value={unknown?'Неизвестно':candidateHealth}/></td><td className={candidateRps>0?'issue':''}><Changed value={candidateRps}/></td></tr></tbody></table></div><p className="subtle">Ready — подтверждённые работоспособные реплики. Состояние отдельных реплик новой версии не установлено.</p></div>
       <details className="conditions" open={expanded} onToggle={e=>setExpanded(e.currentTarget.open)}><summary>Условия безопасной работы</summary><ul><li>Безопасная производительность: 150 RPS на реплику.</li><li>Нагрузка ниже 90%, в том числе при потере одной реплики (N−1).</li><li>Расчёт UI для всего трафика на <Changed value={o.healthy}/> Ready: {o.healthy?(100*o.total_rps/(o.healthy*150)).toFixed(1)+'%':'нет мощности'}; N−1: {o.healthy>1?(100*o.total_rps/((o.healthy-1)*150)).toFixed(1)+'%':'нет мощности'}.</li></ul></details>
-      {o.conflicting_operation&&<p className="issue">Обнаружена конфликтующая операция.</p>}<div className="state-foot">Последнее наблюдение<br/><time dateTime={o.observed_at}>{timestamp(o.observed_at)}</time><p>Данные записи, не текущая проверка сервиса.</p></div>
+      {o.conflicting_operation&&<p className="issue">Обнаружена конфликтующая операция.</p>}<div className="state-foot">Последнее наблюдение<br/><time dateTime={o.observed_at}>{timestamp(o.observed_at)}</time><p>{live?'Последнее наблюдение моделируемой среды текущего запуска.':'Данные записи, не текущая проверка сервиса.'}</p></div>
     </section>;
 }
 
@@ -135,7 +153,7 @@ function CompactState({o,unknown}:{o:Observation;unknown:boolean}) {
   return <a className="compact-state" href="#service-state" aria-label="К полному состоянию сервиса"><span>{o.stable_version_id} · <Changed value={unknown?'данные до изменения':`${o.healthy} Ready`}/> · <Changed value={o.stable_traffic_rps}/> RPS</span><span>{o.candidate_version_id} · <Changed value={o.candidate_count}/> реплик · <Changed value={o.total_rps-o.stable_traffic_rps}/> RPS</span><strong><Changed value={recovery}/></strong></a>;
 }
 
-function AboutDialog({dialogRef,onClose}:{dialogRef:React.RefObject<HTMLDialogElement|null>;onClose:()=>void}) {
+function AboutDialog({dialogRef,onClose,live}:{live:boolean;dialogRef:React.RefObject<HTMLDialogElement|null>;onClose:()=>void}) {
   return <dialog className="about-dialog" ref={dialogRef} onClose={onClose} aria-labelledby="about-title">
     <button className="action close-help" autoFocus onClick={()=>dialogRef.current?.close()}>Закрыть</button>
     <h2 id="about-title">От предложения модели — к контролируемому действию</h2>
@@ -149,7 +167,7 @@ function AboutDialog({dialogRef,onClose}:{dialogRef:React.RefObject<HTMLDialogEl
     </ol>
     <h3>Почему это важно</h3><p>Убедительный ответ модели ещё не означает разрешение на действие. Подтверждение оператора тоже не отменяет проверки платформы. Журнал позволяет проследить, кто предложил и разрешил действие, чем подтверждён результат.</p>
     <p className="value-explanation">Такой подход полезен там, где важны надёжность, ответственность и прослеживаемость операций. В этом примере взаимодействие намеренно ограничено: оператор задаёт цель, затем явно подтверждает значимые изменения.</p>
-    <div className="about-notes"><p>В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p>В этой версии доступен просмотр сохранённых запусков. Живой режим пока не подключён.</p></div>
+    <div className="about-notes"><p>{live?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.'}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p>Доступны сохранённые примеры; локальный интерактивный режим использует имитатор модели.</p></div>
   </dialog>;
 }
 

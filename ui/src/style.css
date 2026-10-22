@@ -243,3 +243,17 @@ body{background:#f7f9fa}
 #operator-workspace .close-event-help{flex:0 0 auto}
 #operator-workspace .playback{padding-top:6px;padding-bottom:8px}
 #operator-workspace .playback .buttons{margin-top:4px}
+
+#operator-workspace .live-input{padding:12px 18px;border-top:1px solid #d8e1e6}
+#operator-workspace .live-input label{display:block;margin-bottom:6px}
+#operator-workspace .live-input textarea{display:block;width:100%;min-height:76px;resize:vertical;border:1px solid #aabac4;border-radius:8px;padding:10px;font:inherit;margin-bottom:8px}
+#operator-workspace .live-input small{display:block;margin-top:8px;color:#526875}
+#operator-workspace .live-suggestions{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+#operator-workspace .live-suggestions .action{font-size:12px;text-align:left;padding:6px 9px}
+#operator-workspace .live-stop{border:1px solid #c48e8e;border-radius:50%;color:#aa4242;background:transparent;width:40px;height:40px;cursor:pointer;margin-left:8px}
+#operator-workspace .live-workspace .messages{height:54vh;min-height:260px;overflow-y:auto;overscroll-behavior:auto}
+#operator-workspace .live-workspace .journal ol{max-height:65vh;overflow-y:auto}
+@media(max-width:620px){
+ #operator-workspace .live-workspace .messages{height:55svh;min-height:220px;margin:0 8px;font-size:12px}
+ #operator-workspace .live-input{padding:10px 16px}
+}

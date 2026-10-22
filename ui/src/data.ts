@@ -16,6 +16,7 @@ const schema = z.object({
     kind: z.enum(['started','model_output','preflight','revalidation','confirmation_pending',
       'confirmation_consumed','tool_call_started','observation_applied','terminal','terminal_verified']),
     summary: text, reference: text.optional(),
+    proposal_source: text.optional(), related_checks: z.array(text).optional(),
     checks: z.array(z.object({id:text,label:text,status:text,reason:text.nullable(),reference:text})).optional(),
     actor: z.enum(['Runtime','LLM','Оператор']), text, tool: text.optional(),
     observation: observation.nullable(),
@@ -34,6 +35,16 @@ const schema = z.object({
   const o = v.observation?.value;
   const events=replay.events;
   if(events.length<2) return;
+  for(const event of events){
+    if(event.proposal_source){
+      const proposal=events.find(e=>e.source===event.proposal_source);
+      if(!['preflight','revalidation'].includes(event.kind)||proposal?.kind!=='model_output'||!proposal.related_checks?.includes(event.source))ctx.addIssue({code:'custom',message:'Invalid proposal link'});
+    }
+    for(const source of event.related_checks??[]){
+      const check=events.find(e=>e.source===source);
+      if(event.kind!=='model_output'||check?.proposal_source!==event.source||!['preflight','revalidation'].includes(check.kind))ctx.addIssue({code:'custom',message:'Invalid check link'});
+    }
+  }
   const lastObservation=[...events].reverse().find(e=>e.observation)?.observation;
   if(events[0].kind!=='started' || !events[0].observation ||
      !['terminal','terminal_verified'].includes(events.at(-1)!.kind) ||

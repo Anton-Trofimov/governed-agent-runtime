@@ -288,3 +288,14 @@ short BC-008 phrase is illustrative for the older BC-006/007 runs.
 
 Review 2026-10-20: follow BC-010 readability refinement for contextual G08 statuses,
 FAIL example explanation, larger desktop header and compact mobile help.
+
+### Recorded event linkage — 2026-10-23
+
+Proposal and admission events retain distinct source IDs. The recorded projection
+links them by the source trace's unique model-output `tick` and matching preflight
+or revalidation `tick`, never adjacent event numbers. Ambiguous links fail export.
+Details expose reciprocal proposal/check links only when the target is already
+revealed. Navigation opens details, scrolls the target stream and highlights the
+record for two seconds, without advancing playback or moving the desktop page.
+The runtime journal explains its scope: checks/execution, proposals in chat.
+The value explanation is shown on the welcome screen before mode selection.

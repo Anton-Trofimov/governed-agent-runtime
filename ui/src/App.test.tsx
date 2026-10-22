@@ -171,3 +171,30 @@ it('uses the logo as home navigation and keeps translation guidance out of welco
  await screen.findByRole('button',{name:'Посмотреть пример'});
  expect(screen.queryByRole('button',{name:'Далее'})).not.toBeInTheDocument();
 });
+
+it.each(['success','stop'])('links %s proposal and checks without scrolling the page',async(id)=>{
+ const scroll=vi.fn();const original=HTMLElement.prototype.scrollIntoView;
+ HTMLElement.prototype.scrollIntoView=scroll;
+ try{
+  render(<App loader={loader}/>);await start();
+  fireEvent.change(screen.getByLabelText('Демонстрационный пример'),{target:{value:id}});
+  await screen.findByRole('button',{name:'К результату'});finish();scroll.mockClear();
+  const proposal=document.querySelector<HTMLElement>('.messages [data-event-source="event-60"]')!;
+  (proposal.querySelector('details') as HTMLDetailsElement).open=true;
+  fireEvent.click(within(proposal).getAllByRole('button',{name:'Показать в журнале'})[0]);
+  const check=document.querySelector<HTMLElement>('.journal [data-event-source="event-61"]')!;
+  expect(check).toHaveAttribute('data-highlight','true');
+  expect(check.querySelector('details')).toHaveAttribute('open');
+  expect(check).toHaveFocus();
+  fireEvent.click(within(check).getByRole('button',{name:'Показать в чате'}));
+  expect(proposal).toHaveAttribute('data-highlight','true');
+  expect(proposal).toHaveFocus();
+  expect(scroll).not.toHaveBeenCalled();
+ }finally{HTMLElement.prototype.scrollIntoView=original;}
+});
+it('does not expose future checks before playback reveals them',async()=>{
+ render(<App loader={loader}/>);await start();
+ fireEvent.click(screen.getByRole('button',{name:'Далее'}));
+ const proposal=document.querySelector('.messages [data-event-source="event-4"]')!;
+ expect(proposal).not.toHaveTextContent('event-5');
+});

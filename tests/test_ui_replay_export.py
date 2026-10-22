@@ -48,3 +48,15 @@ def test_confirmation_explains_action_and_gates_preserve_recorded_status():
     assert '6 до 8' in pending['summary']
     checks = next(e for e in frames if e['kind'] == 'preflight')['checks']
     assert any(c['id'] == 'G08_CONFIRMATION' and c['status'] == 'SKIPPED' for c in checks)
+
+
+def test_proposal_links_follow_tick_not_neighboring_event_numbers():
+    trace = [json.loads(line) for line in
+             (ROOT / 'evidence' / MODULE.RUNS['stop'] / 'trace.jsonl').read_text().splitlines()]
+    for event in trace:
+        if event['event_id'] == 'event-60':
+            event['event_id'] = 'event-600'
+    frames = {e['source']: e for e in MODULE.build_replay(trace)['events']}
+    assert frames['event-600']['related_checks'] == ['event-61']
+    assert frames['event-61']['proposal_source'] == 'event-600'
+    assert frames['event-12']['proposal_source'] == 'event-4'

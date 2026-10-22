@@ -113,6 +113,19 @@ def build_replay(trace):
         if kind == "model_output":
             frame["reference"] = "specs/core/tool-contracts.yaml"
         events.append(frame)
+    frames = {frame["source"]: frame for frame in events}
+    proposals = {}
+    for event in trace:
+        if event["kind"] == "model_output":
+            tick = event["tick"]
+            if tick in proposals:
+                raise ValueError("Ambiguous model proposal tick")
+            proposals[tick] = event["event_id"]
+    for event in trace:
+        if event["kind"] in ("preflight", "revalidation"):
+            proposal_source = proposals[event["tick"]]
+            frames[event["event_id"]]["proposal_source"] = proposal_source
+            frames[proposal_source].setdefault("related_checks", []).append(event["event_id"])
     assert events and events[0]["kind"] == "started"
     return {"version": "2", "events": events}
 

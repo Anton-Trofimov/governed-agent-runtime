@@ -417,7 +417,16 @@ The owner sees return-to-run (or view-result after termination) on home and demo
 not another visitor's busy warning. Confirmation countdown uses server time and
 the current confirmation deadline; running phases without an exposed deadline
 show status only. Disconnected state must not claim a fresh deadline/status.
-Live navigation sits below the chat, outside its scrolling stream. Simulator
-identity stays visible in the journal. Desktop panels have a viewport-bounded,
+Live navigation sits beside the task heading, outside the message composer.
+Simulator identity stays visible in the live chat header and footer. Desktop panels have a viewport-bounded,
 content-independent common height; longer state content scrolls. Mode entry
 scrolls to the task heading, preserving the failure-scenario context below it.
+
+### Review refinement — 2026-10-23
+
+Home groups live start/return and recorded viewing in the central mode chooser.
+An active owner sees return and the applicable deadline; a terminal owner sees
+explicit restart and read-only result access. New admission can fail busy without
+replacing the previous result. Home navigation belongs beside the task heading,
+not beside the message composer. Demo viewing retains compact owner access near
+playback controls. Simulator identity stays explicit in the live header/footer.

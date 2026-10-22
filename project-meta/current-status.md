@@ -14,7 +14,7 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 324 Python tests, 49 UI tests, Ruff, TypeScript/Vite build,
+Verification: 324 Python tests, 50 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.
@@ -51,6 +51,12 @@ link reciprocally by trace tick, with scoped scrolling/highlight and no future
 playback disclosure. Tests cover both examples, direct restart and admission-race
 result preservation. State spacing is reduced; browser/mobile visual review is
 still pending. Source evidence is unchanged.
+
+Live readability refinement: compact header on all screens, quiet composer
+surround and sage operator cards. Server-bound proposal/check references now
+support reciprocal live navigation and two-second highlighting. Journal follows
+new entries only when already at the bottom; tests cover preserving reading
+position. Browser/mobile visual review remains pending; no real inference.
 
 [Local startup and limits](../docs/local-ui-simulator.md). Next: human review of
 local interaction; a concrete real-provider profile and real-inference smoke

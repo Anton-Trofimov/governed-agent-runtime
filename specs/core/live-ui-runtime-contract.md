@@ -430,3 +430,13 @@ explicit restart and read-only result access. New admission can fail busy withou
 replacing the previous result. Home navigation belongs beside the task heading,
 not beside the message composer. Demo viewing retains compact owner access near
 playback controls. Simulator identity stays explicit in the live header/footer.
+
+Live proposal cards expose a human-readable action summary and original rationale.
+Admission events carry `proposal_sequence` (nullable when no valid proposal was
+published), assigned by the server within the exact submit invocation, never by
+adjacent IDs. Proposal events carry `action_summary`. UI links only resolve within
+the current run to an existing proposal/admission event. Details show `event-N`
+as a live-stream identifier, not a raw trace ID. Reciprocal navigation opens the
+target details and highlights for two seconds without scrolling the page.
+Journal follow-to-bottom applies only while the reader is already at the bottom;
+reading older entries or navigating to a linked check must not be interrupted.

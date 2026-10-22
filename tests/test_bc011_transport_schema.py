@@ -121,7 +121,7 @@ def test_live_proposal_reuses_existing_tool_argument_contract():
                 "arguments": {"service_id": "payment-api", "environment_id": "synthetic",
                               "deployment_target_id": "stable", "desired_replicas": 8},
                 "rationale": "Capacity requires eight replicas."}
-    value = event("proposal_recorded", "agent", {"proposal": proposal})
+    value = event("proposal_recorded", "agent", {"proposal": proposal, "action_summary": "Increase stable capacity"})
     v.validate(value)
     proposal["arguments"]["desired_replicas"] = 9
     assert not v.is_valid(value)
@@ -130,7 +130,7 @@ def test_live_proposal_reuses_existing_tool_argument_contract():
 def test_gate_statuses_preserve_runtime_vocabulary():
     v = validator()
     value = event("admission_checked", "runtime", {
-        "stage": "preflight", "result": "REPLACE_WITH_SAFER_PATH",
+        "stage": "preflight", "result": "REPLACE_WITH_SAFER_PATH", "proposal_sequence": None,
         "explanation": "Capacity is insufficient", "checks": [
             {"id": "G08_CONFIRMATION", "label": "Confirmation", "status": "SKIPPED",
              "reason": None, "reference": None}]})

@@ -25,6 +25,20 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const mounted=useRef(true);
   const offset=useRef(0);
   const messages=useRef<HTMLDivElement>(null);
+  const journal=useRef<HTMLOListElement>(null);
+  const followJournal=useRef(true);
+  const [highlight,setHighlight]=useState<{sequence:number;side:'chat'|'journal'}>();
+  useEffect(()=>{if(!highlight)return;const timer=window.setTimeout(()=>setHighlight(undefined),2000);return()=>window.clearTimeout(timer);},[highlight]);
+  function reveal(sequence:number,side:'chat'|'journal'){
+    const container=side==='chat'?messages.current:journal.current;
+    const target=container?.querySelector<HTMLElement>(`[data-live-event="${sequence}"]`);
+    if(!container||!target)return;
+    target.querySelectorAll('details').forEach(detail=>{detail.open=true;});
+    if(side==='journal')followJournal.current=false;
+    container.scrollTop+=target.getBoundingClientRect().top-container.getBoundingClientRect().top;
+    target.tabIndex=-1;target.focus({preventScroll:true});setHighlight({sequence,side});
+  }
+  useEffect(()=>{if(journal.current&&followJournal.current)journal.current.scrollTop=journal.current.scrollHeight;},[events.length]);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   // Read-only reconnect never resends a command. A fresh snapshot restores current state.
   useEffect(()=>{
@@ -85,7 +99,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       if(cmd.body.command==='decide')submittedDecision.current=String(cmd.body.confirmation_id);
       if(cmd.body.command==='start_run')setGoal('');
       if(cmd.body.command==='prepare'){
-        setGoal('');setSnapshot(undefined);setEvents([]);eventsRef.current=[];runRef.current=null;
+        setGoal('');setSnapshot(undefined);setEvents([]);followJournal.current=true;eventsRef.current=[];runRef.current=null;
       }
       if(mounted.current)setRetry(x=>x+1);
       return true;
@@ -143,9 +157,10 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
             const awaiting=confirmationEvent&&pendingConfirmation?.confirmation_id===confirmationEvent.payload.confirmation_id&&
               submittedDecision.current!==confirmationEvent.payload.confirmation_id&&
               !events.some(x=>x.event_kind==='operator_decision'&&x.payload.confirmation_id===confirmationEvent.payload.confirmation_id);
-            return <article key={e.sequence} className={e.actor==='operator'?'user-message':e.actor==='agent'?'agent-message':'runtime-message'}>
+            return <article key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='chat'&&highlight.sequence===e.sequence} className={e.actor==='operator'?'user-message':e.actor==='agent'?'agent-message':'runtime-message'}>
               <div className="author"><span className="actor-label">{e.actor==='agent'?'Агент · имитатор':e.actor==='operator'?'Оператор':'Runtime'}</span> · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString('ru-RU')}</time></div>
               {decision?<><div className="recorded-decision"><span className={'decision-choice '+(decision.payload.decision==='approve'?'approved':'rejected')}>{decision.payload.decision==='approve'?'✓ Подтверждено':'Отклонено'}</span></div><p>{context?.event_kind==='confirmation_requested'?context.payload.action_summary:'Решение по действию'}.</p></>:<EventText event={e}/>}
+              <LiveDetails event={e} events={events} onReveal={reveal}/>
               {awaiting&&<div className="confirmation-actions"><p>{pendingConfirmation.target_summary}</p><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
             </article>;
           })}
@@ -159,7 +174,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
         </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><textarea aria-label="Состояние диалога" disabled rows={2} value={blockedText}/></div>}
 
       </section>
-      <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence}><EventText event={e}/><small>Событие {e.sequence}</small></li>)}</ol></aside>
+      <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>
     </div>
   </>;
 }
@@ -167,7 +182,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
 export function EventText({event:e}:{event:LiveEvent}){
   switch(e.event_kind){
     case 'goal_accepted':return <p>{e.payload.goal}</p>;
-    case 'proposal_recorded':return <><p>{e.payload.proposal.rationale}</p><small>Оригинальное пояснение имитатора · {e.payload.proposal.tool_name}</small></>;
+    case 'proposal_recorded':return <><p>Предложение агента: {e.payload.action_summary}.</p><small>Краткое объяснение сформировано интерфейсом</small><p className="subtle">Оригинальное пояснение имитатора</p><p>{e.payload.proposal.rationale}</p></>;
     case 'confirmation_requested':return <p>Требуется подтверждение: {e.payload.action_summary}.</p>;
     case 'operator_decision':return <p>{e.payload.decision==='approve'?'Оператор подтвердил':'Оператор отклонил'} предложенное действие.</p>;
     case 'admission_checked':return <><p>{e.payload.explanation} ({e.payload.result})</p><details><summary>Проверки runtime</summary><ul>{e.payload.checks.map(c=><li key={c.id}>{c.label}: {c.status}{c.reason?` · ${c.reason}`:''}</li>)}</ul></details></>;
@@ -177,4 +192,15 @@ export function EventText({event:e}:{event:LiveEvent}){
     case 'run_finished':return <p>{e.payload.explanation} ({e.payload.reason_code})</p>;
     default:return null;
   }
+}
+
+export function LiveDetails({event,events,onReveal}:{event:LiveEvent;events:LiveEvent[];onReveal:(sequence:number,side:'chat'|'journal')=>void}){
+  const related=events.filter(other=>other.run_id===event.run_id&&(
+    event.event_kind==='proposal_recorded'&&other.event_kind==='admission_checked'&&other.payload.proposal_sequence===event.sequence||
+    event.event_kind==='admission_checked'&&other.event_kind==='proposal_recorded'&&event.payload.proposal_sequence===other.sequence));
+  return <details><summary>Подробнее</summary>
+    <p className="subtle">Событие живого запуска: <code>event-{event.sequence}</code></p>
+    {event.event_kind==='proposal_recorded'&&<p>Инструмент для предложенного действия: <code>{event.payload.proposal.tool_name}</code></p>}
+    {related.map(other=><p className="event-link" key={other.sequence}>{other.event_kind==='proposal_recorded'?'Предложение агента':'Проверка runtime'}: <code>event-{other.sequence}</code> · <button className="text-link" onClick={()=>onReveal(other.sequence,other.event_kind==='proposal_recorded'?'chat':'journal')}>{other.event_kind==='proposal_recorded'?'Показать в чате':'Показать в журнале'}</button></p>)}
+  </details>;
 }

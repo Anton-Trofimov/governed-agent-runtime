@@ -299,3 +299,11 @@ revealed. Navigation opens details, scrolls the target stream and highlights the
 record for two seconds, without advancing playback or moving the desktop page.
 The runtime journal explains its scope: checks/execution, proposals in chat.
 The value explanation is shown on the welcome screen before mode selection.
+
+Accepted refinement: use the compact brand header on home and both work modes;
+remove OPERATOR WORKSPACE and the repeated responsibility line. The composer has
+a very light gray-blue surround and a white editable field. Operator cards use
+muted sage green with a darker author badge, consistently for goals, approvals
+and refusals; this color identifies the actor, not execution success. Confirmation
+controls remain distinctly darker. Live and recorded details share reciprocal
+proposal/check navigation; live identifiers belong to their own event stream.

@@ -145,3 +145,34 @@ it('offers explicit restart after reservation expiry and keeps the composer disa
   expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
   expect(screen.queryByRole('button',{name:'Отправить'})).toBeNull();
 });
+
+const proposalEvent={...event,sequence:2,event_kind:'proposal_recorded',actor:'agent',payload:{
+  action_summary:'Проверить состояние реплик и трафика',proposal:{tool_name:'read_operational_status',rationale:'Оригинальный ответ'}}};
+const checkEvent={...event,sequence:4,event_kind:'admission_checked',actor:'runtime',payload:{
+  proposal_sequence:2,stage:'preflight',result:'ALLOW',explanation:'Проверено чтение состояния',checks:[]}};
+it('links live proposal and admission in both directions and preserves journal reading position',async()=>{
+  let items=[event,proposalEvent,{...event,sequence:3,event_kind:'model_status_changed',actor:'platform',payload:{model_status:'ready'}},checkEvent];
+  vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>
+    path==='/api/session'?sessionBase:path.includes('/events?')?{...page,events:items,next_cursor:items.length}:snapshot})));
+  const {container}=render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  const link=await screen.findByRole('button',{name:'Показать в журнале',hidden:true});
+  fireEvent.click(link);
+  const check=container.querySelector('.journal [data-live-event="4"]') as HTMLElement;
+  expect(check).toHaveAttribute('data-highlight','true');
+  expect(check).toHaveFocus();
+  expect(check.querySelector('details')).toHaveAttribute('open');
+  fireEvent.click(screen.getByRole('button',{name:'Показать в чате'}));
+  expect(container.querySelector('.messages [data-live-event="2"]')).toHaveAttribute('data-highlight','true');
+  expect(screen.getByText('Оригинальный ответ')).toBeVisible();
+  expect(screen.getByText('Предложение агента: Проверить состояние реплик и трафика.')).toBeVisible();
+  const journal=container.querySelector('.journal ol') as HTMLElement;
+  Object.defineProperties(journal,{scrollHeight:{value:1000},clientHeight:{value:200}});
+  journal.scrollTop=100;fireEvent.scroll(journal);
+  items=[...items,{...checkEvent,sequence:5}];
+  await waitFor(()=>expect(container.querySelector('.journal [data-live-event="5"]')).not.toBeNull(),{timeout:2000});
+  expect(journal.scrollTop).toBe(100);
+  journal.scrollTop=800;fireEvent.scroll(journal);
+  items=[...items,{...checkEvent,sequence:6}];
+  await waitFor(()=>expect(container.querySelector('.journal [data-live-event="6"]')).not.toBeNull(),{timeout:2000});
+  expect(journal.scrollTop).toBe(1000);
+});

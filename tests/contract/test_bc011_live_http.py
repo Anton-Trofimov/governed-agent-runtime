@@ -77,6 +77,16 @@ def test_nominal_three_explicit_confirmations_and_refresh(live):
     events = client.get(f"/api/runs/{run_id}/events?after=0").json()["events"]
     assert [e["sequence"] for e in events] == list(range(1, len(events)+1))
     assert len([e for e in events if e["event_kind"] == "operator_decision"]) == 3
+    proposals = {e["sequence"]: e for e in events if e["event_kind"] == "proposal_recorded"}
+    checks = [e for e in events if e["event_kind"] == "admission_checked"]
+    assert len(checks) == 8
+    for check in checks:
+        proposal = proposals[check["payload"]["proposal_sequence"]]
+        assert proposal["sequence"] < check["sequence"]
+        assert proposal["payload"]["action_summary"]
+    assert [sum(c["payload"]["proposal_sequence"] == seq for c in checks)
+            for seq in proposals] == [2, 1, 2, 1, 2]
+
 
 
 def test_reject_finishes_and_new_run_has_fresh_environment(live):

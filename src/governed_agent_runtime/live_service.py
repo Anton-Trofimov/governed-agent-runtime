@@ -432,6 +432,7 @@ class LiveService:
             }
             self._event(run, "admission_checked", "runtime", {
                 "stage": kind, "result": event["decision"],
+                "proposal_sequence": run.get("submitted_proposal_sequence"),
                 "explanation": event.get("details") or "Проверены условия допуска действия",
                 "checks": [{"id": g["gate_id"], "label": labels.get(g["gate_id"], g["gate_id"]),
                             "status": g["status"],
@@ -503,9 +504,16 @@ class LiveService:
                         break
                     proposal = response["proposal"]
                     from jsonschema import Draft202012Validator
+                    run["submitted_proposal_sequence"] = None
                     if Draft202012Validator(rt.schemas["proposal_schema"]).is_valid(proposal):
-                        self._event(run, "proposal_recorded", "agent", {"proposal": proposal})
-                    rt.submit(canonical(proposal), confirm=lambda req: self._confirm(run, req))
+                        self._event(run, "proposal_recorded", "agent", {
+                            "proposal": proposal,
+                            "action_summary": TOOLS.get(proposal["tool_name"], "Остановить выполнение")})
+                        run["submitted_proposal_sequence"] = run["events"][-1]["sequence"]
+                    try:
+                        rt.submit(canonical(proposal), confirm=lambda req: self._confirm(run, req))
+                    finally:
+                        run["submitted_proposal_sequence"] = None
         except Exception:  # noqa: BLE001 - fail closed at provider boundary
             with self.condition:
                 if run["rt"]:

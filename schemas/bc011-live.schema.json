@@ -1328,11 +1328,17 @@
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
-                  "proposal"
+                  "proposal",
+                  "action_summary"
                 ],
                 "properties": {
                   "proposal": {
                     "$ref": "bc006-proposal.schema.json"
+                  },
+                  "action_summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
                   }
                 }
               }
@@ -1359,7 +1365,8 @@
                   "stage",
                   "result",
                   "explanation",
-                  "checks"
+                  "checks",
+                  "proposal_sequence"
                 ],
                 "properties": {
                   "stage": {
@@ -1438,6 +1445,13 @@
                       }
                     },
                     "maxItems": 30
+                  },
+                  "proposal_sequence": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1
                   }
                 }
               }

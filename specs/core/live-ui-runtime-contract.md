@@ -399,10 +399,25 @@ session's `server_time` before a run and snapshot time afterwards; local clock
 skew must not produce a false zero countdown. Zero remaining time disables goal
 submission while the authoritative session state is refreshed.
 
-Desktop workspaces use a compact brand header and a task-level navigation row.
+Desktop workspaces use a compact brand header, task heading and chat-level controls.
 The state panel (safe-operation conditions initially expanded), chat including its
 composer/playback controls and runtime journal share a bottom edge. Message and
 journal streams scroll internally. Scenario-failure context stays above all three
 panels. Entry scroll happens only on mode entry, not on subsequent events.
 Actor labels remain explicit; denser desktop message spacing does not reduce
 mobile text sizes or enable any additional conversation.
+
+### Owner navigation and stable workspace refinement
+
+Home, recorded demo and live workspace are browser-history screens. Logo/home and
+Back/Forward use the same navigation boundary: leaving an unused reservation
+releases it; leaving an active run does not stop it or reset deadlines. History
+navigation, refresh and viewing a terminal result never request new admission.
+The owner sees return-to-run (or view-result after termination) on home and demo,
+not another visitor's busy warning. Confirmation countdown uses server time and
+the current confirmation deadline; running phases without an exposed deadline
+show status only. Disconnected state must not claim a fresh deadline/status.
+Live navigation sits below the chat, outside its scrolling stream. Simulator
+identity stays visible in the journal. Desktop panels have a viewport-bounded,
+content-independent common height; longer state content scrolls. Mode entry
+scrolls to the task heading, preserving the failure-scenario context below it.

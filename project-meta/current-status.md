@@ -14,7 +14,7 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 323 Python tests, 39 UI tests, Ruff, TypeScript/Vite build,
+Verification: 323 Python tests, 44 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.
@@ -37,6 +37,13 @@ checks cover clock skew, zero-time submission and expiry without maintenance.
 Compact task navigation, common desktop panel bounds and actor labels are added;
 the heading font is bundled locally with its license. Visual acceptance of this
 revision remains pending (Chromium download returned a truncated archive).
+
+Navigation refinement (2026-10-22): owner-aware return/result access on home and
+demo, server-aligned confirmation countdown, shared logo/history navigation and
+unused-reservation release. Navigation never starts a run. Controls move below
+chat; simulator identity remains visible in the journal. Desktop panels use stable
+viewport-bounded heights. Owner/visitor, terminal-result and history regression
+checks pass; browser/mobile visual review of this revision remains pending.
 
 [Local startup and limits](../docs/local-ui-simulator.md). Next: human review of
 local interaction; a concrete real-provider profile and real-inference smoke

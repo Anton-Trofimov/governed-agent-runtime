@@ -359,3 +359,35 @@ body{background:#f7f9fa}
 }
 
 @media(max-width:620px){#operator-workspace .task-toolbar h1{font-size:22px}}
+
+/* Stable workspace geometry and owner-aware navigation. */
+#task-heading{scroll-margin-top:12px}
+#operator-workspace .owner-return{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 14px 12px;padding:8px 12px;background:#e8f0f3;border:1px solid #cedce2;border-radius:8px;font-size:13px}
+#operator-workspace .live-workspace .live-navigation{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:8px 14px;border-top:1px solid #e7ecee;flex-shrink:0}
+#operator-workspace .live-navigation small{font-size:11px;color:#647b88;font-style:italic}
+#operator-workspace .journal .simulator-label{display:block;font-size:11px;line-height:1.4;color:#526975;margin:5px 0 8px}
+@media(min-width:881px){
+ #operator-workspace .workspace.replaying{height:clamp(620px,calc(100svh - 100px),780px);padding-bottom:14px}
+ #operator-workspace .replaying .state,#operator-workspace .replaying .chat,#operator-workspace .replaying .journal{height:100%;min-height:0;max-height:100%;overflow:auto}
+ #operator-workspace .replaying .chat,#operator-workspace .replaying .journal{overflow:hidden}
+ #operator-workspace .replaying .state{padding:12px 14px}
+ #operator-workspace .replaying .state-head{margin-bottom:10px}
+ #operator-workspace .replaying .incident-description{height:126px;overflow:auto;margin:10px 0;font-size:13px;line-height:1.5}
+ #operator-workspace .replaying .state-foot{margin-top:10px;padding-top:8px}
+ #operator-workspace .replaying td{padding-top:8px;padding-bottom:8px}
+ #operator-workspace .replaying .state h3{margin-bottom:8px}
+ #operator-workspace .chat-head>div{min-height:32px}
+ #operator-workspace .agent-controls{min-height:32px}
+ #operator-workspace .live-stop{width:28px;height:28px;min-width:28px;padding:0;font-size:11px;margin-left:2px}
+ #operator-workspace .live-toolbar h1{padding-top:0}
+ #operator-workspace .task-toolbar{padding-top:10px;padding-bottom:10px}
+ #operator-workspace .live-input{padding-top:8px;padding-bottom:8px}
+}
+@media(max-width:620px){
+ #operator-workspace .live-stop{width:44px;height:44px;flex-shrink:0}
+ #operator-workspace .live-navigation small{flex-basis:100%}
+}
+@media(min-width:881px){
+ #operator-workspace .live-workspace .agent-controls{position:relative;padding-right:36px}
+ #operator-workspace .live-workspace .live-stop{position:absolute;right:0;top:2px}
+}

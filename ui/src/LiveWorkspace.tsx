@@ -107,15 +107,9 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const active=snapshot&&snapshot.phase!=='terminal';
   const pendingConfirmation=snapshot?.pending_confirmation;
   const canSubmit=!!session?.reservation&&!active&&connected&&!busy&&!pending.current&&
-    session.reservation.phase!=='stopping'&&seconds!==0;
+    session.reservation.phase!=='stopping'&&seconds!==0&&
+    (!session.reservation.expires_at||Date.parse(session.reservation.expires_at)>Date.parse(session.server_time));
   const currentEvents=events.filter(e=>!['phase_changed','model_status_changed'].includes(e.event_kind));
-  const exit=async()=>{
-    if(session?.reservation&&!active){
-      const released=await send(command('/api/session/release','release',{reservation_id:session.reservation.reservation_id}));
-      if(!released)return;
-    }
-    onExit();
-  };
   const serviceView=snapshot?.service_view??session?.reservation?.service_view??
     (session?.preparation_error?.code==='READY_EXPIRED'?lastServiceView.current:null);
   const unknown=!!snapshot?.terminal?.runtime_outcome?.unknown_write_effect;
@@ -127,15 +121,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     active?'Агент готовит следующий шаг. Выполнение можно остановить.':
     'Для нового запроса начните сценарий.';
   return <>
-    <div className="task-toolbar live-toolbar"><h1>Восстановление сервиса <span className="service-name">payment-api</span></h1><nav className="live-navigation" aria-label="Управление сценарием">
-      <button className="action" disabled={busy} onClick={()=>void exit()}>К началу</button>
-      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
-      <span className="simulator-label" title="Фиксированный тестовый сценарий независимо от текста запроса; LLM не вызывается.">Локальная проверка · имитатор модели</span>
-      {error&&<p role="alert" className="admission-notice">{error}</p>}
-      {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}
-      {pending.current&&!busy&&<button className="action" onClick={()=>void send(pending.current!)}>Проверить / повторить ту же команду</button>}
-      {active&&<small>Переход к началу не останавливает выполнение.</small>}
-    </nav></div>
+    <div className="task-toolbar live-toolbar"><h1 id="task-heading">Восстановление сервиса <span className="service-name">payment-api</span></h1></div>
     <div className="workspace replaying live-workspace">
       {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}
       <section className="chat" aria-label="Интерактивный диалог">
@@ -163,8 +149,16 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
           <label htmlFor="live-goal">Запрос агенту</label><textarea id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}</div>
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
         </form>:<div className="live-input inactive-composer"><textarea aria-label="Состояние диалога" disabled rows={2} value={blockedText}/></div>}
+        <nav className="live-navigation" aria-label="Управление сценарием">
+      <button className="action" disabled={busy} onClick={onExit}>К началу</button>
+      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
+      {error&&<p role="alert" className="admission-notice">{error}</p>}
+      {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}
+      {pending.current&&!busy&&<button className="action" onClick={()=>void send(pending.current!)}>Проверить / повторить ту же команду</button>}
+      {active&&<small>К началу — экран выбора режима. Вы сможете вернуться к запуску.</small>}
+    </nav>
       </section>
-      <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">События текущего локального запуска</p><ol>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence}><EventText event={e}/><small>Событие {e.sequence}</small></li>)}</ol></aside>
+      <aside className="journal"><h2>Журнал runtime</h2><span className="simulator-label" title="Фиксированный тестовый сценарий независимо от текста запроса; LLM не вызывается.">Локальная проверка · имитатор модели</span><ol>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence}><EventText event={e}/><small>Событие {e.sequence}</small></li>)}</ol></aside>
     </div>
   </>;
 }

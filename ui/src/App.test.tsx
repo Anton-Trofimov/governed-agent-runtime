@@ -4,7 +4,7 @@ import { App } from './App';
 import { parseRun, readSelection, saveSelection, loadRun, type Run } from './data';
 import success from '../public/runs/success.json';
 import stop from '../public/runs/stop.json';
-beforeEach(()=>{vi.restoreAllMocks();localStorage.clear();});
+beforeEach(()=>{vi.restoreAllMocks();localStorage.clear();window.history.replaceState(null,'','/');vi.unstubAllGlobals();});
 const loader=async(id:string)=>parseRun(id==='success'?success:stop,id);
 async function start(){fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));}
 function finish(){fireEvent.click(screen.getByRole('button',{name:'К результату'}));}
@@ -160,4 +160,14 @@ it('keeps the event breakdown in replay only and derives counts for each example
  await waitFor(()=>expect(screen.getByLabelText('Состав событий').closest('details')).toHaveTextContent('Состав событий: 26'));
  expect(screen.getByLabelText('Состав событий').closest('details')).toHaveTextContent('Остальные: 8');
  expect(screen.getByLabelText('Состав событий').closest('details')).toHaveTextContent('2 явных подтверждения');
+});
+
+it('uses the logo as home navigation and keeps translation guidance out of welcome',async()=>{
+ render(<App loader={loader}/>);
+ await screen.findByRole('button',{name:'Посмотреть пример'});
+ expect(screen.queryByText(/Ответ агента записан на английском/)).not.toBeInTheDocument();
+ await start();
+ fireEvent.click(screen.getByRole('link',{name:/Governed Agent/}));
+ await screen.findByRole('button',{name:'Посмотреть пример'});
+ expect(screen.queryByRole('button',{name:'Далее'})).not.toBeInTheDocument();
 });

@@ -5,9 +5,19 @@ This file is not model-visible operational evidence.
 
 ## Local UI/runtime implementation — BC-011
 
+Latest review refinement (2026-10-23): shared summary/agent-response labels,
+status indicators and quieter stop control, compact desktop geometry, contextual
+observation dates, evidence-derived live report, explicit exhausted-smoke status,
+and friendly rejection of reused startup approval. Replica summaries now reflect
+actual arguments. The two-preparation profile and runtime safety gates are unchanged.
+Operator reported completed, confirmation-expired and refused trajectories;
+full private evidence review remains pending. No new inference for this update.
+
+
 Main baseline: `5eaae4b`, BC-009 PR #10 and BC-010 PR #11 merged.
 Human authorized the simulator and, on 2026-10-23, local Ollama integration
-implementation with offline tests. Station inference is not yet approved.
+implementation with offline tests. Revision-bound station smoke packages were
+subsequently approved and run by the operator; raw evidence remains private.
 The [BC-011 contract](../specs/core/live-ui-runtime-contract.md) now has a
 loopback-only HTTP implementation and React integration. One session owns one
 active slot; confirmations are action-bound, deadlines are backend-owned, and
@@ -15,12 +25,12 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 335 Python tests, 56 UI tests, Ruff, TypeScript/Vite build,
+Verification: 337 Python tests, 58 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.
-No real model calls, station connection, public deployment or browser/mobile
-visual acceptance are claimed. The simulator follows a fixed nominal path; it
+These automated checks use no real model calls. Public deployment and visual
+acceptance of the latest UI refinement are not claimed. The simulator follows a fixed nominal path; it
 does not evaluate arbitrary goal semantics. Evidence remains outside the repo.
 
 Owner review refinement (2026-10-22): single-action admission, initial environment

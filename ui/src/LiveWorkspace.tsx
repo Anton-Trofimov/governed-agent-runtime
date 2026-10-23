@@ -1,11 +1,13 @@
+import { AgentStatus } from './AgentStatus';
+import { LiveReport } from './LiveReport';
 import { CompactComposer, ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, command, ensureSession, explainError, loadEvents, request, sessionSchema,
   snapshotSchema, statusSchema, providerLabel, type LiveEvent, type Session, type Snapshot, type ServiceView } from './live';
 
 type Props={onExit:()=>void;renderState:(s:ServiceView,unknown:boolean)=>ReactNode;renderCompact:(s:ServiceView,unknown:boolean)=>ReactNode};
-const labels:Record<string,string>={preparing:'Подготовка',ready:'Готов к запросу',running:'Активен',
-  awaiting_confirmation:'Ожидается решение',stopping:'Останавливается',terminal:'Завершён'};
+const labels:Record<string,string>={preparing:'Подготовка модели',ready:'Модель загружена. Агент готов к работе',running:'Агент выполняет задачу',
+  awaiting_confirmation:'Ожидается решение оператора',stopping:'Останавливается',terminal:'Завершён'};
 export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const [session,setSession]=useState<Session>();
   const [snapshot,setSnapshot]=useState<Snapshot>();
@@ -112,11 +114,15 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     setBusy(true);setError('');
     try{
       const status=statusSchema.parse(await request('/api/status'));
-      if(status.availability!=='available')throw new ApiError(status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE');
+      if(status.availability!=='available')throw new ApiError(status.unavailability_reason==='SMOKE_LIMIT'?'SMOKE_LIMIT':status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE');
       setSession(await ensureSession());
       await send(command('/api/sessions','prepare'));
     }catch(err){setError(explainError(err));}finally{setBusy(false);}
   }
+  const phase=snapshot?.phase??session?.reservation?.phase??'';
+  const statusLabel=session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания истекло':
+    session?.provider?.kind==='simulator'&&phase==='ready'?'Имитатор готов к работе':
+    session?.provider?.kind==='simulator'&&phase==='preparing'?'Подготовка имитатора':labels[phase]??'Готов к началу';
   const active=snapshot&&snapshot.phase!=='terminal';
   const pendingConfirmation=snapshot?.pending_confirmation;
   const canSubmit=!!session?.reservation&&!active&&connected&&!busy&&!pending.current&&
@@ -147,7 +153,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}
       <section className="chat" aria-label="Интерактивный диалог">
         {serviceView&&renderCompact(serviceView,unknown)}
-        <div className="chat-head"><div><h2>Агент управления сервисом<span className="simulator-label" >{providerLabel(session?.provider)}</span></h2><div className="agent-controls"><span role="status">{session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания истекло':labels[snapshot?.phase??session?.reservation?.phase??'']??'Готов к началу'}</span>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
+        <div className="chat-head"><div><h2>Агент управления сервисом<span className="simulator-label" >{providerLabel(session?.provider)}</span></h2><div className="agent-controls"><AgentStatus phase={phase} label={statusLabel} since={events.filter(e=>e.event_kind==='model_status_changed'&&e.payload.model_status==='inference').at(-1)?.occurred_at}/>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
         <div className="messages" ref={messages} aria-label="События интерактивного диалога">
           {currentEvents.filter(e=>['goal_accepted','proposal_recorded','operator_decision','confirmation_requested'].includes(e.event_kind)).map(e=>{
             const decision=e.event_kind==='operator_decision'?e:null;
@@ -157,13 +163,13 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
               submittedDecision.current!==confirmationEvent.payload.confirmation_id&&
               !events.some(x=>x.event_kind==='operator_decision'&&x.payload.confirmation_id===confirmationEvent.payload.confirmation_id);
             return <article key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='chat'&&highlight.sequence===e.sequence} className={e.actor==='operator'?'user-message':e.actor==='agent'?'agent-message':'runtime-message'}>
-              <div className="author"><span className="actor-label">{e.actor==='agent'?(session?.provider?.kind==='simulator'?'Агент · имитатор':'Агент'):e.actor==='operator'?'Оператор':'Runtime'}</span> · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString('ru-RU')}</time></div>
+              <div className="author"><span className="actor-label">{e.actor==='agent'?(session?.provider?.kind==='simulator'?'Агент · имитатор':'Агент'):e.actor==='operator'?'Оператор':'Runtime'}</span> · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleString('ru-RU')}</time></div>
               {decision?<><div className="recorded-decision"><span className={'decision-choice '+(decision.payload.decision==='approve'?'approved':'rejected')}>{decision.payload.decision==='approve'?'✓ Подтверждено':'Отклонено'}</span></div><p>{context?.event_kind==='confirmation_requested'?context.payload.action_summary:'Решение по действию'}.</p></>:<EventText event={e} simulator={session?.provider?.kind==='simulator'}/>}
               <LiveDetails event={e} events={events} onReveal={reveal}/>
-              {awaiting&&<div className="confirmation-actions"><p>{pendingConfirmation.target_summary}</p><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
+              {awaiting&&<div className="confirmation-actions"><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
             </article>;
           })}
-          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><ReportDialog><p>{providerLabel(session?.provider)}</p><p>Начальный запрос: {snapshot.goal}</p><p>Результат: {snapshot.terminal.reason_code}</p><p>Событий интерфейса: {events.length}</p><p>Наблюдение: {snapshot.service_view?.observation_id??'Не получено'}</p></ReportDialog></section>}
+          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><ReportDialog><p>{providerLabel(session?.provider)}</p><LiveReport snapshot={snapshot} events={events}/></ReportDialog></section>}
           {!snapshot&&session?.reservation&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте цель агенту.</p>}
         </div>
         {session?.reservation&&!active?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
@@ -182,7 +188,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
 export function EventText({event:e,simulator=false}:{event:LiveEvent;simulator?:boolean}){
   switch(e.event_kind){
     case 'goal_accepted':return <p>{e.payload.goal}</p>;
-    case 'proposal_recorded':return <><p>Предложение агента: {e.payload.action_summary}.</p><small>Краткое объяснение сформировано интерфейсом</small><p className="subtle">{simulator?'Оригинальное пояснение имитатора':'Оригинальное пояснение модели'}</p><p>{e.payload.proposal.rationale}</p></>;
+    case 'proposal_recorded':return <><p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p><p>Предложение агента: {e.payload.action_summary}.</p><p className="subtle original-label">{simulator?'Ответ агента · имитатор':'Ответ агента'}</p><p>{e.payload.proposal.rationale}</p></>;
     case 'confirmation_requested':return <p>Требуется подтверждение: {e.payload.action_summary}.</p>;
     case 'operator_decision':return <p>{e.payload.decision==='approve'?'Оператор подтвердил':'Оператор отклонил'} предложенное действие.</p>;
     case 'admission_checked':return <><p>{e.payload.explanation} ({e.payload.result})</p><details><summary>Проверки runtime</summary><ul>{e.payload.checks.map(c=><li key={c.id}>{c.label}: {c.status}{c.reason?` · ${c.reason}`:''}</li>)}</ul></details></>;

@@ -21,7 +21,13 @@ from governed_agent_runtime.bc006_runtime import (
     utcnow,
 )
 from governed_agent_runtime.live_ollama import private_json
-from governed_agent_runtime.live_projection import TOOLS, confirmation, observation, outcome
+from governed_agent_runtime.live_projection import (
+    TOOLS,
+    action_summary,
+    confirmation,
+    observation,
+    outcome,
+)
 
 
 def identifier():
@@ -181,7 +187,10 @@ class LiveService:
                 self.max_preparations is not None and self.preparations >= self.max_preparations
                 and not self.slot) else (
                 "busy" if self.slot else "available")
-            return {"kind": "status", "version": "live.v1", "availability": availability,
+            reason = ("SERVER_CLOSED" if self.closed else
+                      "PROVIDER_UNAVAILABLE" if self.quarantined else
+                      "SMOKE_LIMIT" if availability == "unavailable" else None)
+            return {"unavailability_reason": reason, "kind": "status", "version": "live.v1", "availability": availability,
                     "model_status": self.model_status, "provider": self.provider_info, "server_time": now()}
 
     def session_view(self, session):
@@ -469,7 +478,7 @@ class LiveService:
                            for g in event["gates"]]})
         elif kind == "tool_call_started":
             name = event["tool"]
-            self._event(run, "tool_started", "runtime", {"tool_name": name, "summary": TOOLS[name]})
+            self._event(run, "tool_started", "runtime", {"tool_name": name, "summary": action_summary(name, event["arguments"])})
         elif kind in {"confirmation_status", "confirmation_consumed"}:
             record = event["record"]
             self._event(run, "confirmation_resolved", "runtime", {
@@ -549,7 +558,7 @@ class LiveService:
                     if Draft202012Validator(rt.schemas["proposal_schema"]).is_valid(proposal):
                         self._event(run, "proposal_recorded", "agent", {
                             "proposal": proposal,
-                            "action_summary": TOOLS.get(proposal["tool_name"], "Остановить выполнение")})
+                            "action_summary": action_summary(proposal["tool_name"], proposal["arguments"])})
                         run["submitted_proposal_sequence"] = run["events"][-1]["sequence"]
                     try:
                         rt.submit(raw, confirm=lambda req: self._confirm(run, req))

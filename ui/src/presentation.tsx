@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 // Only explicit cross-panel navigation may move the mobile page.
 export function revealEvent(container:HTMLElement,target:HTMLElement){
@@ -13,11 +13,12 @@ export function revealEvent(container:HTMLElement,target:HTMLElement){
 
 export function ReportDialog({children}:{children:ReactNode}){
   const dialog=useRef<HTMLDialogElement>(null);
+  const [opened,setOpened]=useState(false);
   const trigger=useRef<HTMLButtonElement>(null);
-  return <><button className="action" ref={trigger} onClick={()=>dialog.current?.showModal()}>Открыть итоговый отчёт</button>
-    <dialog className="report report-dialog" ref={dialog} aria-label="Итоговый отчёт" onClose={()=>trigger.current?.focus({preventScroll:true})}>
+  return <><button className="action" ref={trigger} onClick={()=>{setOpened(true);dialog.current?.showModal();}}>Открыть итоговый отчёт</button>
+    <dialog className="report report-dialog" ref={dialog} aria-label="Итоговый отчёт" onClose={()=>{setOpened(false);trigger.current?.focus({preventScroll:true});}}>
       <button className="action report-close" autoFocus onClick={()=>dialog.current?.close()}>Закрыть</button>
-      <h2>Отчёт и источники</h2>{children}
+      <h2>Отчёт и источники</h2>{opened&&children}
     </dialog></>;
 }
 

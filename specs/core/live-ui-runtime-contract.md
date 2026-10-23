@@ -456,3 +456,15 @@ label rather than claiming actual inference. Runtime/consent semantics are uncha
 A shared user-scoped coordinator lock and outstanding marker survive evidence
 location changes. Approval consumption and the two-preparation smoke allowance
 bound the test; they are not public authentication or per-person rate limiting.
+
+### Review diagnostics and truthful summaries — 2026-10-23
+
+Status may include `unavailability_reason`: null, `SMOKE_LIMIT`,
+`PROVIDER_UNAVAILABLE` or `SERVER_CLOSED`. Quarantine/closure take precedence over
+exhausted preparation allowance; an occupied slot remains busy. UI explains an
+exhausted local test allowance without representing it as another user's run.
+This does not introduce public rate limits or change the two-preparation profile.
+Consumed approval is rejected with a concise CLI error before preflight/provider
+activation; consumption remains exclusive and durable, including races.
+Action summaries use actual proposal/confirmation arguments, never a fixed replica
+count. Unknown tools receive a neutral label; no summary grants permission.

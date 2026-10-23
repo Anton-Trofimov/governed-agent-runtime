@@ -181,6 +181,7 @@ def test_failed_preparations_consume_smoke_budget(tmp_path):
                 service.command(session, '/api/sessions', {'command': 'prepare', 'command_id': str(n)})
             wait_for(lambda: service.slot, lambda slot: slot is None)
         assert service.status()['availability'] == 'unavailable'
+        assert service.status()['unavailability_reason'] == 'SMOKE_LIMIT'
         with service.condition, pytest.raises(LiveError, match='SMOKE_LIMIT'):
             service.command(session, '/api/sessions', {'command': 'prepare', 'command_id': 'third'})
     finally:
@@ -210,3 +211,41 @@ def test_consumed_approval_record_cannot_be_overwritten(tmp_path):
     with pytest.raises(FileExistsError):
         private_json(path, {'revision': 'b' * 40})
     assert json.loads(path.read_text())['revision'] == 'a' * 40
+
+
+def test_summary_uses_actual_proposed_count():
+    from governed_agent_runtime.live_projection import action_summary
+    assert '7' in action_summary('scale_stable', {'desired_replicas': 7})
+    assert '8' not in action_summary('scale_stable', {'desired_replicas': 7})
+    assert action_summary('unrecognized', {}) == 'Неизвестное действие'
+    assert '8' not in action_summary('scale_stable', {})
+
+
+def test_consumed_approval_is_explained_before_preflight(tmp_path, monkeypatch, capsys):
+    from governed_agent_runtime import live_ollama_http
+    from governed_agent_runtime.live_ollama import profile_hash
+
+    revision = 'a' * 40
+    evidence = tmp_path / 'runs'
+    approval = tmp_path / 'approval.json'
+    approval_id = 'b' * 32
+    approval.write_text(json.dumps({
+        'approved': True, 'reviewer': 'Test operator', 'approval_id': approval_id,
+        'revision': revision, 'profile_sha256': profile_hash(load_profile(ROOT)),
+        'evidence_dir': str(evidence), 'exclusive_provider': True, 'no_outstanding_work': True}))
+    state = tmp_path / '.local/state/governed-agent-runtime/ollama-coordinator'
+    state.mkdir(parents=True)
+    marker = state / f'approval-{approval_id}.json'
+    marker.write_text('{}')
+    monkeypatch.setattr(Path, 'home', lambda: tmp_path)
+    monkeypatch.setattr(live_ollama_http, 'revision', lambda *a, **kw: revision)
+    preflight = Mock(side_effect=AssertionError('Preflight must not run'))
+    monkeypatch.setattr(live_ollama_http.subprocess, 'run', preflight)
+    monkeypatch.setattr('sys.argv', ['local-smoke', '--evidence-dir', str(evidence),
+                                   '--approval-file', str(approval)])
+    with pytest.raises(SystemExit) as error:
+        live_ollama_http.main()
+    assert error.value.code == 2
+    assert 'Approval already used' in capsys.readouterr().err
+    assert marker.read_text() == '{}'
+    preflight.assert_not_called()

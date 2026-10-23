@@ -329,3 +329,23 @@ styling, border and wrapping without clipping; no free conversation is enabled.
 Replay progress and its information control sit to the right of playback buttons
 on mobile too; narrow viewports may wrap without overlap. Expanded event details
 open above the controls without reducing the chat height.
+
+### Local model review refinement — 2026-10-23
+
+Shared live/replay proposal cards place “Краткое объяснение, сформировано
+интерфейсом” before the deterministic summary and emphasize “Ответ агента” above
+unaltered rationale. Disclosure uses the same small type size. Live timestamps
+include date and time. Redundant simulated-service text is omitted from consent
+controls; action identity and bindings remain intact.
+Live status uses a quiet rounded badge: preparation, ready, executing, operator
+confirmation, stopping or finished. Only preparation/execution animate; stop is
+separate and visually subordinate, with an accessible touch target. Readiness
+must not claim verified VRAM placement. Simulator labels do not claim model loading.
+Desktop spacing accommodates the brand header and bounded panels where viewport
+height permits; small screens retain scrolling and readable message text.
+Welcome state is labelled initial; replay state is labelled recorded with dates
+in disclosure. Live observation timestamps remain visible.
+The live report summarizes the actual goal, terminal explanation, observed initial
+and final state, recorded operator decisions and tool calls. Tool calls are not
+labelled successful changes without result evidence; unknown write effects remain
+explicit. No new inference is used to produce the report.

@@ -191,3 +191,18 @@ it('uses server provider identity for real-model labels without sending commands
   expect(screen.queryByText(/имитатор/i)).not.toBeInTheDocument();
   expect(fetcher.mock.calls.every(call=>!String(call[0]).includes('/decisions'))).toBe(true);
 });
+
+it('explains exhausted smoke allowance without submitting another preparation',async()=>{
+  const fetcher=vi.fn(async(path:string,_options?:RequestInit)=>({ok:true,json:async()=>{
+    if(path==='/api/status')return {kind:'status',version:'live.v1',availability:'unavailable',unavailability_reason:'SMOKE_LIMIT',model_status:'ready',server_time:snapshot.server_time};
+    if(path==='/api/session')return {kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,current_run_id:'run-1',model_status:'ready',preparation_error:null};
+    if(path.includes('/events?'))return page;
+    return snapshot;
+  }}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Начать заново'}));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Лимит запусков локальной проверки исчерпан');
+  expect(fetcher.mock.calls.every(call=>!call[1]?.body)).toBe(true);
+  expect(screen.getByRole('button',{name:'Открыть итоговый отчёт'})).toBeEnabled();
+});

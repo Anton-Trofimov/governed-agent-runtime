@@ -50,6 +50,10 @@ def main():
     approved_revision = revision(root, clean=True)
     approval = json.loads(approval_path.read_text())
     validate_approval(approval, profile, approved_revision, evidence)
+    state = Path.home() / '.local/state/governed-agent-runtime/ollama-coordinator'
+    consumption = state / f"approval-{approval['approval_id']}.json"
+    if consumption.exists():
+        parser.error('Approval already used. Preserve evidence and create a new explicitly approved test package.')
     for command in ([sys.executable, '-m', 'ruff', 'check', '.'],
                     [sys.executable, '-m', 'pytest', '-q'], ['git', 'diff', '--check'],
                     ['npm', '--prefix', 'ui', 'test'], ['npm', '--prefix', 'ui', 'run', 'build']):
@@ -57,7 +61,6 @@ def main():
     if revision(root, clean=True) != approved_revision:
         raise ValueError('Revision changed during preflight')
     # Stable per-local-account state; changing evidence directories cannot bypass quarantine.
-    state = Path.home() / '.local/state/governed-agent-runtime/ollama-coordinator'
     provider = LocalOllamaModel(root, evidence, profile)
     service = LiveService(root, evidence, provider=provider, operation_dir=state,
                           max_preparations=profile['max_preparations'],
@@ -67,8 +70,11 @@ def main():
     try:
         if service.quarantined:
             raise ValueError('Outstanding provider work requires operator reconciliation')
-        private_json(state / f"approval-{approval['approval_id']}.json", {
-            'revision': approved_revision, 'profile_sha256': profile_hash(profile)})
+        try:
+            private_json(consumption, {
+                'revision': approved_revision, 'profile_sha256': profile_hash(profile)})
+        except FileExistsError:
+            parser.error('Approval already used. Preserve evidence and create a new explicitly approved test package.')
         private_json(evidence / 'startup.json', {
             'approval': approval, 'profile': profile, 'revision': approved_revision})
         import uvicorn

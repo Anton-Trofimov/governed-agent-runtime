@@ -480,3 +480,42 @@ body{background:#f7f9fa}
  #operator-workspace .event-help summary{min-width:28px;min-height:32px}
  #operator-workspace .event-help .run-summary{position:absolute;bottom:100%;right:8px;width:min(460px,calc(100% - 16px));box-sizing:border-box;max-height:50svh;overflow:auto;padding:12px;background:#f3f6f7;border:1px solid #cad5da;border-radius:8px;box-shadow:0 3px 12px #20364220;z-index:6;font-size:12px}
 }
+
+/* Local model review: clear provenance, quiet status, room for the brand header. */
+#operator-workspace .messages .summary-label,
+#operator-workspace .messages .original-label,
+#operator-workspace .messages summary{font-size:12px;line-height:1.4}
+#operator-workspace .messages .summary-label{color:#657b87;margin:0 0 4px}
+#operator-workspace .messages .original-label{color:#657b87;font-weight:600;margin:10px 0 4px}
+#operator-workspace .author time{color:#6b7f89;font-size:11px}
+#operator-workspace .agent-status{display:inline-flex;align-items:center;gap:8px;border:1px solid #ccdbd2;border-radius:18px;background:#edf4ee;padding:5px 10px;color:#315c43;line-height:1.3;font-size:12px;max-width:100%}
+#operator-workspace .agent-status small{display:block;font-size:10px;color:#647b88;margin-top:2px}
+#operator-workspace .status-indicator{width:9px;height:9px;border-radius:50%;background:#72a983;flex-shrink:0}
+#operator-workspace .spinning{width:13px;height:13px;border:2px solid #bfd9c6;border-top-color:#44865b;background:transparent;animation:agent-spin 1s linear infinite}
+#operator-workspace .status-preparing,#operator-workspace .status-awaiting_confirmation{background:#f7f3e8;border-color:#e0d6b9;color:#6b5a28}
+#operator-workspace .status-preparing .spinning{border-color:#eadfb9;border-top-color:#ad8730}
+#operator-workspace .status-awaiting_confirmation .status-indicator{background:#b39951}
+#operator-workspace .status-terminal,#operator-workspace .status-stopping{background:#eef2f4;border-color:#ccd7dc;color:#4a626f}
+#operator-workspace .status-terminal .status-indicator,#operator-workspace .status-stopping .status-indicator{background:#8296a0}
+#operator-workspace .live-workspace .agent-controls{display:flex;align-items:center;gap:6px;padding-right:0;position:static}
+#operator-workspace .live-workspace .live-stop{position:relative;top:auto;right:auto;transform:none;width:32px;height:32px;min-width:32px;margin:0;padding:0;border:1px solid #afbec6;background:transparent;color:#996c6c;font-size:10px}
+#operator-workspace .live-stop::before{display:none}
+@keyframes agent-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#operator-workspace .spinning{animation:none}}
+@media(min-width:881px){
+ #operator-workspace .brandbar{padding-top:8px;padding-bottom:8px}
+ #operator-workspace .workspace.replaying{height:clamp(520px,calc(100svh - 152px),760px);padding-bottom:8px}
+ #operator-workspace:has(.scenario-note) .workspace.replaying{height:clamp(520px,calc(100svh - 215px),720px)}
+ #operator-workspace .replaying .incident-description{height:86px;margin:6px 0}
+ #operator-workspace .replaying .state .versions{margin-top:10px}
+ #operator-workspace .replaying .state .conditions ul{margin-top:7px;margin-bottom:7px}
+ #operator-workspace .replaying .state .conditions li{margin:6px 0}
+ #operator-workspace .replaying td{padding-top:6px;padding-bottom:6px}
+ #operator-workspace .chat-head{padding-top:9px;padding-bottom:9px}
+}
+@media(max-width:620px){
+ #operator-workspace .live-workspace .agent-controls{justify-content:flex-end;width:auto;max-width:100%}
+ #operator-workspace .agent-status{font-size:11px}
+ #operator-workspace .live-workspace .live-stop{width:44px;height:44px;min-width:44px;border:0}
+ #operator-workspace .live-stop::before{display:block;inset:9px;border-color:#afbec6}
+}

@@ -16,6 +16,14 @@ FIELDS = ("observation_id", "observed_at", "stable_version_id", "candidate_versi
           "safe_rps_per_replica", "conflicting_operation", "rollout_state", "shift_id")
 
 
+def action_summary(tool_name, arguments):
+    if tool_name == "scale_stable":
+        count = arguments.get("desired_replicas")
+        return (f"Установить число реплик стабильной версии: {count}"
+                if type(count) is int else "Изменить число реплик стабильной версии")
+    return TOOLS.get(tool_name, "Неизвестное действие")
+
+
 def utc(value):
     return datetime.fromisoformat(value).isoformat().replace("+00:00", "Z")
 
@@ -30,12 +38,12 @@ def observation(value):
 def confirmation(request, created_at, expires_at):
     return {
         "confirmation_id": request["confirmation_id"], "created_at": created_at,
-        "expires_at": expires_at, "action_summary": TOOLS[request["tool_name"]],
+        "expires_at": expires_at, "action_summary": action_summary(request["tool_name"], request["arguments"]),
         "target_summary": "Моделируемый сервис payment-api",
         "parameters": [{"name": k, "value": v} for k, v in request["arguments"].items()],
         "rationale": request["rationale"],
         "evidence_summary": "Основание: " + request["observed"]["observation_id"],
-        "expected_effect": TOOLS[request["tool_name"]],
+        "expected_effect": action_summary(request["tool_name"], request["arguments"]),
         "affected_scope": "Только моделируемая среда текущего запуска",
         "estimated_duration": None,
         "key_risks": ["Подтверждение не заменяет повторную проверку runtime"],
@@ -51,7 +59,7 @@ def outcome(rt):
     unknown = rt.stop_reason == "UNKNOWN_WRITE_OUTCOME"
     reason = {
         "CONFIRMATION_REJECTED": "Оператор отклонил предложенное действие.",
-        "CONFIRMATION_EXPIRED": "Срок подтверждения истёк.",
+        "CONFIRMATION_EXPIRED": "Срок подтверждения оператором истёк.",
         "OPERATOR_REQUESTED_STOP": "Выполнение остановлено по запросу оператора.",
     }.get(rt.stop_reason, "Выполнение завершено.")
     if unknown:

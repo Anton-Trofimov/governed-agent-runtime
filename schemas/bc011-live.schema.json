@@ -681,6 +681,14 @@
         },
         "provider": {
           "$ref": "#/$defs/provider"
+        },
+        "unavailability_reason": {
+          "enum": [
+            null,
+            "SMOKE_LIMIT",
+            "PROVIDER_UNAVAILABLE",
+            "SERVER_CLOSED"
+          ]
         }
       }
     },

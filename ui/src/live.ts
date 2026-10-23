@@ -25,7 +25,7 @@ export function providerLabel(provider?:Provider){return provider?.kind==='ollam
 export function providerNotice(provider?:Provider){return provider?.kind==='ollama'?'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.':provider?.kind==='simulator'?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'Сохранённые примеры доступны без вызова модели. Тип живого подключения уточняется.';}
 
 export const statusSchema = z.object({kind:z.literal('status'),version,
-  provider:providerSchema.optional(),availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
+  unavailability_reason:z.enum(['SMOKE_LIMIT','PROVIDER_UNAVAILABLE','SERVER_CLOSED']).nullable().optional(),provider:providerSchema.optional(),availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
 export const sessionSchema = z.object({kind:z.literal('session'),version,provider:providerSchema.optional(),session_id:text,server_time:text,
   reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','stopping']),expires_at:text.nullable(),service_view:observation}).nullable(),
   current_run_id:text.nullable(),model_status:model,
@@ -116,9 +116,9 @@ export async function loadEvents(runId:string, previous:LiveEvent[]) {
 export function explainError(error:unknown){
   const code=error instanceof ApiError?error.code:'';
   return ({LIVE_BUSY:'Живой режим занят. Пока можно посмотреть демонстрационный пример.',
-    LIVE_UNAVAILABLE:'Живой режим временно недоступен.',SMOKE_LIMIT:'Лимит проверочного запуска исчерпан. Требуется новое одобрение.',SESSION_REQUIRED:'Сессия завершена. Начните заново.',
+    LIVE_UNAVAILABLE:'Живой режим временно недоступен.',SMOKE_LIMIT:'Лимит запусков локальной проверки исчерпан. Результаты доступны для просмотра.',SESSION_REQUIRED:'Сессия завершена. Начните заново.',
     BROWSER_LOCK_UNAVAILABLE:'В этом браузере доступен только демонстрационный пример.',
-    CONFIRMATION_EXPIRED:'Время подтверждения истекло.',ACTION_NOT_PENDING:'Это действие уже не ожидает решения.',
+    CONFIRMATION_EXPIRED:'Срок подтверждения оператором истёк.',ACTION_NOT_PENDING:'Это действие уже не ожидает решения.',
     SESSION_LIMIT:'Достигнут лимит локальной тестовой сессии.',
   } as Record<string,string>)[code]??'Связь прервалась. Состояние команды пока неизвестно; не отправляйте её заново.';
 }

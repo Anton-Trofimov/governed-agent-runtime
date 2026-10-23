@@ -32,7 +32,7 @@ it('lets the owner view a demo and return with the same deadline, without any ne
  fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));
  expect(screen.getByRole('complementary',{name:'Ваш запуск'})).toBeVisible();
  fireEvent.click(screen.getByRole('button',{name:'Вернуться к запуску'}));
- await screen.findByText('Ожидается решение');
+ await screen.findByText('Ожидается решение оператора');
  fireEvent.click(screen.getByRole('link',{name:/Governed Agent/}));
  await screen.findByRole('button',{name:'Посмотреть пример'});
  expect(mutations(fetcher)).toEqual([]);

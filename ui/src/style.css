@@ -470,3 +470,13 @@ body{background:#f7f9fa}
  #operator-workspace .mobile-owner-access{font-size:12px;min-height:40px;text-align:right}
  #operator-workspace .inactive-composer{padding:5px 12px}
 }
+
+/* Keep replay progress beside its controls on mobile as well. */
+@media(max-width:880px){
+ #operator-workspace .playback{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;position:relative}
+ #operator-workspace .playback .buttons{order:0;margin:0;gap:6px}
+ #operator-workspace .event-counter{order:1;margin-left:auto;font-size:11px;gap:2px}
+ #operator-workspace .event-counter>span{white-space:nowrap}
+ #operator-workspace .event-help summary{min-width:28px;min-height:32px}
+ #operator-workspace .event-help .run-summary{position:absolute;bottom:100%;right:8px;width:min(460px,calc(100% - 16px));box-sizing:border-box;max-height:50svh;overflow:auto;padding:12px;background:#f3f6f7;border:1px solid #cad5da;border-radius:8px;box-shadow:0 3px 12px #20364220;z-index:6;font-size:12px}
+}

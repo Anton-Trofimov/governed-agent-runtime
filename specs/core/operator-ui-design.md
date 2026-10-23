@@ -326,3 +326,6 @@ chat; terminal access says “Результат живого запуска”,
 server-derived confirmation countdown when connected. Navigation stays read-only.
 The disabled composer sizes to its explanatory text, retaining its quiet italic
 styling, border and wrapping without clipping; no free conversation is enabled.
+Replay progress and its information control sit to the right of playback buttons
+on mobile too; narrow viewports may wrap without overlap. Expanded event details
+open above the controls without reducing the chat height.

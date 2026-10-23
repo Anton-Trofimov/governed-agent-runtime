@@ -1,3 +1,4 @@
+import { ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, command, ensureSession, explainError, loadEvents, request, sessionSchema,
   snapshotSchema, statusSchema, type LiveEvent, type Session, type Snapshot, type ServiceView } from './live';
@@ -33,10 +34,8 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     const container=side==='chat'?messages.current:journal.current;
     const target=container?.querySelector<HTMLElement>(`[data-live-event="${sequence}"]`);
     if(!container||!target)return;
-    target.querySelectorAll('details').forEach(detail=>{detail.open=true;});
     if(side==='journal')followJournal.current=false;
-    container.scrollTop+=target.getBoundingClientRect().top-container.getBoundingClientRect().top;
-    target.tabIndex=-1;target.focus({preventScroll:true});setHighlight({sequence,side});
+    revealEvent(container,target);setHighlight({sequence,side});
   }
   useEffect(()=>{if(journal.current&&followJournal.current)journal.current.scrollTop=journal.current.scrollHeight;},[events.length]);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
@@ -164,7 +163,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
               {awaiting&&<div className="confirmation-actions"><p>{pendingConfirmation.target_summary}</p><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
             </article>;
           })}
-          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><details><summary>Итоговый отчёт</summary><p>Имитатор модели · без LLM inference</p><p>Начальный запрос: {snapshot.goal}</p><p>Результат: {snapshot.terminal.reason_code}</p><p>Событий интерфейса: {events.length}</p><p>Наблюдение: {snapshot.service_view?.observation_id??'Не получено'}</p></details></section>}
+          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><ReportDialog><p>Имитатор модели · без LLM inference</p><p>Начальный запрос: {snapshot.goal}</p><p>Результат: {snapshot.terminal.reason_code}</p><p>Событий интерфейса: {events.length}</p><p>Наблюдение: {snapshot.service_view?.observation_id??'Не получено'}</p></ReportDialog></section>}
           {!snapshot&&session?.reservation&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте цель агенту.</p>}
         </div>
         {session?.reservation&&!active?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>

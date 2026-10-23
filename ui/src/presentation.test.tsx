@@ -1,0 +1,32 @@
+import { it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import { revealEvent, ReportDialog } from './presentation';
+afterEach(()=>vi.unstubAllGlobals());
+it('opens report on demand and restores focus without navigation',()=>{
+  HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+  HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new Event('close'));};
+  render(<ReportDialog><p>Сохранённый результат</p></ReportDialog>);
+  expect(screen.queryByRole('dialog')).toBeNull();
+  const button=screen.getByRole('button',{name:'Открыть итоговый отчёт'});
+  fireEvent.click(button);
+  const dialog=screen.getByRole('dialog',{name:'Итоговый отчёт'});
+  expect(dialog).toHaveTextContent('Сохранённый результат');
+  fireEvent.click(within(dialog).getByRole('button',{name:'Закрыть'}));
+  expect(screen.queryByRole('dialog')).toBeNull();expect(button).toHaveFocus();
+});
+it.each(['chat','journal'])('reveals off-screen mobile %s only on explicit navigation',side=>{
+  vi.stubGlobal('innerWidth',390);vi.stubGlobal('innerHeight',800);
+  const {container}=render(<section className={side}><div><article><details><summary>Details</summary>Text</details></article></div></section>);
+  const panel=container.querySelector('section')!;
+  const stream=container.querySelector('section>div') as HTMLElement;
+  const record=container.querySelector('article')!;
+  const scroll=vi.fn();panel.scrollIntoView=scroll;
+  record.getBoundingClientRect=()=>({top:950,bottom:1100} as DOMRect);
+  revealEvent(stream,record);expect(scroll).toHaveBeenCalledTimes(1);
+  expect(record.querySelector('details')).toHaveAttribute('open');expect(record).toHaveFocus();
+  record.getBoundingClientRect=()=>({top:120,bottom:300} as DOMRect);
+  revealEvent(stream,record);expect(scroll).toHaveBeenCalledTimes(1);
+  vi.stubGlobal('innerWidth',1280);
+  record.getBoundingClientRect=()=>({top:950,bottom:1100} as DOMRect);
+  revealEvent(stream,record);expect(scroll).toHaveBeenCalledTimes(1);
+});

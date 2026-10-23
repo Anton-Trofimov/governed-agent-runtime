@@ -424,3 +424,35 @@ body{background:#f7f9fa}
 #operator-workspace .live-input textarea:not(:disabled){background:#fff}
 #operator-workspace .inactive-composer.awaiting-decision textarea{color:#426950;-webkit-text-fill-color:#426950}
 #operator-workspace .user-message .decision-choice.approved{background:#cfe3d5;border-color:#8fb29a;color:#24563b}
+
+/* Viewport review: compact chrome, unchanged message typography. */
+#operator-workspace .task-toolbar{scroll-margin-top:8px}
+#operator-workspace .report-dialog{width:min(1000px,calc(100% - 32px));max-height:90svh;overflow:auto;margin:auto;padding:24px;border:1px solid #bdcdd5;border-radius:12px;background:#fff;color:#25343b}
+#operator-workspace .report-dialog::backdrop{background:#142d3680}
+#operator-workspace .report-dialog h2{font-size:21px;margin:0 0 18px}
+#operator-workspace .report-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+#operator-workspace .report-close{float:right;position:sticky;top:0;margin:0 0 12px 12px;background:#fff}
+@media(min-width:881px){
+ #operator-workspace .scenario-note{padding:7px 14px;margin-bottom:10px;gap:10px;font-size:12px;line-height:1.35}
+ #operator-workspace .scenario-note p{margin:3px 0 0}
+ #operator-workspace .scenario-symbol{width:26px;height:26px;min-width:26px;font-size:17px}
+}
+@media(max-width:620px){
+ #operator-workspace .replaying .chat{height:calc(100svh - 58px);min-height:420px;max-height:none}
+ #operator-workspace .replaying .chat-head{padding:8px 12px}
+ #operator-workspace .replaying .chat-head h2{font-size:17px;line-height:1.25}
+ #operator-workspace .chat-head .simulator-label{font-size:10px;line-height:1.3;margin-top:3px}
+ #operator-workspace .replaying .agent-controls{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:32px;margin-top:3px;position:relative;padding-right:44px}
+ #operator-workspace .live-stop{position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;min-width:44px;border:0;margin:0;font-size:10px;background:transparent}
+ #operator-workspace .live-stop::before{content:'';position:absolute;inset:9px;border:1px solid #bd8585;border-radius:50%;pointer-events:none}
+ #operator-workspace .compact-state{padding:7px 12px;font-size:11px;line-height:1.4}
+ #operator-workspace .inactive-composer{padding:6px 12px}
+ #operator-workspace .inactive-composer textarea{min-height:54px;padding:8px 10px}
+ #operator-workspace .welcome{padding:14px 16px}
+ #operator-workspace .welcome h3{margin-bottom:10px}
+ #operator-workspace .welcome ul{margin-top:8px;margin-bottom:10px;padding-left:20px}
+ #operator-workspace .welcome li{margin:5px 0}
+ #operator-workspace .welcome .value-explanation{padding:9px 10px;margin:10px 0 12px}
+ #operator-workspace .welcome .choose-mode{margin-bottom:8px}
+ #operator-workspace .report-dialog{width:calc(100% - 12px);max-height:96svh;margin:auto;padding:16px;border-radius:10px}
+}

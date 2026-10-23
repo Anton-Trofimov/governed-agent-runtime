@@ -4,7 +4,7 @@ import { App } from './App';
 import { parseRun, readSelection, saveSelection, loadRun, type Run } from './data';
 import success from '../public/runs/success.json';
 import stop from '../public/runs/stop.json';
-beforeEach(()=>{vi.restoreAllMocks();localStorage.clear();window.history.replaceState(null,'','/');vi.unstubAllGlobals();});
+beforeEach(()=>{HTMLDialogElement.prototype.showModal=function(){this.open=true;}; HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new Event('close'));};vi.restoreAllMocks();localStorage.clear();window.history.replaceState(null,'','/');vi.unstubAllGlobals();});
 const loader=async(id:string)=>parseRun(id==='success'?success:stop,id);
 async function start(){fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));}
 function finish(){fireEvent.click(screen.getByRole('button',{name:'К результату'}));}
@@ -81,7 +81,7 @@ it('gates mode controls and keeps versions always visible',async()=>{
  expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeDisabled();
  await start();expect(screen.getByLabelText('Демонстрационный пример')).toBeVisible();finish();
  fireEvent.click(screen.getByRole('button',{name:'Открыть итоговый отчёт'}));
- expect(screen.getByText('Отчёт и источники').closest('details')!.open).toBe(true);
+ expect(screen.getByRole('dialog',{name:'Итоговый отчёт'})).toBeVisible();
  expect(document.querySelector('.report pre')!.textContent).toBe(success.report);
 });
 it('keeps mobile versions visible and safety conditions initially closed',async()=>{

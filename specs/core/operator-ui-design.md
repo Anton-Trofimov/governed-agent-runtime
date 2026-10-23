@@ -307,3 +307,14 @@ muted sage green with a darker author badge, consistently for goals, approvals
 and refusals; this color identifies the actor, not execution success. Confirmation
 controls remain distinctly darker. Live and recorded details share reciprocal
 proposal/check navigation; live identifiers belong to their own event stream.
+
+Accepted mobile/viewport refinement: mode entry and recorded-example selection
+align the task toolbar to the viewport top, without scrolling on ordinary events.
+The failure note retains both explanations with compact spacing. Both report
+buttons open a modal, with close/Escape and focus returned to the trigger; opening
+or closing a report never changes run state. On narrow screens an explicit event
+link also brings the target panel into view when its record is off screen, then
+highlights it. Visible targets and desktop links do not move the page. Mobile chat
+gets more available viewport height through compact header/status spacing, not
+smaller message text. Stop has a small visible circle and a 44px touch target.
+Welcome spacing is reduced while preserving text and mode button touch sizes.

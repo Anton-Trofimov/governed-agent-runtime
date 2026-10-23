@@ -1,3 +1,4 @@
+import { ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LiveWorkspace } from './LiveWorkspace';
 import { request, statusSchema, sessionSchema, ensureSession, command, ApiError, explainError, snapshotSchema, type Session, type Snapshot } from './live';
@@ -98,10 +99,10 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const current=result?.id===id?result:undefined;
   useEffect(()=>{
     const screen=live?'live':started?'demo':'home';
-    if(screen!=='home')document.getElementById('task-heading')?.scrollIntoView?.({block:'start'});
+    if(screen!=='home')document.getElementById('task-heading')?.closest('.task-toolbar')?.scrollIntoView?.({block:'start'});
     else if(previousScreen.current!=='home')document.querySelector('.brandbar')?.scrollIntoView?.({block:'start'});
     previousScreen.current=screen;
-  },[live,started]);
+  },[live,started,id]);
   const terminalOwner=owner?.run?.phase==='terminal';
   const activeOwner=ownsRun&&!terminalOwner;
   const ownerStatus=ownsRun&&owner?<span>{!ownerConnected?'Уточняем состояние вашего запуска…':owner.run?.phase==='terminal'?'Запуск завершён':'Вы можете вернуться к запуску'}{ownerConnected&&owner.run?.phase==='awaiting_confirmation'&&owner.run.pending_confirmation?` · На решение: ${Math.max(0,Math.ceil((Date.parse(owner.run.pending_confirmation.expires_at)-Date.parse(owner.run.server_time)-Math.max(0,clock-owner.received))/1000))} сек.`:ownerConnected&&owner.run?.phase==='running'?' · Агент обрабатывает запрос':ownerConnected&&owner.run?.phase==='preparing'?' · Подготовка модели':ownerConnected&&owner.run?.phase==='stopping'?' · Выполнение останавливается':''}</span>:null;
@@ -124,7 +125,6 @@ export function App({loader=loadRun}:{loader?:Loader}) {
 
 function Workspace({run,started,setStarted,liveControls,ownerStatus,ownerAccess,resultLink,availability,liveError,ownsRun}:{run:Run;started:boolean;setStarted:(value:boolean)=>void;liveControls:ReactNode;ownerStatus:ReactNode;ownerAccess:ReactNode;resultLink:ReactNode;availability?:string;liveError:string;ownsRun:boolean}) {
   const [cursor,setCursor]=useState(0);
-  const report=useRef<HTMLDetailsElement>(null);
   const journal=useRef<HTMLOListElement>(null);
   const messages=useRef<HTMLDivElement>(null);
   const [highlight,setHighlight]=useState<{source:string;side:'chat'|'journal'}>();
@@ -133,9 +133,7 @@ function Workspace({run,started,setStarted,liveControls,ownerStatus,ownerAccess,
     const container=side==='chat'?messages.current:journal.current;
     const target=container?.querySelector<HTMLElement>(`[data-event-source="${source}"]`);
     if(!container||!target)return;
-    target.querySelectorAll('details').forEach(detail=>{detail.open=true;});
-    container.scrollTop+=target.getBoundingClientRect().top-container.getBoundingClientRect().top;
-    target.tabIndex=-1;target.focus({preventScroll:true});setHighlight({source,side});
+    revealEvent(container,target);setHighlight({source,side});
   }
   const events=run.replay.events;
   const visible=events.slice(0,cursor+1);
@@ -162,7 +160,7 @@ function Workspace({run,started,setStarted,liveControls,ownerStatus,ownerAccess,
           <div className="messages" ref={messages} aria-label="События диалога">
             <article className="user-message illustrative-request"><div className="author"><span className="actor-label">Оператор</span> · <span>Запрос для демонстрации</span></div><p>Восстанови работу сервиса</p><small className="subtle">Формулировка для интерфейса. Исходный текст запроса в этой записи не сохранён.</small></article>
             {visible.filter(e=>['LLM','Оператор'].includes(e.actor)||['started','confirmation_pending','observation_applied','terminal','terminal_verified'].includes(e.kind)).map(e=><article key={e.source} data-event-source={e.source} data-highlight={highlight?.side==='chat'&&highlight.source===e.source} className={e.actor==='Оператор'?'user-message':e.actor==='LLM'?'agent-message':'runtime-message'}><div className="author"><span className="actor-label">{e.actor==='LLM'?'Агент · предложение':e.actor}</span> · {timestamp(e.at)}</div>{e.kind==='confirmation_consumed'&&<div className="recorded-decision"><small>Решение оператора в записи</small><div className="buttons"><button className="action selected-decision" disabled aria-pressed="true" aria-label="Подтвердить">✓ Подтвердить</button><button className="action" disabled aria-pressed="false">Отклонить</button></div></div>}<p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p>{e.actor==='LLM'&&<><p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p><p className="subtle original-label">Оригинальное пояснение модели</p><p lang="en">{e.text}</p></>}<EventDetails event={e} visibleSources={visible.map(item=>item.source)} onReveal={reveal}/></article>)}
-            {done&&<><Outcome run={run}/><button className="action" onClick={()=>{if(report.current){report.current.open=true;report.current.scrollIntoView?.({behavior:"smooth",block:"start"});}}}>Открыть итоговый отчёт</button></>}
+            {done&&<><Outcome run={run}/><ReportDialog><pre>{run.report}</pre><p>{run.view.outcome_source} · {run.view.terminal_source}</p>{Object.entries(run.view.sources).map(([name,hash])=><p className="source" key={name}>{name} · SHA-256: {hash}</p>)}</ReportDialog></>}
           </div>
           <div className="playback" aria-label="Управление просмотром"><div className="event-counter"><span role="status">Событие {cursor+1} из {events.length}</span><RunSummary run={run}/></div><div className="buttons"><button className="action primary" disabled={done} onClick={()=>setCursor(n=>Math.min(n+1,events.length-1))}>Далее</button><button className="action" disabled={done} onClick={()=>setCursor(events.length-1)}>К результату</button></div></div>
         </>}
@@ -171,7 +169,7 @@ function Workspace({run,started,setStarted,liveControls,ownerStatus,ownerAccess,
       </section>
       <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p>{started?<ol ref={journal}>{visible.filter(e=>e.actor==='Runtime').map(e=><li key={e.source} data-event-source={e.source} data-highlight={highlight?.side==='journal'&&highlight.source===e.source}><time dateTime={e.at}>{timestamp(e.at)}</time><p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p><EventDetails event={e} visibleSources={visible.map(item=>item.source)} onReveal={reveal}/></li>)}</ol>:<p className="subtle">Ожидание просмотра примера</p>}</aside>
     </div>
-    {done&&<details className="report" ref={report}><summary>Отчёт и источники</summary><pre>{run.report}</pre><p>{run.view.outcome_source} · {run.view.terminal_source}</p>{Object.entries(run.view.sources).map(([name,hash])=><p className="source" key={name}>{name} · SHA-256: {hash}</p>)}</details>}
+
   </>;
 }
 

@@ -5,6 +5,10 @@ simulation only. Real model calls and station/public deployment remain separatel
 gated. The offline server must identify the simulator and provide no real-provider
 activation path; this approval does not authorize inference.
 
+Human authorized implementation of the local Ollama connection and offline tests,
+2026-10-23. Actual station inference still requires the revision-bound approval
+below; the simulator entry point remains unchanged.
+
 ## Goal and baseline
 
 Run the existing modeled payment-api recovery through the accepted UI with real
@@ -197,3 +201,39 @@ Out of scope: conversational clarifications mid-run, arbitrary tools/targets,
 production operations, persistent worker recovery, multi-user scheduling, remote
 publication/security scheme, GPU telemetry, new model-quality experiments and
 reusable SDD changes. Do not silently fold these into button wiring.
+
+## Local Ollama implementation slice (2026-10-23)
+
+Use `core/live-model-profile.json`: the BC-008 B-18 model identity and invocation
+settings, unchanged runtime budgets and nominal modeled fixture. This is a local
+smoke profile, not approval inherited from BC-008 or a model-quality experiment.
+Allow at most two preparation admissions per approved server process (failed
+preparations consume the allowance); no automatic retry or background inference.
+The intended manual smoke is one nominal run and one explicit refusal run.
+
+A separate loopback-only entry point requires a private approval file bound to
+Git revision, profile hash, evidence directory and exclusive provider use. An
+offline command writes an unapproved template; the operator explicitly approves
+it after review. Startup consumes that approval once, runs repository/UI gates,
+and rejects tracked/untracked source drift. It does not load the model.
+
+Only the fixed loopback Ollama API is callable; no environment proxy, HTTP
+redirect, browser-selected endpoint/model/options, download or shell execution.
+Reuse the existing chat adapter's request settings and runtime SYSTEM/context;
+keep frozen experiment entry points unchanged. Validate metadata before preload
+and inference. Bound response bytes; retain exact inputs/outputs privately.
+A completed but invalid model proposal goes through runtime schema rejection.
+Unknown provider completion retains the shared local outstanding marker and
+blocks admission across server restarts and evidence-directory changes.
+
+A user-scoped local coordinator lock prevents multiple instances of this entry
+point. It does not control unrelated clients of Ollama or protect a compromised
+local account. Operator approval attests exclusive use and absence of outstanding
+provider work. No tunnel, external listener, firewall opening, public deployment
+or public abuse protection is included. Public use remains prohibited pending
+its separate access/resource-protection design.
+
+The transport identifies simulator versus Ollama from server-owned metadata;
+UI labels, help and reports must reflect that identity, never infer it from the
+selected mode. No secrets, provider URLs or private evidence paths are sent to
+browser responses or committed artifacts.

@@ -5,7 +5,7 @@ import success from '../public/runs/success.json';
 const time='2026-10-22T12:00:00Z';
 const confirmation={confirmation_id:'c1',created_at:time,expires_at:'2026-10-22T12:05:00Z',action_summary:'Увеличить число реплик',target_summary:'payment-api',rationale:'capacity',expected_effect:'capacity',evidence_summary:'observed',parameters:[]};
 const run={kind:'snapshot',version:'live.v1',run_id:'r1',phase:'awaiting_confirmation',runtime_state:null,goal:'Восстанови сервис',model_status:'ready',service_view:null,pending_confirmation:confirmation,stop_requested:false,terminal:null,cursor:0,server_time:time};
-const session={kind:'session',version:'live.v1',session_id:'s1',server_time:time,reservation:null,current_run_id:'r1',model_status:'ready',preparation_error:null};
+const session={kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'s1',server_time:time,reservation:null,current_run_id:'r1',model_status:'ready',preparation_error:null};
 beforeEach(()=>{window.history.replaceState({garScreen:'home'},'','#home');localStorage.clear();});
 afterEach(()=>vi.unstubAllGlobals());
 function mockBackend({visitor=false,terminal=false,reservation=false,busyOnPrepare=false}={}){

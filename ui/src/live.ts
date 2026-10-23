@@ -19,9 +19,14 @@ const terminal = z.object({origin:z.enum(['platform','runtime']),reason_code:tex
   runtime_outcome:z.object({task_state:z.enum(['COMPLETED','SAFE_FALLBACK','FAILED']),
     stop_reason:text.nullable(),rollback_completed:z.boolean(),unknown_write_effect:z.boolean()}).nullable()});
 const version = z.literal('live.v1');
+const providerSchema=z.object({kind:z.enum(['simulator','ollama']),model_name:z.string().nullable()});
+export type Provider=z.infer<typeof providerSchema>;
+export function providerLabel(provider?:Provider){return provider?.kind==='ollama'?`Локальная LLM · ${provider.model_name}`:provider?.kind==='simulator'?'Локальная проверка · имитатор модели':'Тип модели уточняется';}
+export function providerNotice(provider?:Provider){return provider?.kind==='ollama'?'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.':provider?.kind==='simulator'?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'Сохранённые примеры доступны без вызова модели. Тип живого подключения уточняется.';}
+
 export const statusSchema = z.object({kind:z.literal('status'),version,
-  availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
-export const sessionSchema = z.object({kind:z.literal('session'),version,session_id:text,server_time:text,
+  provider:providerSchema.optional(),availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
+export const sessionSchema = z.object({kind:z.literal('session'),version,provider:providerSchema.optional(),session_id:text,server_time:text,
   reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','stopping']),expires_at:text.nullable(),service_view:observation}).nullable(),
   current_run_id:text.nullable(),model_status:model,
   preparation_error:z.object({code:text,message:text}).nullable()});
@@ -111,7 +116,7 @@ export async function loadEvents(runId:string, previous:LiveEvent[]) {
 export function explainError(error:unknown){
   const code=error instanceof ApiError?error.code:'';
   return ({LIVE_BUSY:'Живой режим занят. Пока можно посмотреть демонстрационный пример.',
-    LIVE_UNAVAILABLE:'Живой режим временно недоступен.',SESSION_REQUIRED:'Сессия завершена. Начните заново.',
+    LIVE_UNAVAILABLE:'Живой режим временно недоступен.',SMOKE_LIMIT:'Лимит проверочного запуска исчерпан. Требуется новое одобрение.',SESSION_REQUIRED:'Сессия завершена. Начните заново.',
     BROWSER_LOCK_UNAVAILABLE:'В этом браузере доступен только демонстрационный пример.',
     CONFIRMATION_EXPIRED:'Время подтверждения истекло.',ACTION_NOT_PENDING:'Это действие уже не ожидает решения.',
     SESSION_LIMIT:'Достигнут лимит локальной тестовой сессии.',

@@ -1,7 +1,7 @@
 import { CompactComposer, ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, command, ensureSession, explainError, loadEvents, request, sessionSchema,
-  snapshotSchema, statusSchema, type LiveEvent, type Session, type Snapshot, type ServiceView } from './live';
+  snapshotSchema, statusSchema, providerLabel, type LiveEvent, type Session, type Snapshot, type ServiceView } from './live';
 
 type Props={onExit:()=>void;renderState:(s:ServiceView,unknown:boolean)=>ReactNode;renderCompact:(s:ServiceView,unknown:boolean)=>ReactNode};
 const labels:Record<string,string>={preparing:'Подготовка',ready:'Готов к запросу',running:'Активен',
@@ -147,7 +147,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}
       <section className="chat" aria-label="Интерактивный диалог">
         {serviceView&&renderCompact(serviceView,unknown)}
-        <div className="chat-head"><div><h2>Агент управления сервисом<span className="simulator-label" title="Фиксированный тестовый сценарий независимо от текста запроса; LLM не вызывается.">Локальная проверка · имитатор модели</span></h2><div className="agent-controls"><span role="status">{session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания истекло':labels[snapshot?.phase??session?.reservation?.phase??'']??'Готов к началу'}</span>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
+        <div className="chat-head"><div><h2>Агент управления сервисом<span className="simulator-label" >{providerLabel(session?.provider)}</span></h2><div className="agent-controls"><span role="status">{session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания истекло':labels[snapshot?.phase??session?.reservation?.phase??'']??'Готов к началу'}</span>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
         <div className="messages" ref={messages} aria-label="События интерактивного диалога">
           {currentEvents.filter(e=>['goal_accepted','proposal_recorded','operator_decision','confirmation_requested'].includes(e.event_kind)).map(e=>{
             const decision=e.event_kind==='operator_decision'?e:null;
@@ -157,31 +157,32 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
               submittedDecision.current!==confirmationEvent.payload.confirmation_id&&
               !events.some(x=>x.event_kind==='operator_decision'&&x.payload.confirmation_id===confirmationEvent.payload.confirmation_id);
             return <article key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='chat'&&highlight.sequence===e.sequence} className={e.actor==='operator'?'user-message':e.actor==='agent'?'agent-message':'runtime-message'}>
-              <div className="author"><span className="actor-label">{e.actor==='agent'?'Агент · имитатор':e.actor==='operator'?'Оператор':'Runtime'}</span> · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString('ru-RU')}</time></div>
-              {decision?<><div className="recorded-decision"><span className={'decision-choice '+(decision.payload.decision==='approve'?'approved':'rejected')}>{decision.payload.decision==='approve'?'✓ Подтверждено':'Отклонено'}</span></div><p>{context?.event_kind==='confirmation_requested'?context.payload.action_summary:'Решение по действию'}.</p></>:<EventText event={e}/>}
+              <div className="author"><span className="actor-label">{e.actor==='agent'?(session?.provider?.kind==='simulator'?'Агент · имитатор':'Агент'):e.actor==='operator'?'Оператор':'Runtime'}</span> · <time dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString('ru-RU')}</time></div>
+              {decision?<><div className="recorded-decision"><span className={'decision-choice '+(decision.payload.decision==='approve'?'approved':'rejected')}>{decision.payload.decision==='approve'?'✓ Подтверждено':'Отклонено'}</span></div><p>{context?.event_kind==='confirmation_requested'?context.payload.action_summary:'Решение по действию'}.</p></>:<EventText event={e} simulator={session?.provider?.kind==='simulator'}/>}
               <LiveDetails event={e} events={events} onReveal={reveal}/>
               {awaiting&&<div className="confirmation-actions"><p>{pendingConfirmation.target_summary}</p><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
             </article>;
           })}
-          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><ReportDialog><p>Имитатор модели · без LLM inference</p><p>Начальный запрос: {snapshot.goal}</p><p>Результат: {snapshot.terminal.reason_code}</p><p>Событий интерфейса: {events.length}</p><p>Наблюдение: {snapshot.service_view?.observation_id??'Не получено'}</p></ReportDialog></section>}
+          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><ReportDialog><p>{providerLabel(session?.provider)}</p><p>Начальный запрос: {snapshot.goal}</p><p>Результат: {snapshot.terminal.reason_code}</p><p>Событий интерфейса: {events.length}</p><p>Наблюдение: {snapshot.service_view?.observation_id??'Не получено'}</p></ReportDialog></section>}
           {!snapshot&&session?.reservation&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте цель агенту.</p>}
         </div>
         {session?.reservation&&!active?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
           <div className="live-suggestions">{['Восстанови работу сервиса','После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'].map(text=><button type="button" className="action" key={text} disabled={!canSubmit} onClick={()=>setGoal(text)}>{text}</button>)}</div>
           <label htmlFor="live-goal">Запрос агенту</label><textarea id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}</div>
+          {session.provider?.kind==='ollama'&&<small>Можно изменить подсказку: формулировка запроса может повлиять на результат. Ответ модели может быть на английском.</small>}
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
         </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><CompactComposer text={blockedText}/></div>}
 
       </section>
-      <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>
+      <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e} simulator={session?.provider?.kind==='simulator'}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>
     </div>
   </>;
 }
 
-export function EventText({event:e}:{event:LiveEvent}){
+export function EventText({event:e,simulator=false}:{event:LiveEvent;simulator?:boolean}){
   switch(e.event_kind){
     case 'goal_accepted':return <p>{e.payload.goal}</p>;
-    case 'proposal_recorded':return <><p>Предложение агента: {e.payload.action_summary}.</p><small>Краткое объяснение сформировано интерфейсом</small><p className="subtle">Оригинальное пояснение имитатора</p><p>{e.payload.proposal.rationale}</p></>;
+    case 'proposal_recorded':return <><p>Предложение агента: {e.payload.action_summary}.</p><small>Краткое объяснение сформировано интерфейсом</small><p className="subtle">{simulator?'Оригинальное пояснение имитатора':'Оригинальное пояснение модели'}</p><p>{e.payload.proposal.rationale}</p></>;
     case 'confirmation_requested':return <p>Требуется подтверждение: {e.payload.action_summary}.</p>;
     case 'operator_decision':return <p>{e.payload.decision==='approve'?'Оператор подтвердил':'Оператор отклонил'} предложенное действие.</p>;
     case 'admission_checked':return <><p>{e.payload.explanation} ({e.payload.result})</p><details><summary>Проверки runtime</summary><ul>{e.payload.checks.map(c=><li key={c.id}>{c.label}: {c.status}{c.reason?` · ${c.reason}`:''}</li>)}</ul></details></>;

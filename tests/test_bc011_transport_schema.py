@@ -98,6 +98,7 @@ def test_preparation_failure_has_no_fabricated_runtime_outcome():
 def test_public_status_contains_no_owner_data(status):
     v = validator()
     value = {"kind": "status", "version": "live.v1", "availability": status,
+             "provider": {"kind": "simulator", "model_name": None},
              "model_status": "unknown", "server_time": "2026-10-21T12:00:00Z"}
     v.validate(value)
     for field in ("run_id", "session_id", "goal", "confirmation_id"):

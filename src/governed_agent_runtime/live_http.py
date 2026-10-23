@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 from jsonschema import Draft202012Validator
 from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
@@ -33,7 +34,7 @@ def create_app(service, origin="http://127.0.0.1:8000"):
     def response(value, status=200):
         data = JSONResponse(value, status_code=status, headers={
             "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
-            "X-GAR-Provider": "simulator"})
+            "X-GAR-Provider": service.provider_info["kind"]})
         if len(data.body) > 1024 * 1024:
             raise LiveError("LIVE_UNAVAILABLE", 503)
         return data
@@ -134,7 +135,26 @@ def create_app(service, origin="http://127.0.0.1:8000"):
         yield
         service.close()
 
-    return Starlette(routes=routes, lifespan=lifespan)
+    app = Starlette(routes=routes, lifespan=lifespan)
+
+    async def local_boundary(request, call_next):
+        # Apply Host protection and framing restrictions to static UI as well as APIs.
+        if (request.headers.get("host") != parsed.netloc
+                or any(name in request.headers for name in
+                       ("forwarded", "x-forwarded-for", "x-forwarded-host"))):
+            return JSONResponse({"code": "ORIGIN_REJECTED"}, status_code=403)
+        result = await call_next(request)
+        result.headers["Content-Security-Policy"] = (
+            "default-src 'self'; connect-src 'self'; script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+            "object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+        result.headers["X-Frame-Options"] = "DENY"
+        result.headers["Referrer-Policy"] = "no-referrer"
+        result.headers["X-Content-Type-Options"] = "nosniff"
+        return result
+
+    app.add_middleware(BaseHTTPMiddleware, dispatch=local_boundary)
+    return app
 
 
 def main():

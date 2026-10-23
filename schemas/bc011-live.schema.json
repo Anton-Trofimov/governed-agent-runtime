@@ -647,7 +647,8 @@
         "version",
         "availability",
         "model_status",
-        "server_time"
+        "server_time",
+        "provider"
       ],
       "properties": {
         "kind": {
@@ -677,6 +678,9 @@
           "format": "date-time",
           "maxLength": 40,
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?Z$"
+        },
+        "provider": {
+          "$ref": "#/$defs/provider"
         }
       }
     },
@@ -693,7 +697,8 @@
         "current_run_id",
         "model_status",
         "preparation_error",
-        "server_time"
+        "server_time",
+        "provider"
       ],
       "properties": {
         "kind": {
@@ -826,6 +831,9 @@
           "format": "date-time",
           "maxLength": 40,
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?Z$"
+        },
+        "provider": {
+          "$ref": "#/$defs/provider"
         }
       }
     },
@@ -1702,6 +1710,29 @@
         },
         "has_more": {
           "type": "boolean"
+        }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "model_name"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "simulator",
+            "ollama"
+          ]
+        },
+        "model_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
         }
       }
     }

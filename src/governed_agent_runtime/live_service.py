@@ -1,4 +1,4 @@
-"""Local single-slot coordinator. Production provider activation is deliberately absent."""
+"""Local single-slot coordinator. Provider activation requires a separately approved entry point."""
 
 import fcntl
 import hashlib
@@ -10,6 +10,7 @@ import time
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import ClassVar
 from uuid import uuid4
 
 from governed_agent_runtime.bc006_runtime import (
@@ -19,6 +20,7 @@ from governed_agent_runtime.bc006_runtime import (
     canonical,
     utcnow,
 )
+from governed_agent_runtime.live_ollama import private_json
 from governed_agent_runtime.live_projection import TOOLS, confirmation, observation, outcome
 
 
@@ -38,6 +40,8 @@ class LiveError(Exception):
 
 class SimulatedModel:
     """Deterministic nominal proposal path; not LLM evidence or arbitrary-text reasoning."""
+
+    provider_info: ClassVar[dict] = {"kind": "simulator", "model_name": None}
 
     def prepare(self):
         return {"done": True}
@@ -66,20 +70,30 @@ class SimulatedModel:
 class LiveService:
     def __init__(self, root, evidence, *, provider=None, preparation_seconds=300,
                  inference_seconds=300, ready_seconds=300, confirmation_seconds=300,
-                 reconciliation_seconds=30, monotonic=time.monotonic):
+                 reconciliation_seconds=30, monotonic=time.monotonic,
+                 operation_dir=None, max_preparations=None, startup_metadata=None):
         self.root = Path(root)
         self.evidence = Path(evidence).resolve()
         if self.evidence.is_relative_to(self.root.resolve()):
             raise ValueError("Live evidence must be outside the repository")
         self.evidence.mkdir(parents=True, exist_ok=True, mode=0o700)
         os.chmod(self.evidence, 0o700)
-        self.process_lock = (self.evidence / "coordinator.lock").open("a")
+        self.operation_dir = Path(operation_dir).resolve() if operation_dir else self.evidence
+        if self.operation_dir.is_relative_to(self.root.resolve()):
+            raise ValueError("Provider state must be outside the repository")
+        self.operation_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        os.chmod(self.operation_dir, 0o700)
+        self.process_lock = (self.operation_dir / "coordinator.lock").open("a")
         try:
             fcntl.flock(self.process_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
             self.process_lock.close()
             raise ValueError("Evidence directory already has an active coordinator") from None
         self.provider = provider or SimulatedModel()
+        self.provider_info = deepcopy(self.provider.provider_info)
+        self.max_preparations = max_preparations
+        self.preparations = 0
+        self.startup_metadata = startup_metadata or {}
         self.preparation_seconds, self.inference_seconds = preparation_seconds, inference_seconds
         self.ready_seconds, self.confirmation_seconds = ready_seconds, confirmation_seconds
         self.reconciliation_seconds = reconciliation_seconds
@@ -87,7 +101,7 @@ class LiveService:
         self.condition = threading.Condition(threading.RLock())
         self.sessions, self.runs = {}, {}
         self.slot = None
-        self.marker = self.evidence / "outstanding-operation.json"
+        self.marker = self.operation_dir / "outstanding-operation.json"
         self.quarantined = self.marker.exists()
         self.model_status = "unknown"
         self.closed = False
@@ -163,10 +177,12 @@ class LiveService:
     def status(self):
         with self.condition:
             self._expire()
-            availability = "unavailable" if self.quarantined or self.closed else (
+            availability = "unavailable" if self.quarantined or self.closed or (
+                self.max_preparations is not None and self.preparations >= self.max_preparations
+                and not self.slot) else (
                 "busy" if self.slot else "available")
             return {"kind": "status", "version": "live.v1", "availability": availability,
-                    "model_status": self.model_status, "server_time": now()}
+                    "model_status": self.model_status, "provider": self.provider_info, "server_time": now()}
 
     def session_view(self, session):
         slot = self.slot if self.slot and self.slot["session_id"] == session["id"] else None
@@ -176,7 +192,7 @@ class LiveService:
                            "expires_at": slot.get("expires_at"),
                            "service_view": deepcopy(slot["service_view"])}
         return {"kind": "session", "version": "live.v1", "session_id": session["id"],
-                "session_state": "open", "expires_at": None if slot else (
+                "session_state": "open", "provider": self.provider_info, "expires_at": None if slot else (
                     datetime.now(UTC) + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
                 "reservation": reservation, "current_run_id": session["current"],
                 "model_status": self.model_status, "preparation_error": session["preparation_error"],
@@ -248,8 +264,11 @@ class LiveService:
                 raise LiveError("LIVE_UNAVAILABLE", 503)
             if self.slot:
                 raise LiveError("LIVE_BUSY")
+            if self.max_preparations is not None and self.preparations >= self.max_preparations:
+                raise LiveError("SMOKE_LIMIT", 503)
             if len(session["runs"]) >= 8 or len(session["commands"]) > 430:
                 raise LiveError("SESSION_LIMIT")
+            self.preparations += 1
             fixture = json.loads((self.root / "fixtures/scenarios/bc-006/s12.json").read_text())
             environment = SyntheticEnvironment(fixture, utcnow)
             self.slot = {"environment": environment,
@@ -267,6 +286,10 @@ class LiveService:
             if slot["run_id"] or slot["cancel"]:
                 raise LiveError("LIVE_BUSY")
             run_id, reservation_id = identifier(), slot["id"]
+            if self.provider_info["kind"] == "ollama":
+                private_json(self.evidence / "requests" / f"{run_id}.json", {
+                    "run_id": run_id, "goal": body["goal"], "accepted_at": now(),
+                    "reservation_id": reservation_id})
             run = {"run_id": run_id, "phase": "preparing", "runtime_state": None,
                    "goal": body["goal"], "service_view": deepcopy(slot["service_view"]), "pending_confirmation": None,
                    "stop_requested": False, "terminal": None, "events": [], "rt": None,
@@ -330,7 +353,7 @@ class LiveService:
             file.write(canonical({"operation_id": identifier(), "status": "outstanding"}))
             file.flush()
             os.fsync(file.fileno())
-        directory = os.open(self.evidence, os.O_RDONLY)
+        directory = os.open(self.operation_dir, os.O_RDONLY)
         try:
             os.fsync(directory)
         finally:
@@ -370,7 +393,9 @@ class LiveService:
 
     def _prepare(self, slot):
         try:
-            self._provider_call(self.provider.prepare, self.preparation_seconds)
+            prepared = self._provider_call(self.provider.prepare, self.preparation_seconds)
+            if prepared.get("error"):
+                raise ValueError("Preparation failed")
             with self.condition:
                 if self.slot is not slot:
                     return
@@ -395,7 +420,7 @@ class LiveService:
                 reason = "PREPARATION_TIMEOUT" if isinstance(error, TimeoutError) else (
                     "PREPARATION_FAILED")
                 slot["session"]["preparation_error"] = {
-                    "code": reason, "message": "Не удалось подготовить имитатор"}
+                    "code": reason, "message": "Не удалось подготовить модель. Запрос не выполнен."}
                 run = self.runs.get(slot["run_id"])
                 if run:
                     self._platform_terminal(run, reason)
@@ -409,6 +434,9 @@ class LiveService:
         run["model_status"] = self.model_status
         self._phase(run, "terminal")
         self._event(run, "run_finished", "platform", run["terminal"])
+        if self.provider_info["kind"] == "ollama":
+            private_json(self.evidence / "requests" / f"{run['run_id']}-outcome.json", {
+                "run_id": run["run_id"], "terminal": run["terminal"], "real_inference": False})
 
     def _trace(self, run, event):
         kind = event["kind"]
@@ -473,6 +501,11 @@ class LiveService:
         self._phase(run, "running")
         return result
 
+    def _infer(self, context, run):
+        if self.provider_info["kind"] == "ollama":
+            return self.provider.infer(context, evidence_dir=self.evidence / run["run_id"])
+        return self.provider.infer(context)
+
     def _run(self, slot, run):
         try:
             with self.condition:
@@ -495,14 +528,22 @@ class LiveService:
                         break
                     self.model_status = run["model_status"] = "inference"
                     self._event(run, "model_status_changed", "platform", {"model_status": "inference"})
-                response = self._provider_call(lambda ctx=context: self.provider.infer(ctx),
+                response = self._provider_call(lambda ctx=context: self._infer(ctx, run),
                                                self.inference_seconds)
                 with self.condition:
                     self.model_status = run["model_status"] = "ready"
                     if run["stop_requested"] or self.closed:
                         rt.stop("OPERATOR_REQUESTED_STOP")
                         break
-                    proposal = response["proposal"]
+                    if response.get("error"):
+                        raise ValueError("Provider rejected the operation")
+                    raw = response.get("raw_proposal")
+                    if raw is None:
+                        raw = canonical(response["proposal"])
+                    try:
+                        proposal = json.loads(raw)
+                    except (ValueError, TypeError):
+                        proposal = None
                     from jsonschema import Draft202012Validator
                     run["submitted_proposal_sequence"] = None
                     if Draft202012Validator(rt.schemas["proposal_schema"]).is_valid(proposal):
@@ -511,7 +552,7 @@ class LiveService:
                             "action_summary": TOOLS.get(proposal["tool_name"], "Остановить выполнение")})
                         run["submitted_proposal_sequence"] = run["events"][-1]["sequence"]
                     try:
-                        rt.submit(canonical(proposal), confirm=lambda req: self._confirm(run, req))
+                        rt.submit(raw, confirm=lambda req: self._confirm(run, req))
                     finally:
                         run["submitted_proposal_sequence"] = None
         except Exception:  # noqa: BLE001 - fail closed at provider boundary
@@ -533,7 +574,12 @@ class LiveService:
                     (self.evidence / run["run_id"] / "outcome.json").write_text(
                         json.dumps(run["terminal"], ensure_ascii=False))
                     (self.evidence / run["run_id"] / "manifest.json").write_text(canonical({
-                        "provider_kind": "deterministic_simulator", "real_inference": False,
+                        "provider_kind": self.provider_info["kind"],
+                        "real_inference": bool(getattr(self.provider, "inference_attempts", {}).get(
+                            str(self.evidence / run["run_id"]), 0)),
+                        "provider_request_attempts": getattr(self.provider, "inference_attempts", {}).get(
+                            str(self.evidence / run["run_id"]), 0),
+                        "startup": self.startup_metadata,
                         "run_id": run["run_id"], "summary": rt.summary()}))
                 if self.slot is slot:
                     self._release()

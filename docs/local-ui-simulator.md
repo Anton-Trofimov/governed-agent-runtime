@@ -58,3 +58,65 @@ the workspace; it releases an unused reservation but does not stop an active run
 Before goal submission, the countdown uses server time. After 300 seconds in
 ready state without a goal, the reservation expires and the slot is released;
 use “Начать заново” explicitly. A free slot does not extend an expired reservation.
+
+## Local Ollama connection — implementation ready, station smoke not yet approved
+
+The simulator command above remains inference-free. The separate entry point
+`python -m governed_agent_runtime.live_ollama_http` requires a private approval
+file; merely running the UI or opening a recorded example never loads a model.
+The pinned [local profile](../specs/core/live-model-profile.json) uses BC-008
+B-18's model/configuration. No model download or fallback substitution is provided.
+
+Before the first smoke, review the final revision/profile and confirm that Ollama
+is available only locally, no other client is using it and no earlier request is
+outstanding. A loopback binding of this application does not change Ollama's own
+listener or firewall configuration. Do not publish either service through a
+proxy, tunnel or port forwarding. These checks are a local test boundary, not a
+public authentication or GPU-abuse protection solution.
+
+Prepare the approval template **without contacting Ollama**, in the repository
+with the virtual environment activated:
+
+```sh
+python -m governed_agent_runtime.live_ollama_http \
+  --evidence-dir "$HOME/.local/state/gar-ui-ollama/smoke-001" \
+  --write-approval-template "$HOME/.local/state/gar-ui-ollama/approval-001.json"
+```
+
+The template records the revision/profile hash and private destination, with
+`approved`, `exclusive_provider` and `no_outstanding_work` set to false. After
+human review, fill `reviewer` and explicitly set those three fields to true.
+Do not approve automatically or copy an old approval to a changed revision.
+Stop the simulator before the approved run (both use the same loopback port).
+Only after that approval:
+
+```sh
+python -m governed_agent_runtime.live_ollama_http \
+  --evidence-dir "$HOME/.local/state/gar-ui-ollama/smoke-001" \
+  --approval-file "$HOME/.local/state/gar-ui-ollama/approval-001.json"
+```
+
+Startup requires a clean checkout and runs Python/UI verification before serving
+`http://127.0.0.1:8000`. It consumes the approval once, but performs no inference
+until explicit admission. Two preparation attempts are allowed in total; failed
+attempts count. Suggested bounded review: one nominal goal with the necessary
+confirmations, then a fresh run with explicit refusal. Runtime budgets remain
+16 proposals, 20 tool calls and 3 state-changing modeled operations per run.
+The preparation, inference and operator deadlines retain their separate meanings.
+No automatic rerun is scheduled and `keep_alive` remains 10 minutes.
+
+Provider version or digest mismatch prevents preload/inference. If the installed
+profile differs, stop and review the difference rather than editing the check
+away. All requests use a fixed local provider address, without environment proxy
+or HTTP redirect support. Browser payloads cannot configure it.
+
+The coordinator uses shared private local state across evidence directories;
+only one instance can own it. An outstanding provider-operation marker blocks
+admission after uncertain completion/restart. Do not remove it to force retry:
+first establish that provider work has ended, then review local recovery and a
+new startup approval. This lock cannot exclude unrelated direct Ollama clients.
+
+Raw goals, requests, responses, approval and results stay in private local evidence.
+Only reviewed/sanitized conclusions belong in Git. Never upload these directories
+wholesale. A successful smoke is an integration observation, not a new quality
+benchmark or evidence of safe public deployment.

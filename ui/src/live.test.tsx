@@ -35,7 +35,7 @@ it('rejects a terminal snapshot without an outcome',()=>{
 });
 it('restores an existing session read-only after mounting',async()=>{
   const fetcher=vi.fn(async(path:string)=>({ok:true,json:async()=>{
-    if(path==='/api/session')return {kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
+    if(path==='/api/session')return {kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null};
     if(path.includes('/events?'))return page;
     return snapshot;
@@ -46,12 +46,12 @@ it('restores an existing session read-only after mounting',async()=>{
   await waitFor(()=>expect(screen.getByText('CONFIRMATION_EXPIRED')).toBeVisible());
   expect(fetcher.mock.calls.every((call)=>!String(call[0]).includes('/decisions'))).toBe(true);
   expect(fetcher.mock.calls.some(call=>call[0]==='/api/sessions')).toBe(false);
-  expect(screen.getByText('Локальная проверка · имитатор модели')).toBeVisible();
+  expect(screen.getByRole('heading',{name:/Агент управления сервисом/})).toHaveTextContent('Локальная проверка · имитатор модели');
 });
 
 it('keeps only a disabled contextual composer after completion and exposes home navigation',async()=>{
   vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>
-    path==='/api/session'?{kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
+    path==='/api/session'?{kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null}:path.includes('/events?')?page:snapshot})));
   render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
   await screen.findByRole('button',{name:'Начать заново'});
@@ -65,7 +65,7 @@ const initialView={observation_id:'obs-0-0',observed_at:'2026-10-22T12:00:00Z',
   stable_version_id:'2.4.1',candidate_version_id:'2.4.2',desired:6,healthy:6,candidate_count:2,
   stable_traffic_rps:615,total_rps:820,safe_rps_per_replica:150,conflicting_operation:false,
   rollout_state:'PAUSED',shift_id:null,recovery:{status:'UNKNOWN',shift_id:null}};
-const sessionBase={kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
+const sessionBase={kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
   current_run_id:'run-1',model_status:'ready',preparation_error:null};
 it('clears previous chat and journal only after successful new admission, before a goal',async()=>{
   let admitted=false;
@@ -175,4 +175,19 @@ it('links live proposal and admission in both directions and preserves journal r
   items=[...items,{...checkEvent,sequence:6}];
   await waitFor(()=>expect(container.querySelector('.journal [data-live-event="6"]')).not.toBeNull(),{timeout:2000});
   expect(journal.scrollTop).toBe(1000);
+});
+
+it('uses server provider identity for real-model labels without sending commands',async()=>{
+  const fetcher=vi.fn(async(path:string)=>({ok:true,json:async()=>{
+    if(path==='/api/session')return {kind:'session',provider:{kind:'ollama',model_name:'qwen3.8:27b'},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
+      current_run_id:'run-1',model_status:'ready',preparation_error:null};
+    if(path.includes('/events?'))return page;
+    return snapshot;
+  }}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  await screen.findByRole('button',{name:'Начать заново'});
+  expect(screen.getByRole('heading',{name:/Агент управления сервисом/})).toHaveTextContent('Локальная LLM · qwen3.8:27b');
+  expect(screen.queryByText(/имитатор/i)).not.toBeInTheDocument();
+  expect(fetcher.mock.calls.every(call=>!String(call[0]).includes('/decisions'))).toBe(true);
 });

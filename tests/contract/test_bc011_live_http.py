@@ -346,3 +346,14 @@ def test_expired_goal_is_rejected_at_command_boundary_without_maintenance(live):
         assert service.slot is None
         assert service.runs == {}
         assert service.session_view(session)["preparation_error"]["code"] == "READY_EXPIRED"
+
+
+def test_local_ui_rejects_proxy_headers_host_spoofing_and_framing(live):
+    _, client = live
+    assert client.get('/', headers={'host': 'foreign.invalid'}).status_code == 403
+    for header in ('forwarded', 'x-forwarded-for', 'x-forwarded-host'):
+        assert client.get('/api/status', headers={header: 'foreign.invalid'}).status_code == 403
+    response = client.get('/api/status')
+    assert response.headers['x-frame-options'] == 'DENY'
+    assert "frame-ancestors 'none'" in response.headers['content-security-policy']
+    assert "connect-src 'self'" in response.headers['content-security-policy']

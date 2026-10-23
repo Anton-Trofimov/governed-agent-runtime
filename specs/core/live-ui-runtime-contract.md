@@ -440,3 +440,19 @@ as a live-stream identifier, not a raw trace ID. Reciprocal navigation opens the
 target details and highlights for two seconds without scrolling the page.
 Journal follow-to-bottom applies only while the reader is already at the bottom;
 reading older entries or navigating to a linked check must not be interrupted.
+
+### Local provider implementation handoff (2026-10-23)
+
+The concrete profile is `live-model-profile.json`; activation and private approval
+are specified in BC-011's local Ollama slice. Implementation and offline tests are
+authorized; actual station inference still requires revision-bound human approval.
+The simulator CLI remains inference-free. The separate Ollama CLI binds loopback,
+uses no proxy/redirect and accepts no browser-supplied provider configuration.
+
+`status` and `session` responses now include server-owned `provider` metadata:
+`kind` (`simulator` or `ollama`) and nullable `model_name`. These disclose no owner,
+endpoint or private path. Older UI responses without it render an unknown-provider
+label rather than claiming actual inference. Runtime/consent semantics are unchanged.
+A shared user-scoped coordinator lock and outstanding marker survive evidence
+location changes. Approval consumption and the two-preparation smoke allowance
+bound the test; they are not public authentication or per-person rate limiting.

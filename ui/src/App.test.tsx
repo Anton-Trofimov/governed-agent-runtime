@@ -122,7 +122,7 @@ it('opens explanatory dialog only on demand and restores trigger focus',async()=
  fireEvent.click(trigger);
  const dialog=screen.getByRole('dialog');
  expect(dialog).toHaveTextContent('Подтверждение оператора тоже не отменяет проверки платформы');
- expect(dialog).toHaveTextContent('инференс LLM осуществляется на реальной AI-инфраструктуре');
+ expect(dialog).toHaveTextContent('Сохранённые примеры доступны без вызова модели');
  fireEvent.click(within(dialog).getByRole('button',{name:'Закрыть'}));
  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
  expect(trigger).toHaveFocus();

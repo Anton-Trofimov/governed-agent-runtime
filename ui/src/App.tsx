@@ -8,6 +8,8 @@ type Loader = (id: string) => Promise<Run>;
 const timestamp = (value:string) => new Intl.DateTimeFormat('ru-RU', {dateStyle:'short', timeStyle:'medium',timeZone:'Europe/Moscow'}).format(new Date(value))+' МСК';
 
 export function App({loader=loadRun}:{loader?:Loader}) {
+  const [mobile,setMobile]=useState(()=>window.innerWidth<=620);
+  useEffect(()=>{const resize=()=>setMobile(window.innerWidth<=620);window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const help=useRef<HTMLDialogElement>(null);
   const helpButton=useRef<HTMLButtonElement>(null);
   const [live,setLive]=useState(false);
@@ -109,12 +111,14 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const returnButton=<button className="action" onClick={()=>void navigate('live')}>{terminalOwner?'Посмотреть результат':'Вернуться к запуску'}</button>;
   const liveControls=<>{activeOwner?returnButton:<button className="action" disabled={liveBusy||(!startCommand.current&&availability!=='available')} onClick={()=>void enterLive(!!terminalOwner)}>{liveBusy?'Подготовка…':startCommand.current?'Повторить запрос старта':terminalOwner?'Начать заново':'Начать живой сценарий'}</button>}</>;
   const resultLink=terminalOwner?<button className="text-link" onClick={()=>void navigate('live')}>Посмотреть результат</button>:null;
-  const ownerAccess=ownsRun?<aside className="owner-access" aria-label="Ваш запуск">{ownerStatus}{returnButton}</aside>:null;
+  const ownerAccess=ownsRun&&!mobile?<aside className="owner-access" aria-label="Ваш запуск">{ownerStatus}{returnButton}</aside>:null;
+  const remaining=ownerConnected&&owner?.run?.phase==='awaiting_confirmation'&&owner.run.pending_confirmation?Math.max(0,Math.ceil((Date.parse(owner.run.pending_confirmation.expires_at)-Date.parse(owner.run.server_time)-Math.max(0,clock-owner.received))/1000)):null;
+  const mobileReturn=mobile&&ownsRun?<button className="text-link mobile-owner-access" onClick={()=>void navigate('live')}>{terminalOwner?'Результат живого запуска':'Вернуться к запуску'}{remaining!==null?` · ${Math.floor(remaining/60)}:${String(remaining%60).padStart(2,'0')}`:''}{!ownerConnected?' · связь уточняется':''}</button>:null;
   return <div id="operator-workspace" className={live||started?'working-mode':''}>
     <header className="brandbar"><a href="#home" className="brand" onClick={e=>{e.preventDefault();void navigate('home');}}>Governed Agent</a><div className="platform-concept"><strong>Агентная платформа с разделением ответственности</strong></div><button className="help-trigger" ref={helpButton} onClick={()=>help.current?.showModal()} aria-haspopup="dialog">ⓘ Как это работает</button></header>
     <AboutDialog live={live} dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
     <main id="main">{!live&&<div className={started?"task-toolbar demo-toolbar":"context"}><h1 id="task-heading">Восстановление сервиса <span className="service-name">payment-api</span></h1>
-      {started&&!live&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}{started&&<button className="action home-button" onClick={()=>void navigate('home')}>К началу</button>}</div>}
+      {started&&!live&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}{started&&<nav className="demo-navigation" aria-label="Навигация примера"><button className="action home-button" onClick={()=>void navigate('home')}>К началу</button>{mobileReturn}</nav>}</div>}
 
       {live&&liveError&&<p role="alert" className="admission-notice">{liveError}</p>}
       {live?<LiveWorkspace onExit={()=>void navigate('home')} renderState={(s,unknown)=><StatePanel o={s} live unknown={unknown}/>} renderCompact={(s,unknown)=><CompactState o={s} unknown={unknown}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={value=>void navigate(value?'demo':'home')} liveControls={liveControls} ownerStatus={ownerStatus} ownerAccess={ownerAccess} resultLink={resultLink} availability={availability} liveError={liveError} ownsRun={ownsRun}/>}
@@ -150,7 +154,7 @@ function Workspace({run,started,setStarted,liveControls,ownerStatus,ownerAccess,
   },[cursor,started,events]);
   useEffect(()=>{if(!started)setCursor(0);},[started]);
   return <>
-    {started&&failureEvent>0&&<aside className="scenario-note"><span className="scenario-symbol" aria-hidden="true">!</span><div><strong>Проверка восстановления не пройдена</strong><p>В этом примере специально смоделирована неудачная проверка после переноса трафика (событие {failureEvent} просмотра).</p><p>Он показывает, остановится ли агент без подтверждения восстановления и передаст ли дальнейшие действия оператору.</p></div></aside>}
+    {started&&failureEvent>0&&<aside className="scenario-note"><span className="scenario-symbol" aria-hidden="true">!</span><div><strong>Проверка восстановления не пройдена</strong><p>В этом примере специально смоделирована неудачная проверка после переноса трафика (событие {failureEvent} просмотра). Он показывает, остановится ли агент без подтверждения восстановления и передаст ли дальнейшие действия оператору.</p></div></aside>}
     <div className={"workspace "+(started?"replaying":"")}>
       <StatePanel key={started?"playback":"welcome"} o={observation} final={done?run.view:undefined}/>
       <section className="chat" aria-label="Диалог с агентом">

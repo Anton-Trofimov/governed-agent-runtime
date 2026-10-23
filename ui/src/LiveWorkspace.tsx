@@ -1,4 +1,4 @@
-import { ReportDialog, revealEvent } from './presentation';
+import { CompactComposer, ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, command, ensureSession, explainError, loadEvents, request, sessionSchema,
   snapshotSchema, statusSchema, type LiveEvent, type Session, type Snapshot, type ServiceView } from './live';
@@ -170,7 +170,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
           <div className="live-suggestions">{['Восстанови работу сервиса','После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'].map(text=><button type="button" className="action" key={text} disabled={!canSubmit} onClick={()=>setGoal(text)}>{text}</button>)}</div>
           <label htmlFor="live-goal">Запрос агенту</label><textarea id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}</div>
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
-        </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><textarea aria-label="Состояние диалога" disabled rows={2} value={blockedText}/></div>}
+        </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><CompactComposer text={blockedText}/></div>}
 
       </section>
       <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>

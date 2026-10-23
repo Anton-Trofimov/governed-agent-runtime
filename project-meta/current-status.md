@@ -14,7 +14,7 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 324 Python tests, 53 UI tests, Ruff, TypeScript/Vite build,
+Verification: 324 Python tests, 55 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.
@@ -63,6 +63,11 @@ shared modal reports with focus restoration; explicit mobile cross-panel links
 reveal their target before highlighting. Mobile header/stop and welcome spacing
 are reduced, with more height for unchanged message text. Visual acceptance on
 real desktop/mobile browsers remains pending.
+
+Final prototype spacing: compact desktop toolbar and single-paragraph failure
+context; mobile own-run access is outside chat beside home navigation. The
+disabled composer grows only to fit its text. Read-only return is covered for
+active and terminal runs. Human visual review remains pending.
 
 [Local startup and limits](../docs/local-ui-simulator.md). Next: human review of
 local interaction; a concrete real-provider profile and real-inference smoke

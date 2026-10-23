@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
 // Only explicit cross-panel navigation may move the mobile page.
 export function revealEvent(container:HTMLElement,target:HTMLElement){
@@ -19,4 +19,19 @@ export function ReportDialog({children}:{children:ReactNode}){
       <button className="action report-close" autoFocus onClick={()=>dialog.current?.close()}>Закрыть</button>
       <h2>Отчёт и источники</h2>{children}
     </dialog></>;
+}
+
+export function CompactComposer({text}:{text:string}){
+  const field=useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(()=>{
+    const element=field.current;if(!element)return;
+    const size=()=>{element.style.height='auto';element.style.height=`${element.scrollHeight+2}px`;};
+    size();window.addEventListener('resize',size);
+    const observer=typeof ResizeObserver!=='undefined'?new ResizeObserver(entries=>{
+      if(entries[0]?.contentRect.width!==width){width=entries[0]?.contentRect.width;size();}
+    }):null;
+    let width=element.getBoundingClientRect().width;observer?.observe(element);
+    return()=>{window.removeEventListener('resize',size);observer?.disconnect();};
+  },[text]);
+  return <textarea ref={field} aria-label="Состояние диалога" disabled rows={1} value={text}/>;
 }

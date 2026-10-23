@@ -456,3 +456,17 @@ body{background:#f7f9fa}
  #operator-workspace .welcome .choose-mode{margin-bottom:8px}
  #operator-workspace .report-dialog{width:calc(100% - 12px);max-height:96svh;margin:auto;padding:16px;border-radius:10px}
 }
+
+/* Final prototype spacing pass. */
+#operator-workspace .demo-navigation{display:flex;align-items:center;justify-content:flex-end;gap:6px 12px;flex-wrap:wrap}
+#operator-workspace .inactive-composer textarea{min-height:0;resize:none;overflow:hidden;padding:8px 10px;line-height:1.4}
+@media(min-width:881px){
+ #operator-workspace .demo-toolbar{padding-top:4px;padding-bottom:8px;align-items:center}
+ #operator-workspace .demo-toolbar .run-picker label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ #operator-workspace .demo-navigation{align-self:center}
+}
+@media(max-width:620px){
+ #operator-workspace .demo-navigation{width:100%;justify-content:flex-end}
+ #operator-workspace .mobile-owner-access{font-size:12px;min-height:40px;text-align:right}
+ #operator-workspace .inactive-composer{padding:5px 12px}
+}

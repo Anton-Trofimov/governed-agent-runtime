@@ -318,3 +318,11 @@ highlights it. Visible targets and desktop links do not move the page. Mobile ch
 gets more available viewport height through compact header/status spacing, not
 smaller message text. Stop has a small visible circle and a 44px touch target.
 Welcome spacing is reduced while preserving text and mode button touch sizes.
+
+Final prototype spacing refinement: desktop task controls stay fully visible in
+a compact toolbar; the failure explanation is one naturally wrapping paragraph.
+On mobile, own-live-run access belongs beside/below home navigation, outside the
+chat; terminal access says “Результат живого запуска”, active access retains the
+server-derived confirmation countdown when connected. Navigation stays read-only.
+The disabled composer sizes to its explanatory text, retaining its quiet italic
+styling, border and wrapping without clipping; no free conversation is enabled.

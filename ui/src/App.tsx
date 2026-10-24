@@ -171,7 +171,7 @@ function Workspace({run,started,setStarted,liveControls,ownerStatus,resultLink,a
           </div>
           <div className="playback" aria-label="Управление просмотром"><div className="event-counter"><span role="status">Событие {cursor+1} из {events.length}</span><RunSummary run={run}/></div><div className="buttons"><button className="action primary" disabled={done} onClick={()=>setCursor(n=>Math.min(n+1,events.length-1))}>Далее</button><button className="action" disabled={done} onClick={()=>setCursor(events.length-1)}>К результату</button></div></div>
         </>}
-        <>{started&&<p className="translation-note">Сохранённые события · без нового вызова модели.<br/>Ответ агента записан на английском. Для удобства можно включить перевод в браузере.</p>}</>
+        <>{started&&<p className="translation-note"><span className="replay-provenance">Сохранённые события.<br/></span>Ответ агента на английском. Для перевода используйте браузер.</p>}</>
       </section>
       <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p>{started?<ol ref={journal}>{visible.filter(e=>e.actor==='Runtime').map(e=><li key={e.source} data-event-source={e.source} data-highlight={highlight?.side==='journal'&&highlight.source===e.source}><time dateTime={e.at}>{timestamp(e.at)}</time>{e.actor==='LLM'&&<p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p>}<p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p><EventDetails event={e} visibleSources={visible.map(item=>item.source)} onReveal={reveal}/></li>)}</ol>:<p className="subtle">Ожидание просмотра примера</p>}</aside>
     </div>
@@ -242,7 +242,7 @@ function EventDetails({event,visibleSources,onReveal}:{event:Run['replay']['even
 
 function CompactState({o,unknown}:{o:Observation;unknown:boolean}) {
   const recovery=unknown?'Исход изменения неизвестен':o.recovery.status==='FAIL'?'Восстановление не подтверждено · FAIL':o.recovery.status==='PASS'&&!!o.shift_id&&o.shift_id===o.recovery.shift_id?'Восстановление подтверждено · PASS':o.shift_id?'Восстановление проверяется':o.candidate_count>0&&o.rollout_state==='PAUSED'?'Деградация новой версии · rollout приостановлен':'Восстановление не подтверждено';
-  return <a className="compact-state" href="#service-state" aria-label="К полному состоянию сервиса"><span>{o.stable_version_id} · <Changed value={unknown?'данные до изменения':`${o.healthy} Ready`}/> · <Changed value={o.stable_traffic_rps}/> RPS</span><span>{o.candidate_version_id} · <Changed value={o.candidate_count}/> реплик · <Changed value={o.total_rps-o.stable_traffic_rps}/> RPS</span><strong><Changed value={recovery}/></strong></a>;
+  return <a className="compact-state" href="#service-state" aria-label="К полному состоянию сервиса"><span>{o.stable_version_id} · <Changed value={unknown?'данные до изменения':`${o.healthy} Ready`}/> · <Changed value={o.stable_traffic_rps}/> RPS</span><span>{o.candidate_version_id} · <Changed value={o.candidate_count}/> реплик · <Changed value={o.total_rps-o.stable_traffic_rps}/> RPS</span><strong className={recovery.startsWith('Деградация новой версии')?'degradation-label':undefined}><Changed value={recovery}/></strong></a>;
 }
 
 function AboutDialog({dialogRef,onClose,provider}:{provider?:Provider;dialogRef:React.RefObject<HTMLDialogElement|null>;onClose:()=>void}) {

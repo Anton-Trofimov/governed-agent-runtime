@@ -373,3 +373,12 @@ not a claim of service recovery. Report actions have independent spacing.
 Brand attribution aligns to the brand text's right edge; platform title stays
 centered. Replay warning is one wrapping paragraph with bold title and italic
 explanation. Footer and secondary notes use compact spacing without overlays.
+
+Mobile finishing review (2026-10-24): preparation includes model identity in its
+compact status; other phases put provider/model on two lines beside controls.
+Replay helper text is shorter on mobile, and its scenario explanation is 2px
+smaller. Additional chat height comes from compact secondary content and a small
+viewport-height adjustment. Native scrollbars remain visible when the platform
+permits, with a reserved gutter and neutral thumb; no custom scroll implementation.
+Initial degradation is emphasized in the compact state. Accessibility methodology
+and audit scope remain a separate deferred decision, not part of this update.

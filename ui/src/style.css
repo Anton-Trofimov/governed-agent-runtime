@@ -569,3 +569,22 @@ body{background:#f7f9fa}
  #operator-workspace .live-input>small{font-size:11px;line-height:1.35}
  #operator-workspace .chat{scroll-margin-top:8px}
 }
+
+/* Final bounded mobile polish; scrolling remains native. */
+#operator-workspace .context h1 .desktop-word{font:inherit;color:inherit}
+#operator-workspace .compact-state .degradation-label{color:#ffb4ae}
+#operator-workspace .replaying .messages,#operator-workspace .journal ol{
+ scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#91a2ab #edf1f3
+}
+@media(max-width:620px){
+ #operator-workspace .scenario-note{font-size:10px;line-height:1.45}
+ #operator-workspace .replay-provenance{display:none}
+ #operator-workspace .replaying .chat{height:calc(100svh - 38px)}
+ #operator-workspace .journal{padding-top:10px}
+ #operator-workspace .live-workspace .chat-head .model-separator{display:none}
+ #operator-workspace .live-workspace .chat-head .model-name{display:block;overflow-wrap:anywhere}
+ #operator-workspace .live-workspace .chat-head .simulator-label{flex:0 1 90px;min-width:0}
+ #operator-workspace .live-workspace .preparing-model .simulator-label{display:none}
+ #operator-workspace .live-workspace .preparing-model .agent-controls{margin-left:0}
+ #operator-workspace .live-workspace .agent-controls{margin-top:0;min-width:0;max-width:100%}
+}

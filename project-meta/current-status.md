@@ -5,6 +5,12 @@ This file is not model-visible operational evidence.
 
 ## Local UI/runtime implementation — BC-011
 
+Mobile finishing pass (2026-10-24): compact preparation/model identity, shorter
+replay notes, slightly taller chat, native scrollbar styling and corrected welcome
+heading typography. No runtime/provider changes or new inference. Automated
+verification passes; visual acceptance on the operator's devices remains pending.
+Accessibility audit method and scope are deferred to a separate decision.
+
 Responsive review (2026-10-24): concise mobile status and chat navigation,
 aligned attribution, compact replay context and explicit terminal-code labels.
 A newer busy/limit rejection now survives polling an expired reservation.

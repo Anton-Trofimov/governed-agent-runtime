@@ -243,3 +243,348 @@ body{background:#f7f9fa}
 #operator-workspace .close-event-help{flex:0 0 auto}
 #operator-workspace .playback{padding-top:6px;padding-bottom:8px}
 #operator-workspace .playback .buttons{margin-top:4px}
+
+#operator-workspace .live-input{padding:12px 18px;border-top:1px solid #d8e1e6}
+#operator-workspace .live-input label{display:block;margin-bottom:6px}
+#operator-workspace .live-input textarea{display:block;width:100%;min-height:76px;resize:vertical;border:1px solid #aabac4;border-radius:8px;padding:10px;font:inherit;margin-bottom:8px}
+#operator-workspace .live-input small{display:block;margin-top:8px;color:#526875}
+#operator-workspace .live-suggestions{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+#operator-workspace .live-suggestions .action{font-size:12px;text-align:left;padding:6px 9px}
+#operator-workspace .live-stop{border:1px solid #c48e8e;border-radius:50%;color:#aa4242;background:transparent;width:40px;height:40px;cursor:pointer;margin-left:8px}
+#operator-workspace .live-workspace .messages{height:54vh;min-height:260px;overflow-y:auto;overscroll-behavior:auto}
+#operator-workspace .live-workspace .journal ol{max-height:65vh;overflow-y:auto}
+@media(max-width:620px){
+ #operator-workspace .live-workspace .messages{height:55svh;min-height:220px;margin:0 8px;font-size:12px}
+ #operator-workspace .live-input{padding:10px 16px}
+}
+
+/* Shared actor cards and bounded live workspace. */
+#operator-workspace .messages{align-content:start}
+#operator-workspace .messages .user-message{background:#f6ecef;border:1px solid #eadde2;align-self:flex-end;justify-self:end;width:97%;max-width:97%;margin-left:3%;text-align:left}
+#operator-workspace .messages .agent-message{background:#e7f0f5;border:1px solid #d7e4ed;border-radius:9px;padding:13px 15px;align-self:flex-start;justify-self:start;width:97%;margin-right:3%;overflow-wrap:anywhere}
+#operator-workspace .messages .runtime-message{background:#f0f3f4;border:1px solid #e2e8eb;align-self:flex-start;justify-self:start;width:97%;margin-right:3%;overflow-wrap:anywhere}
+#operator-workspace .live-navigation{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 14px 12px}
+#operator-workspace .live-navigation small{color:#536b78}
+#operator-workspace .simulator-label{font-size:12px;color:#536b78;margin-left:auto}
+#operator-workspace .admission-notice{background:#f7ecec;border-left:3px solid #bc8585;color:#864c4c;padding:8px 12px;border-radius:4px;flex-basis:100%;margin:0;overflow-wrap:anywhere}
+#operator-workspace .live-workspace .chat{display:flex;flex-direction:column;height:clamp(500px,calc(100svh - 220px),900px);max-height:none;min-height:0;overflow:hidden}
+#operator-workspace .live-workspace .chat-head,#operator-workspace .live-input{flex-shrink:0}
+#operator-workspace .live-workspace .messages{flex:1;min-height:100px;height:auto;overflow:auto;padding:14px;gap:14px}
+#operator-workspace .live-workspace .journal{display:flex;flex-direction:column;max-height:clamp(500px,calc(100svh - 220px),900px)}
+#operator-workspace .live-workspace .journal ol{min-height:0;overflow:auto;max-height:none}
+#operator-workspace .live-input textarea{min-height:56px;max-height:120px}
+#operator-workspace .inactive-composer textarea{min-height:52px;resize:none;font-style:italic;color:#526d7c;background:#f4f7f8;opacity:1;margin:0;font-size:13px;line-height:1.5}
+#operator-workspace .compose-actions{display:flex;align-items:center;gap:12px}
+#operator-workspace .compose-actions small{margin:0}
+#operator-workspace .confirmation-actions .buttons{margin-top:8px;margin-bottom:8px}
+#operator-workspace .decision-choice{display:inline-block;padding:5px 9px;border-radius:6px;margin-bottom:8px;border:1px solid #b8cec0;color:#286447;background:#e6f0e9}
+#operator-workspace .decision-choice.rejected{background:#f4e5e8;border-color:#d8b7be;color:#854850}
+#operator-workspace .empty-dialog{font-size:13px;color:#536b78}
+@media(min-width:621px) and (max-height:900px){
+ #operator-workspace .brandbar{padding-top:12px;padding-bottom:12px}
+ #operator-workspace .context{padding-top:10px;padding-bottom:10px}
+ #operator-workspace .context h1{margin:4px 0;font-size:24px}
+ #operator-workspace .chat-head{padding:12px 16px}
+ #operator-workspace .state{padding:14px}
+ #operator-workspace .state-head{margin-bottom:10px}
+ #operator-workspace .state td{padding:8px 3px}
+ #operator-workspace .state-foot{margin-top:10px;padding-top:8px}
+ #operator-workspace .live-input{padding:8px 14px}
+ #operator-workspace .live-suggestions{margin-bottom:6px}
+}
+@media(max-width:620px){
+ #operator-workspace .live-navigation{padding:0 10px 10px}
+ #operator-workspace .simulator-label{margin-left:0;flex-basis:100%}
+ #operator-workspace .live-workspace .chat{height:85svh;min-height:480px;overflow:visible}
+ #operator-workspace .live-workspace .messages{min-height:100px;height:auto;margin:0 8px;font-size:12px}
+ #operator-workspace .live-workspace .journal{max-height:65svh}
+ #operator-workspace .live-workspace .compact-state{flex-shrink:0}
+ #operator-workspace .live-input{padding:8px 14px}
+ #operator-workspace .inactive-composer textarea{font-size:12px}
+}
+
+/* BC-011 desktop review: common panel bounds and compact task controls. */
+@font-face{font-family:'Workspace Heading';src:url('./fonts/DejaVuSans-Bold.woff') format('woff');font-weight:700;font-style:normal;font-display:swap}
+#operator-workspace .chat-head h2{font-family:'Workspace Heading','Segoe UI',sans-serif;font-style:normal;font-weight:700;letter-spacing:-.5px}
+#operator-workspace .actor-label{display:inline-block;padding:2px 6px;border-radius:5px;color:#273b46;background:#dce4e8;font-weight:600}
+#operator-workspace .agent-message .actor-label{background:#d4e4ed}
+#operator-workspace .user-message .actor-label{background:#ead9e0}
+#operator-workspace .task-toolbar{padding:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#operator-workspace .task-toolbar h1{font-size:24px}
+#operator-workspace .live-toolbar{align-items:flex-start}
+#operator-workspace .live-toolbar h1{padding-top:6px}
+#operator-workspace .task-toolbar .live-navigation{flex:1;justify-content:flex-end;padding:0}
+#operator-workspace .task-toolbar .simulator-label{flex-basis:100%;text-align:right}
+#operator-workspace .task-toolbar .run-picker{padding:0;margin:0;max-width:none;min-width:0}
+#operator-workspace .task-toolbar .run-picker label{font-size:12px;margin-bottom:3px}
+@media(min-width:881px){
+ #operator-workspace .brandbar{padding:12px 22px;gap:14px;grid-template-columns:minmax(180px,1fr) minmax(0,2.6fr) minmax(180px,1fr)}
+ #operator-workspace .brand{font-size:23px}
+ #operator-workspace .brand small,#operator-workspace.working-mode .responsibility-line{display:none}
+ #operator-workspace .platform-concept{grid-column:2;grid-row:1}
+ #operator-workspace .help-trigger{grid-column:3;grid-row:1}
+ #operator-workspace .platform-concept strong{font-size:18px}
+ #operator-workspace .workspace.replaying{align-items:stretch}
+ #operator-workspace .replaying .chat,#operator-workspace .replaying .journal{height:auto;min-height:0;max-height:none;align-self:stretch;position:relative}
+ #operator-workspace .replaying .messages,#operator-workspace .replaying .journal ol{flex:1 1 0;min-height:120px;max-height:none;height:0;overflow:auto}
+ #operator-workspace .replaying .state{min-height:660px}
+ #operator-workspace .chat-head{padding:12px 16px}
+ #operator-workspace .chat-head>div{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;flex-wrap:wrap}
+ #operator-workspace .chat-head h2{font-size:19px}
+ #operator-workspace .agent-controls{margin:0 0 0 auto;font-size:13px;flex-shrink:0}
+ #operator-workspace .messages{font-size:13px;gap:10px;padding:12px 14px}
+ #operator-workspace .messages article{padding:10px 12px}
+ #operator-workspace .messages p{margin-bottom:8px}
+ #operator-workspace .messages p:last-child{margin-bottom:0}
+ #operator-workspace .messages .author,#operator-workspace .messages .event-details,#operator-workspace .messages summary{font-size:12px}
+ #operator-workspace .messages .author{margin-bottom:6px}
+ #operator-workspace .messages .summary-label{margin-top:0;margin-bottom:8px}
+ #operator-workspace .messages .original-label{margin-bottom:4px}
+ #operator-workspace .recorded-decision{margin-bottom:6px}
+ #operator-workspace .outcome{padding-top:12px}
+ #operator-workspace .outcome h3{margin-bottom:6px}
+ #operator-workspace .playback{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;position:relative}
+ #operator-workspace .playback .buttons{order:0;margin:0}
+ #operator-workspace .event-counter{order:1;margin-left:auto}
+ #operator-workspace .event-help .run-summary{position:absolute;bottom:100%;right:8px;width:min(460px,calc(100% - 16px));padding:12px 14px;background:#f3f6f7;border:1px solid #cad5da;border-radius:8px;box-shadow:0 3px 12px #20364220;z-index:6}
+ #operator-workspace .demo-toolbar{display:grid;grid-template-columns:minmax(258px,1fr) minmax(330px,1.6fr) minmax(165px,.65fr);gap:12px}
+ #operator-workspace .demo-toolbar h1{font-size:21px}
+ #operator-workspace .demo-toolbar .run-picker{grid-column:2}
+}
+@media(min-width:1200px){#operator-workspace .demo-toolbar{grid-template-columns:minmax(290px,.9fr) minmax(400px,1.65fr) minmax(240px,.8fr)}}
+@media(max-width:880px){
+ #operator-workspace .task-toolbar .run-picker{width:100%}
+ #operator-workspace .task-toolbar .live-navigation{flex-basis:100%;justify-content:flex-start}
+ #operator-workspace .task-toolbar .simulator-label{text-align:left}
+}
+
+@media(max-width:620px){#operator-workspace .task-toolbar h1{font-size:22px}}
+
+/* Stable workspace geometry and owner-aware navigation. */
+#task-heading{scroll-margin-top:12px}
+#operator-workspace .owner-return{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 14px 12px;padding:8px 12px;background:#e8f0f3;border:1px solid #cedce2;border-radius:8px;font-size:13px}
+#operator-workspace .live-workspace .live-navigation{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:8px 14px;border-top:1px solid #e7ecee;flex-shrink:0}
+#operator-workspace .live-navigation small{font-size:11px;color:#647b88;font-style:italic}
+#operator-workspace .journal .simulator-label{display:block;font-size:11px;line-height:1.4;color:#526975;margin:5px 0 8px}
+@media(min-width:881px){
+ #operator-workspace .workspace.replaying{height:clamp(620px,calc(100svh - 100px),780px);padding-bottom:14px}
+ #operator-workspace .replaying .state,#operator-workspace .replaying .chat,#operator-workspace .replaying .journal{height:100%;min-height:0;max-height:100%;overflow:auto}
+ #operator-workspace .replaying .chat,#operator-workspace .replaying .journal{overflow:hidden}
+ #operator-workspace .replaying .state{padding:12px 14px}
+ #operator-workspace .replaying .state-head{margin-bottom:10px}
+ #operator-workspace .replaying .incident-description{height:126px;overflow:auto;margin:10px 0;font-size:13px;line-height:1.5}
+ #operator-workspace .replaying .state-foot{margin-top:10px;padding-top:8px}
+ #operator-workspace .replaying td{padding-top:8px;padding-bottom:8px}
+ #operator-workspace .replaying .state h3{margin-bottom:8px}
+ #operator-workspace .chat-head>div{min-height:32px}
+ #operator-workspace .agent-controls{min-height:32px}
+ #operator-workspace .live-stop{width:28px;height:28px;min-width:28px;padding:0;font-size:11px;margin-left:2px}
+ #operator-workspace .live-toolbar h1{padding-top:0}
+ #operator-workspace .task-toolbar{padding-top:10px;padding-bottom:10px}
+ #operator-workspace .live-input{padding-top:8px;padding-bottom:8px}
+}
+@media(max-width:620px){
+ #operator-workspace .live-stop{width:44px;height:44px;flex-shrink:0}
+ #operator-workspace .live-navigation small{flex-basis:100%}
+}
+@media(min-width:881px){
+ #operator-workspace .live-workspace .agent-controls{position:relative;padding-right:36px}
+ #operator-workspace .live-workspace .live-stop{position:absolute;right:0;top:2px}
+}
+
+/* Mode choices and trace navigation, review 2026-10-23. */
+#operator-workspace .text-link{border:0;background:transparent;color:#315c72;text-decoration:underline;text-underline-offset:3px;padding:4px 0;font-size:inherit;cursor:pointer}
+#operator-workspace .owner-status{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:#536b78}
+#operator-workspace .owner-access{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 14px;font-size:12px;border-top:1px solid #dce5e9;flex-shrink:0}
+#operator-workspace .welcome .value-explanation{font-size:14px;line-height:1.5;margin:12px 0 20px;padding:12px;border-radius:7px}
+#operator-workspace [data-highlight="true"]{outline:2px solid #c7a44a;outline-offset:-2px;box-shadow:inset 0 0 0 9999px #ffe7a03b}
+#operator-workspace .event-link{font-size:12px;margin:8px 0}
+#operator-workspace .inactive-composer.awaiting-decision textarea{color:#875363;-webkit-text-fill-color:#875363}
+#operator-workspace .live-toolbar{align-items:center}
+#operator-workspace .live-toolbar .live-navigation{margin-left:auto;max-width:520px;align-items:center}
+#operator-workspace .chat-head .simulator-label{display:block;margin:4px 0 0;font:11px/1.3 'Segoe UI',sans-serif;color:#607580;letter-spacing:normal}
+#operator-workspace .demo-toolbar .home-button{justify-self:end}
+@media(min-width:881px){
+ #operator-workspace .replaying .incident-description{height:106px;margin:8px 0}
+ #operator-workspace .replaying .state dl{margin-top:10px}
+ #operator-workspace .replaying .state dl>div{margin:8px 0}
+ #operator-workspace .replaying .state h3{margin-bottom:5px}
+ #operator-workspace .replaying table{margin-top:4px}
+ #operator-workspace .replaying .state-head{margin-bottom:8px}
+}
+@media(max-width:620px){
+ #operator-workspace .task-toolbar .home-button{margin-left:auto}
+ #operator-workspace .text-link{min-height:40px}
+}
+
+/* Shared actor identity and quiet composer surround. */
+#operator-workspace .messages .user-message{background:#edf4ee;border-color:#d4e3d6}
+#operator-workspace .user-message .actor-label{background:#d5e5d8;color:#294234}
+#operator-workspace .live-input{background:#f0f5f7}
+#operator-workspace .live-input textarea:not(:disabled){background:#fff}
+#operator-workspace .inactive-composer.awaiting-decision textarea{color:#426950;-webkit-text-fill-color:#426950}
+#operator-workspace .user-message .decision-choice.approved{background:#cfe3d5;border-color:#8fb29a;color:#24563b}
+
+/* Viewport review: compact chrome, unchanged message typography. */
+#operator-workspace .task-toolbar{scroll-margin-top:8px}
+#operator-workspace .report-dialog{width:min(1000px,calc(100% - 32px));max-height:90svh;overflow:auto;margin:auto;padding:24px;border:1px solid #bdcdd5;border-radius:12px;background:#fff;color:#25343b}
+#operator-workspace .report-dialog::backdrop{background:#142d3680}
+#operator-workspace .report-dialog h2{font-size:21px;margin:0 0 18px}
+#operator-workspace .report-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+#operator-workspace .report-close{float:right;position:sticky;top:0;margin:0 0 12px 12px;background:#fff}
+@media(min-width:881px){
+ #operator-workspace .scenario-note{padding:7px 14px;margin-bottom:10px;gap:10px;font-size:12px;line-height:1.35}
+ #operator-workspace .scenario-note p{margin:3px 0 0}
+ #operator-workspace .scenario-symbol{width:26px;height:26px;min-width:26px;font-size:17px}
+}
+@media(max-width:620px){
+ #operator-workspace .replaying .chat{height:calc(100svh - 58px);min-height:420px;max-height:none}
+ #operator-workspace .replaying .chat-head{padding:8px 12px}
+ #operator-workspace .replaying .chat-head h2{font-size:17px;line-height:1.25}
+ #operator-workspace .chat-head .simulator-label{font-size:10px;line-height:1.3;margin-top:3px}
+ #operator-workspace .replaying .agent-controls{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:32px;margin-top:3px;position:relative;padding-right:44px}
+ #operator-workspace .live-stop{position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;min-width:44px;border:0;margin:0;font-size:10px;background:transparent}
+ #operator-workspace .live-stop::before{content:'';position:absolute;inset:9px;border:1px solid #bd8585;border-radius:50%;pointer-events:none}
+ #operator-workspace .compact-state{padding:7px 12px;font-size:11px;line-height:1.4}
+ #operator-workspace .inactive-composer{padding:6px 12px}
+ #operator-workspace .inactive-composer textarea{min-height:54px;padding:8px 10px}
+ #operator-workspace .welcome{padding:14px 16px}
+ #operator-workspace .welcome h3{margin-bottom:10px}
+ #operator-workspace .welcome ul{margin-top:8px;margin-bottom:10px;padding-left:20px}
+ #operator-workspace .welcome li{margin:5px 0}
+ #operator-workspace .welcome .value-explanation{padding:9px 10px;margin:10px 0 12px}
+ #operator-workspace .welcome .choose-mode{margin-bottom:8px}
+ #operator-workspace .report-dialog{width:calc(100% - 12px);max-height:96svh;margin:auto;padding:16px;border-radius:10px}
+}
+
+/* Final prototype spacing pass. */
+#operator-workspace .demo-navigation{display:flex;align-items:center;justify-content:flex-end;gap:6px 12px;flex-wrap:wrap}
+#operator-workspace .inactive-composer textarea{min-height:0;resize:none;overflow:hidden;padding:8px 10px;line-height:1.4}
+@media(min-width:881px){
+ #operator-workspace .demo-toolbar{padding-top:4px;padding-bottom:8px;align-items:center}
+ #operator-workspace .demo-toolbar .run-picker label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ #operator-workspace .demo-navigation{align-self:center}
+}
+@media(max-width:620px){
+ #operator-workspace .demo-navigation{width:100%;justify-content:flex-end}
+ #operator-workspace .mobile-owner-access{font-size:12px;min-height:40px;text-align:right}
+ #operator-workspace .inactive-composer{padding:5px 12px}
+}
+
+/* Keep replay progress beside its controls on mobile as well. */
+@media(max-width:880px){
+ #operator-workspace .playback{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;position:relative}
+ #operator-workspace .playback .buttons{order:0;margin:0;gap:6px}
+ #operator-workspace .event-counter{order:1;margin-left:auto;font-size:11px;gap:2px}
+ #operator-workspace .event-counter>span{white-space:nowrap}
+ #operator-workspace .event-help summary{min-width:28px;min-height:32px}
+ #operator-workspace .event-help .run-summary{position:absolute;bottom:100%;right:8px;width:min(460px,calc(100% - 16px));box-sizing:border-box;max-height:50svh;overflow:auto;padding:12px;background:#f3f6f7;border:1px solid #cad5da;border-radius:8px;box-shadow:0 3px 12px #20364220;z-index:6;font-size:12px}
+}
+
+/* Local model review: clear provenance, quiet status, room for the brand header. */
+#operator-workspace .messages .summary-label,
+#operator-workspace .messages .original-label,
+#operator-workspace .messages summary{font-size:12px;line-height:1.4}
+#operator-workspace .messages .summary-label{color:#657b87;margin:0 0 4px}
+#operator-workspace .messages .original-label{color:#657b87;font-weight:600;margin:10px 0 4px}
+#operator-workspace .author time{color:#6b7f89;font-size:11px}
+#operator-workspace .agent-status{display:inline-flex;align-items:center;gap:8px;border:1px solid #ccdbd2;border-radius:18px;background:#edf4ee;padding:5px 10px;color:#315c43;line-height:1.3;font-size:12px;max-width:100%}
+#operator-workspace .agent-status small{display:block;font-size:10px;color:#647b88;margin-top:2px}
+#operator-workspace .status-indicator{width:9px;height:9px;border-radius:50%;background:#72a983;flex-shrink:0}
+#operator-workspace .spinning{width:13px;height:13px;border:2px solid #bfd9c6;border-top-color:#44865b;background:transparent;animation:agent-spin 1s linear infinite}
+#operator-workspace .status-preparing,#operator-workspace .status-awaiting_confirmation{background:#f7f3e8;border-color:#e0d6b9;color:#6b5a28}
+#operator-workspace .status-preparing .spinning{border-color:#eadfb9;border-top-color:#ad8730}
+#operator-workspace .status-awaiting_confirmation .status-indicator{background:#b39951}
+#operator-workspace .status-terminal,#operator-workspace .status-stopping{background:#eef2f4;border-color:#ccd7dc;color:#4a626f}
+#operator-workspace .status-terminal .status-indicator,#operator-workspace .status-stopping .status-indicator{background:#8296a0}
+#operator-workspace .live-workspace .agent-controls{display:flex;align-items:center;gap:6px;padding-right:0;position:static}
+#operator-workspace .live-workspace .live-stop{position:relative;top:auto;right:auto;transform:none;width:32px;height:32px;min-width:32px;margin:0;padding:0;border:1px solid #afbec6;background:transparent;color:#996c6c;font-size:10px}
+#operator-workspace .live-stop::before{display:none}
+@keyframes agent-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#operator-workspace .spinning{animation:none}}
+@media(min-width:881px){
+ #operator-workspace .brandbar{padding-top:8px;padding-bottom:8px}
+ #operator-workspace .workspace.replaying{height:clamp(520px,calc(100svh - 152px),760px);padding-bottom:8px}
+ #operator-workspace:has(.scenario-note) .workspace.replaying{height:clamp(520px,calc(100svh - 215px),720px)}
+ #operator-workspace .replaying .incident-description{height:86px;margin:6px 0}
+ #operator-workspace .replaying .state .versions{margin-top:10px}
+ #operator-workspace .replaying .state .conditions ul{margin-top:7px;margin-bottom:7px}
+ #operator-workspace .replaying .state .conditions li{margin:6px 0}
+ #operator-workspace .replaying td{padding-top:6px;padding-bottom:6px}
+ #operator-workspace .chat-head{padding-top:9px;padding-bottom:9px}
+}
+@media(max-width:620px){
+ #operator-workspace .live-workspace .agent-controls{justify-content:flex-end;width:auto;max-width:100%}
+ #operator-workspace .agent-status{font-size:11px}
+ #operator-workspace .live-workspace .live-stop{width:44px;height:44px;min-width:44px;border:0}
+ #operator-workspace .live-stop::before{display:block;inset:9px;border-color:#afbec6}
+}
+
+/* Compact attribution and consistent result navigation across viewports. */
+#operator-workspace .brand-identity{line-height:1.15}
+#operator-workspace .brand-identity small{display:block;font-size:10px;color:#b7cbd4;margin-top:3px}
+#operator-workspace .brand-identity small a{color:inherit}
+#operator-workspace .messages .original-label{color:#25343b;font-weight:650}
+#operator-workspace .status-idle{background:#f3f6f7;border-color:#dce5e8;color:#617782}
+#operator-workspace .status-idle .status-indicator{background:#98abb4}
+#operator-workspace .demo-navigation .owner-access{display:flex;align-items:center;gap:8px;padding:0;margin:0;border:0;background:none;font-size:11px}
+#operator-workspace .demo-navigation .mobile-owner-access{font-size:12px;min-height:44px}
+#operator-workspace .report-source-link{margin-top:18px;font-size:12px}
+@media(min-width:881px){
+ #operator-workspace .task-toolbar{padding-top:7px;padding-bottom:7px}
+ #operator-workspace .brandbar{padding-top:5px;padding-bottom:5px}
+}
+
+/* Responsive review: keep identity, status and admission feedback readable. */
+#operator-workspace .brand-identity{width:max-content;max-width:100%;justify-self:start}
+#operator-workspace .brand-identity small{text-align:right}
+#operator-workspace .platform-concept,#operator-workspace .platform-concept strong{text-align:center}
+#operator-workspace .scenario-note p{margin:0;font-style:normal}
+#operator-workspace .scenario-note{padding-top:7px;padding-bottom:7px}
+#operator-workspace .welcome .admission-notice{margin-top:10px}
+#operator-workspace .translation-note{padding-top:5px;padding-bottom:5px;font-size:11px}
+#operator-workspace .page-notes{padding-top:5px}
+#operator-workspace .terminal-codes{font-size:12px;line-height:1.4;color:#526873}
+#operator-workspace .terminal-codes p{margin:4px 0}
+#operator-workspace .terminal-codes + button{margin-top:8px}
+#operator-workspace .status-compact,#operator-workspace .chat-jump{display:none}
+#operator-workspace .status-expired{background:#f7eeee;border-color:#dcc1c1;color:#874c4c}
+#operator-workspace .status-expired .status-indicator{background:#b47777}
+#operator-workspace .live-workspace .chat-head>div{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px}
+#operator-workspace .live-workspace .chat-head h2{grid-column:1;grid-row:1}
+#operator-workspace .live-workspace .simulator-label{grid-column:1;grid-row:2;margin:0}
+#operator-workspace .live-workspace .agent-controls{grid-column:2;grid-row:1/3}
+@media(min-width:881px){
+ #operator-workspace:has(.scenario-note) .workspace.replaying{height:clamp(520px,calc(100svh - 195px),740px)}
+}
+@media(max-width:620px){
+ #operator-workspace .desktop-word,#operator-workspace .status-full,#operator-workspace .preparation-hint{display:none}
+ #operator-workspace .status-compact{display:inline}
+ #operator-workspace .chat-jump{display:inline-flex;align-items:center}
+ #operator-workspace .task-toolbar{padding-top:6px;padding-bottom:6px;gap:6px}
+ #operator-workspace .live-workspace .chat-head>div{display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px}
+ #operator-workspace .live-workspace .chat-head h2{width:100%}
+ #operator-workspace .live-workspace .simulator-label{margin:0 auto 0 0}
+ #operator-workspace .live-workspace .agent-controls{margin-left:auto;flex-wrap:nowrap}
+ #operator-workspace .live-input>small{font-size:11px;line-height:1.35}
+ #operator-workspace .chat{scroll-margin-top:8px}
+}
+
+/* Final bounded mobile polish; scrolling remains native. */
+#operator-workspace .context h1 .desktop-word{font:inherit;color:inherit}
+#operator-workspace .compact-state .degradation-label{color:#ffb4ae}
+#operator-workspace .replaying .messages,#operator-workspace .journal ol{
+ scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#91a2ab #edf1f3
+}
+@media(max-width:620px){
+ #operator-workspace .scenario-note{font-size:10px;line-height:1.45}
+ #operator-workspace .replay-provenance{display:none}
+ #operator-workspace .replaying .chat{height:calc(100svh - 38px)}
+ #operator-workspace .journal{padding-top:10px}
+ #operator-workspace .live-workspace .chat-head .model-separator{display:none}
+ #operator-workspace .live-workspace .chat-head .model-name{display:block;overflow-wrap:anywhere}
+ #operator-workspace .live-workspace .chat-head .simulator-label{flex:0 1 90px;min-width:0}
+ #operator-workspace .live-workspace .preparing-model .simulator-label{display:none}
+ #operator-workspace .live-workspace .preparing-model .agent-controls{margin-left:0}
+ #operator-workspace .live-workspace .agent-controls{margin-top:0;min-width:0;max-width:100%}
+}

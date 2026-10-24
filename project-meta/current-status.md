@@ -3,6 +3,34 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-011 closure — 2026-10-24
+
+**Accepted as a bounded local integration with recorded limitations.**
+Owner accepted UI baseline 02ca894 and requested documentary closure and PR/merge.
+[Disposition and concise results](../reports/decisions/bc-011-live-ui-runtime-disposition.md)
+separate automated verification, owner-observed station behavior and remaining gaps.
+
+Loopback-only UI/backend connects a pinned local Ollama model to the existing
+modeled payment-api runtime. Action-bound confirmations, one active slot, session
+ownership, idempotency, deadlines and uncertain-provider quarantine are retained.
+Recorded examples remain independent. Two preparations per approved local package
+are a smoke budget, not public visitor quotas.
+
+Verification: 337 Python tests, 63 UI tests, Ruff, TypeScript/Vite build, recorded
+asset consistency and diff checks PASS. Offline tests do not call a real model.
+Owner observed successful recovery, refusal and confirmation expiry during station
+smokes and accepted the current desktop/mobile presentation. Full private trace
+review and exhaustive device/accessibility coverage are not claimed.
+
+Known boundaries: arbitrary initial questions are not separated from recovery
+goals; no free dialogue during execution; no public admission/abuse protection or
+GPU arbitration with unrelated Ollama clients. Public exposure is not authorized.
+[Startup and limits](../docs/local-ui-simulator.md).
+Integration status and CI are recorded in [PR #12](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/12).
+
+Next: return to the separately drafted BC-012 initial-dialogue design after
+integration. No BC-012 code, new inference or accessibility audit is included.
+
 ## Accepted operator presentation — 2026-10-21
 
 BC-009 content/projection accepted; BC-010 basic desktop/mobile design accepted

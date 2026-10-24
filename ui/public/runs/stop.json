@@ -151,7 +151,11 @@
         "observation": null,
         "tool": "scale_stable",
         "summary": "Предложение агента: увеличить количество реплик версии 2.4.1 с 6 до 8.",
-        "reference": "specs/core/tool-contracts.yaml"
+        "reference": "specs/core/tool-contracts.yaml",
+        "related_checks": [
+          "event-5",
+          "event-12"
+        ]
       },
       {
         "source": "event-5",
@@ -232,7 +236,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-4"
       },
       {
         "source": "event-10",
@@ -323,7 +328,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-4"
       },
       {
         "source": "event-13",
@@ -397,7 +403,10 @@
         "observation": null,
         "tool": "read_operational_status",
         "summary": "Предложение агента: получить актуальное состояние реплик, трафика и rollout.",
-        "reference": "specs/core/tool-contracts.yaml"
+        "reference": "specs/core/tool-contracts.yaml",
+        "related_checks": [
+          "event-25"
+        ]
       },
       {
         "source": "event-25",
@@ -478,7 +487,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-24"
       },
       {
         "source": "event-26",
@@ -542,7 +552,11 @@
         "observation": null,
         "tool": "shift_traffic_to_stable",
         "summary": "Предложение агента: перенести весь трафик (820 RPS) на версию 2.4.1.",
-        "reference": "specs/core/tool-contracts.yaml"
+        "reference": "specs/core/tool-contracts.yaml",
+        "related_checks": [
+          "event-33",
+          "event-40"
+        ]
       },
       {
         "source": "event-33",
@@ -623,7 +637,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-32"
       },
       {
         "source": "event-38",
@@ -714,7 +729,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-32"
       },
       {
         "source": "event-41",
@@ -788,7 +804,10 @@
         "observation": null,
         "tool": "read_post_shift_recovery",
         "summary": "Предложение агента: проверить восстановление сервиса после переноса трафика.",
-        "reference": "specs/core/tool-contracts.yaml"
+        "reference": "specs/core/tool-contracts.yaml",
+        "related_checks": [
+          "event-53"
+        ]
       },
       {
         "source": "event-53",
@@ -869,7 +888,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-52"
       },
       {
         "source": "event-54",
@@ -933,7 +953,10 @@
         "observation": null,
         "tool": "STOP",
         "summary": "Предложение агента: остановить выполнение задачи.",
-        "reference": "specs/core/tool-contracts.yaml"
+        "reference": "specs/core/tool-contracts.yaml",
+        "related_checks": [
+          "event-61"
+        ]
       },
       {
         "source": "event-61",
@@ -1014,7 +1037,8 @@
             "reason": null,
             "reference": "specs/core/policy-spec.yaml"
           }
-        ]
+        ],
+        "proposal_source": "event-60"
       },
       {
         "source": "event-63",

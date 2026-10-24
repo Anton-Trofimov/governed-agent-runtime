@@ -288,3 +288,97 @@ short BC-008 phrase is illustrative for the older BC-006/007 runs.
 
 Review 2026-10-20: follow BC-010 readability refinement for contextual G08 statuses,
 FAIL example explanation, larger desktop header and compact mobile help.
+
+### Recorded event linkage — 2026-10-23
+
+Proposal and admission events retain distinct source IDs. The recorded projection
+links them by the source trace's unique model-output `tick` and matching preflight
+or revalidation `tick`, never adjacent event numbers. Ambiguous links fail export.
+Details expose reciprocal proposal/check links only when the target is already
+revealed. Navigation opens details, scrolls the target stream and highlights the
+record for two seconds, without advancing playback or moving the desktop page.
+The runtime journal explains its scope: checks/execution, proposals in chat.
+The value explanation is shown on the welcome screen before mode selection.
+
+Accepted refinement: use the compact brand header on home and both work modes;
+remove OPERATOR WORKSPACE and the repeated responsibility line. The composer has
+a very light gray-blue surround and a white editable field. Operator cards use
+muted sage green with a darker author badge, consistently for goals, approvals
+and refusals; this color identifies the actor, not execution success. Confirmation
+controls remain distinctly darker. Live and recorded details share reciprocal
+proposal/check navigation; live identifiers belong to their own event stream.
+
+Accepted mobile/viewport refinement: mode entry and recorded-example selection
+align the task toolbar to the viewport top, without scrolling on ordinary events.
+The failure note retains both explanations with compact spacing. Both report
+buttons open a modal, with close/Escape and focus returned to the trigger; opening
+or closing a report never changes run state. On narrow screens an explicit event
+link also brings the target panel into view when its record is off screen, then
+highlights it. Visible targets and desktop links do not move the page. Mobile chat
+gets more available viewport height through compact header/status spacing, not
+smaller message text. Stop has a small visible circle and a 44px touch target.
+Welcome spacing is reduced while preserving text and mode button touch sizes.
+
+Final prototype spacing refinement: desktop task controls stay fully visible in
+a compact toolbar; the failure explanation is one naturally wrapping paragraph.
+On mobile, own-live-run access belongs beside/below home navigation, outside the
+chat; terminal access says “Результат живого запуска”, active access retains the
+server-derived confirmation countdown when connected. Navigation stays read-only.
+The disabled composer sizes to its explanatory text, retaining its quiet italic
+styling, border and wrapping without clipping; no free conversation is enabled.
+Replay progress and its information control sit to the right of playback buttons
+on mobile too; narrow viewports may wrap without overlap. Expanded event details
+open above the controls without reducing the chat height.
+
+### Local model review refinement — 2026-10-23
+
+Shared live/replay proposal cards place “Краткое объяснение, сформировано
+интерфейсом” before the deterministic summary and emphasize “Ответ агента” above
+unaltered rationale. Disclosure uses the same small type size. Live timestamps
+include date and time. Redundant simulated-service text is omitted from consent
+controls; action identity and bindings remain intact.
+Live status uses a quiet rounded badge: preparation, ready, executing, operator
+confirmation, stopping or finished. Only preparation/execution animate; stop is
+separate and visually subordinate, with an accessible touch target. Readiness
+must not claim verified VRAM placement. Simulator labels do not claim model loading.
+Desktop spacing accommodates the brand header and bounded panels where viewport
+height permits; small screens retain scrolling and readable message text.
+Welcome state is labelled initial; replay state is labelled recorded with dates
+in disclosure. Live observation timestamps remain visible.
+The live report summarizes the actual goal, terminal explanation, observed initial
+and final state, recorded operator decisions and tool calls. Tool calls are not
+labelled successful changes without result evidence; unknown write effects remain
+explicit. No new inference is used to produce the report.
+
+Accepted presentation refinement: compact author/source attribution in the header,
+source link in both report modes, and a neutral welcome badge. Own live-result
+access is a button beside home navigation on desktop and mobile, outside the
+demo chat; mobile explicitly names the live result. Return remains read-only.
+Preparation may say the first start takes several minutes, without promising
+VRAM placement or a two-minute deadline. Motion respects reduced-motion settings.
+
+### Responsive review and admission feedback — 2026-10-24
+
+Mobile status shares a wrapping row with model identity; ready/preparation labels
+are concise and timeout has a muted error tone on all viewports. Help text stays
+secondary and readable. Versions/replicas remain expanded. Both modes expose an
+explicit mobile chat anchor. Successful live entry/admission may scroll once to
+chat and its state summary; polling must not move the page. Rejected admission
+stays at its notice. Replay entry preserves scenario selection and failure context.
+Latest command rejection and prior reservation expiry are separate facts: session
+polling must not overwrite a newer busy/limit rejection with historical expiry.
+Connection feedback may temporarily take precedence without losing that rejection.
+Task outcome and termination reason have explicit labels; codes are diagnostic,
+not a claim of service recovery. Report actions have independent spacing.
+Brand attribution aligns to the brand text's right edge; platform title stays
+centered. Replay warning is one wrapping paragraph with bold title and italic
+explanation. Footer and secondary notes use compact spacing without overlays.
+
+Mobile finishing review (2026-10-24): preparation includes model identity in its
+compact status; other phases put provider/model on two lines beside controls.
+Replay helper text is shorter on mobile, and its scenario explanation is 2px
+smaller. Additional chat height comes from compact secondary content and a small
+viewport-height adjustment. Native scrollbars remain visible when the platform
+permits, with a reserved gutter and neutral thumb; no custom scroll implementation.
+Initial degradation is emphasized in the compact state. Accessibility methodology
+and audit scope remain a separate deferred decision, not part of this update.

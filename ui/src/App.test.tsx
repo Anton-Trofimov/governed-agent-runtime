@@ -4,7 +4,7 @@ import { App } from './App';
 import { parseRun, readSelection, saveSelection, loadRun, type Run } from './data';
 import success from '../public/runs/success.json';
 import stop from '../public/runs/stop.json';
-beforeEach(()=>{vi.restoreAllMocks();localStorage.clear();});
+beforeEach(()=>{HTMLDialogElement.prototype.showModal=function(){this.open=true;}; HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new Event('close'));};vi.restoreAllMocks();localStorage.clear();window.history.replaceState(null,'','/');vi.unstubAllGlobals();});
 const loader=async(id:string)=>parseRun(id==='success'?success:stop,id);
 async function start(){fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));}
 function finish(){fireEvent.click(screen.getByRole('button',{name:'К результату'}));}
@@ -81,7 +81,7 @@ it('gates mode controls and keeps versions always visible',async()=>{
  expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeDisabled();
  await start();expect(screen.getByLabelText('Демонстрационный пример')).toBeVisible();finish();
  fireEvent.click(screen.getByRole('button',{name:'Открыть итоговый отчёт'}));
- expect(screen.getByText('Отчёт и источники').closest('details')!.open).toBe(true);
+ expect(screen.getByRole('dialog',{name:'Итоговый отчёт'})).toBeVisible();
  expect(document.querySelector('.report pre')!.textContent).toBe(success.report);
 });
 it('keeps mobile versions visible and safety conditions initially closed',async()=>{
@@ -122,7 +122,7 @@ it('opens explanatory dialog only on demand and restores trigger focus',async()=
  fireEvent.click(trigger);
  const dialog=screen.getByRole('dialog');
  expect(dialog).toHaveTextContent('Подтверждение оператора тоже не отменяет проверки платформы');
- expect(dialog).toHaveTextContent('инференс LLM осуществляется на реальной AI-инфраструктуре');
+ expect(dialog).toHaveTextContent('Сохранённые примеры доступны без вызова модели');
  fireEvent.click(within(dialog).getByRole('button',{name:'Закрыть'}));
  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
  expect(trigger).toHaveFocus();
@@ -132,7 +132,9 @@ it('highlights the compact state and advances without scrolling the page',async(
  const original=HTMLElement.prototype.scrollIntoView;
  HTMLElement.prototype.scrollIntoView=scroll;
  try {
-  render(<App loader={loader}/>);await start();finish();
+  render(<App loader={loader}/>);await start();
+  expect(scroll).toHaveBeenCalledTimes(1);
+  scroll.mockClear();finish();
   expect(document.querySelector('.compact-state .value-changed')).not.toBeNull();
   expect(scroll).not.toHaveBeenCalled();
  } finally {HTMLElement.prototype.scrollIntoView=original;}
@@ -158,4 +160,41 @@ it('keeps the event breakdown in replay only and derives counts for each example
  await waitFor(()=>expect(screen.getByLabelText('Состав событий').closest('details')).toHaveTextContent('Состав событий: 26'));
  expect(screen.getByLabelText('Состав событий').closest('details')).toHaveTextContent('Остальные: 8');
  expect(screen.getByLabelText('Состав событий').closest('details')).toHaveTextContent('2 явных подтверждения');
+});
+
+it('uses the logo as home navigation and keeps translation guidance out of welcome',async()=>{
+ render(<App loader={loader}/>);
+ await screen.findByRole('button',{name:'Посмотреть пример'});
+ expect(screen.queryByText(/Ответ агента записан на английском/)).not.toBeInTheDocument();
+ await start();
+ fireEvent.click(screen.getByRole('link',{name:/Governed Agent/}));
+ await screen.findByRole('button',{name:'Посмотреть пример'});
+ expect(screen.queryByRole('button',{name:'Далее'})).not.toBeInTheDocument();
+});
+
+it.each(['success','stop'])('links %s proposal and checks without scrolling the page',async(id)=>{
+ const scroll=vi.fn();const original=HTMLElement.prototype.scrollIntoView;
+ HTMLElement.prototype.scrollIntoView=scroll;
+ try{
+  render(<App loader={loader}/>);await start();
+  fireEvent.change(screen.getByLabelText('Демонстрационный пример'),{target:{value:id}});
+  await screen.findByRole('button',{name:'К результату'});finish();scroll.mockClear();
+  const proposal=document.querySelector<HTMLElement>('.messages [data-event-source="event-60"]')!;
+  (proposal.querySelector('details') as HTMLDetailsElement).open=true;
+  fireEvent.click(within(proposal).getAllByRole('button',{name:'Показать в журнале'})[0]);
+  const check=document.querySelector<HTMLElement>('.journal [data-event-source="event-61"]')!;
+  expect(check).toHaveAttribute('data-highlight','true');
+  expect(check.querySelector('details')).toHaveAttribute('open');
+  expect(check).toHaveFocus();
+  fireEvent.click(within(check).getByRole('button',{name:'Показать в чате'}));
+  expect(proposal).toHaveAttribute('data-highlight','true');
+  expect(proposal).toHaveFocus();
+  expect(scroll).not.toHaveBeenCalled();
+ }finally{HTMLElement.prototype.scrollIntoView=original;}
+});
+it('does not expose future checks before playback reveals them',async()=>{
+ render(<App loader={loader}/>);await start();
+ fireEvent.click(screen.getByRole('button',{name:'Далее'}));
+ const proposal=document.querySelector('.messages [data-event-source="event-4"]')!;
+ expect(proposal).not.toHaveTextContent('event-5');
 });

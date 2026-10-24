@@ -35,6 +35,20 @@ exhaustive browser/accessibility coverage are not established. Live execution,
 public hosting and station access are not included. Delivery: [BC-009 PR #10](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/10)
 and [BC-010 PR #11](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/11).
 
+## Local interactive UI — BC-011
+
+A loopback-only backend connects the UI to runtime confirmations, deadlines and
+live modeled state. One active run; refresh restores its session without
+replaying commands. The deterministic model simulator follows a fixed path:
+this checks integration, not LLM behavior or public deployment readiness.
+The owner exercised real local Ollama inference and accepted the desktop/mobile
+UI. Successful recovery, refusal and confirmation expiry were observed; this is
+bounded integration feedback, not a model-quality benchmark. The pinned profile
+requires explicit local startup approval. Arbitrary initial questions are not yet
+separated from recovery goals. No public access is enabled.
+[BC-011 results and limitations](reports/decisions/bc-011-live-ui-runtime-disposition.md).
+[Start locally and review limits](docs/local-ui-simulator.md).
+
 ## Latest checkpoint: BC-008 accepted
 
 Two short operator requests across three paired seeds produced six completed

@@ -282,6 +282,20 @@ See [BC-006 decision](reports/decisions/bc-006-bounded-remediation-disposition.m
 [BC-008 review](reports/reviews/bc-008-measured-review.md) and
 [BC-008 decision](reports/decisions/bc-008-operator-goal-framing-disposition.md).
 
+## Local live interaction — BC-011
+
+Accepted for bounded local UI/runtime integration at implementation revision
+02ca894. The owner observed real local inference, nominal recovery, refusal and
+confirmation expiry, and accepted the desktop/mobile UI. Automated checks:
+337 Python tests, 63 UI tests, Ruff, build, recorded export and diff PASS.
+
+The result is an inspectable interactive demonstration: user intent, model
+proposals, runtime checks, explicit decisions and observed modeled state remain
+separate. No measured business ROI or general model reliability claim is made.
+Private station traces were not comprehensively reviewed. Initial-question
+routing, public access/abuse protection and shared-GPU arbitration remain open.
+[Disposition](reports/decisions/bc-011-live-ui-runtime-disposition.md).
+
 ## Operator presentation — BC-009/BC-010
 
 **Accepted bounded result:** BC-009 derives a read-only text/JSON outcome from

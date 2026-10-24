@@ -19,9 +19,11 @@ evidence.
 This repository develops and evaluates a governed runtime for bounded agent
 behavior in a synthetic payment-api incident-response environment.
 
-The current baselines are the deterministic Exp 18.0 S01 vertical and the
-frozen Exp 18.1A single-step Qwen proposal evaluation for a synthetic
-payment-api incident environment.
+Historical foundations include the deterministic Exp 18.0 S01 vertical and the
+frozen Exp 18.1A single-step Qwen proposal evaluation. Later bounded changes
+cover bounded remediation and operator presentation. Use `specs/README.md` for
+applicable authority and `project-meta/current-status.md` for the current handoff;
+do not infer the active scope from a historical experiment.
 
 An LLM may interpret controlled context and produce bounded proposals. The LLM
 is not the control plane.
@@ -123,6 +125,8 @@ a durable reference baseline.
 - `specs/` contains normative runtime and experiment contracts.
 - `schemas/` contains machine-validatable data contracts.
 - `src/` contains runtime implementation.
+- `ui/` contains the operator interface and its tests; it does not own runtime
+  authorization or execution decisions.
 - `tests/` contains unit, contract and acceptance verification.
 - `fixtures/` contains reproducible synthetic scenario inputs.
 - `knowledge/` contains explicitly permitted synthetic domain knowledge.
@@ -138,11 +142,13 @@ runtime scan the repository broadly for context or evidence.
 
 ## Current implementation boundaries
 
-The deterministic Exp 18.0 proof remains S01-specific. Exp 18.1A is a frozen
-single-step evaluation boundary, not a bounded agent loop.
+The historical deterministic Exp 18.0 proof remains S01-specific. Exp 18.1A is
+a frozen single-step evaluation boundary. Later BC-006 bounded remediation and
+BC-009/010 presentation contracts do not retrospectively broaden those proofs.
+BC-011 live interaction remains subject to its own scope and approval boundaries.
 
-Do not prematurely generalize the S01 evidence engine or scenario logic before
-the S02-S12 scenario matrix requires it.
+Generalize scenario logic only when the active bounded change requires it;
+preserve historical experiment contracts and evidence.
 
 Do not introduce:
 
@@ -217,6 +223,26 @@ representative model-visible inputs and relevant outputs or traces. Include
 anomalous, failing or high-risk outputs where applicable. Exhaustive manual
 inspection of every run is not required unless the active evaluation contract
 requires it.
+
+## Public repository and sensitive information
+
+Apply minimum necessary disclosure to code, README, specifications, reports,
+fixtures, screenshots, commit messages and PR descriptions. Never hardcode or
+publish passwords, keys, tokens, session secrets or credentials. Do not publish
+real private/admin endpoints, network or remote-access configuration, sensitive
+local paths, raw headers, environment configuration or user data. Use abstract
+examples and reviewed, sanitized results instead.
+
+Keep complete sensitive evidence in designated access-restricted local storage;
+do not automatically import external evidence directories into Git. Preserve
+original evidence there and publish only necessary, reviewed derivatives.
+Review each change for accidental disclosure before commit/PR; use secret
+scanning when appropriate. Report security issue classes, necessary impact,
+fixes and retest results without unnecessary operational exploit details.
+
+Credential handling, access controls and station exposure require an explicit
+human-agreed design before implementation. Documentation hygiene does not
+replace technical security controls or authorize deployment.
 
 ## Git discipline
 

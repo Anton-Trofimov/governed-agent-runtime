@@ -5,6 +5,10 @@ This file is not model-visible operational evidence.
 
 ## Local UI/runtime implementation — BC-011
 
+Dependency maintenance (2026-10-24): update test-only transitive undici from
+8.12.1 to 8.12.3 for published availability/integrity advisories. jsdom remains
+pinned; runtime behavior and provider budgets are unchanged.
+
 Presentation follow-up (2026-10-24): compact attribution/source links, preparation
 hint, neutral welcome status, and own-result buttons beside demo navigation on
 desktop/mobile. Public quotas, provider arbitration and intent routing are not

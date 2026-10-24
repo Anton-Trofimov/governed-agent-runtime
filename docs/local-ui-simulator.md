@@ -38,8 +38,9 @@ An uncertain provider completion leaves private recovery state in the selected
 evidence directory and disables new starts. Refresh, new cookies and backend
 restart cannot clear it. No browser reset or administrative service is exposed.
 Do not delete the marker as a shortcut: establish that prior work has stopped
-before a separately reviewed local recovery. The executable entry point currently
-has no real provider and no automated recovery command.
+before a separately reviewed local recovery. The simulator entry point has no
+real provider; the separately gated Ollama entry point below has no automated
+recovery command.
 
 Local traces, outcomes and manifests remain private in that directory. Never
 copy them to Git automatically. Public results must be reviewed and sanitized.
@@ -59,7 +60,7 @@ Before goal submission, the countdown uses server time. After 300 seconds in
 ready state without a goal, the reservation expires and the slot is released;
 use “Начать заново” explicitly. A free slot does not extend an expired reservation.
 
-## Local Ollama connection — implementation ready, station smoke not yet approved
+## Local Ollama connection — revision-bound station smoke
 
 The simulator command above remains inference-free. The separate entry point
 `python -m governed_agent_runtime.live_ollama_http` requires a private approval

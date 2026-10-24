@@ -41,9 +41,12 @@ A loopback-only backend connects the UI to runtime confirmations, deadlines and
 live modeled state. One active run; refresh restores its session without
 replaying commands. The deterministic model simulator follows a fixed path:
 this checks integration, not LLM behavior or public deployment readiness.
-A separately gated Ollama connection is implemented and tested offline; actual
-station inference is not yet validated. It requires a pinned profile and explicit
-local startup approval. No public access is enabled.
+The owner exercised real local Ollama inference and accepted the desktop/mobile
+UI. Successful recovery, refusal and confirmation expiry were observed; this is
+bounded integration feedback, not a model-quality benchmark. The pinned profile
+requires explicit local startup approval. Arbitrary initial questions are not yet
+separated from recovery goals. No public access is enabled.
+[BC-011 results and limitations](reports/decisions/bc-011-live-ui-runtime-disposition.md).
 [Start locally and review limits](docs/local-ui-simulator.md).
 
 ## Latest checkpoint: BC-008 accepted

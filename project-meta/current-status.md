@@ -3,115 +3,33 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
-## Local UI/runtime implementation — BC-011
+## BC-011 closure — 2026-10-24
 
-Mobile finishing pass (2026-10-24): compact preparation/model identity, shorter
-replay notes, slightly taller chat, native scrollbar styling and corrected welcome
-heading typography. No runtime/provider changes or new inference. Automated
-verification passes; visual acceptance on the operator's devices remains pending.
-Accessibility audit method and scope are deferred to a separate decision.
+**Accepted as a bounded local integration with recorded limitations.**
+Owner accepted UI baseline 02ca894 and requested documentary closure and PR/merge.
+[Disposition and concise results](../reports/decisions/bc-011-live-ui-runtime-disposition.md)
+separate automated verification, owner-observed station behavior and remaining gaps.
 
-Responsive review (2026-10-24): concise mobile status and chat navigation,
-aligned attribution, compact replay context and explicit terminal-code labels.
-A newer busy/limit rejection now survives polling an expired reservation.
-Regression checks cover both rejection paths and one-time mobile chat scrolling.
-Runtime admission, confirmation deadlines and provider budgets are unchanged.
-Browser rendering review remains pending; this environment has no browser binary.
-No real inference was performed for this change.
+Loopback-only UI/backend connects a pinned local Ollama model to the existing
+modeled payment-api runtime. Action-bound confirmations, one active slot, session
+ownership, idempotency, deadlines and uncertain-provider quarantine are retained.
+Recorded examples remain independent. Two preparations per approved local package
+are a smoke budget, not public visitor quotas.
 
-Dependency maintenance (2026-10-24): update test-only transitive undici from
-8.12.1 to 8.12.3 for published availability/integrity advisories. jsdom remains
-pinned; runtime behavior and provider budgets are unchanged.
+Verification: 337 Python tests, 63 UI tests, Ruff, TypeScript/Vite build, recorded
+asset consistency and diff checks PASS. Offline tests do not call a real model.
+Owner observed successful recovery, refusal and confirmation expiry during station
+smokes and accepted the current desktop/mobile presentation. Full private trace
+review and exhaustive device/accessibility coverage are not claimed.
 
-Presentation follow-up (2026-10-24): compact attribution/source links, preparation
-hint, neutral welcome status, and own-result buttons beside demo navigation on
-desktop/mobile. Public quotas, provider arbitration and intent routing are not
-implemented by this UI change; the exclusive-provider precondition still applies.
+Known boundaries: arbitrary initial questions are not separated from recovery
+goals; no free dialogue during execution; no public admission/abuse protection or
+GPU arbitration with unrelated Ollama clients. Public exposure is not authorized.
+[Startup and limits](../docs/local-ui-simulator.md).
+Integration status and CI are recorded in [PR #12](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/12).
 
-Latest review refinement (2026-10-23): shared summary/agent-response labels,
-status indicators and quieter stop control, compact desktop geometry, contextual
-observation dates, evidence-derived live report, explicit exhausted-smoke status,
-and friendly rejection of reused startup approval. Replica summaries now reflect
-actual arguments. The two-preparation profile and runtime safety gates are unchanged.
-Operator reported completed, confirmation-expired and refused trajectories;
-full private evidence review remains pending. No new inference for this update.
-
-
-Main baseline: `5eaae4b`, BC-009 PR #10 and BC-010 PR #11 merged.
-Human authorized the simulator and, on 2026-10-23, local Ollama integration
-implementation with offline tests. Revision-bound station smoke packages were
-subsequently approved and run by the operator; raw evidence remains private.
-The [BC-011 contract](../specs/core/live-ui-runtime-contract.md) now has a
-loopback-only HTTP implementation and React integration. One session owns one
-active slot; confirmations are action-bound, deadlines are backend-owned, and
-refresh retrieves state without replaying commands. Refusal/expiry terminates;
-new starts use a fresh modeled environment. Unknown provider completion blocks
-admission, including after backend restart.
-
-Verification: 337 Python tests, 63 UI tests, Ruff, TypeScript/Vite build,
-deterministic recorded-data export and diff checks PASS. Tests cover ownership,
-idempotency, confirmation expiry, cooperative stop, late/unknown completion and
-read-only restoration. Starlette's test client emits an httpx deprecation warning.
-These automated checks use no real model calls. Public deployment and visual
-acceptance of the latest UI refinement are not claimed. The simulator follows a fixed nominal path; it
-does not evaluate arbitrary goal semantics. Evidence remains outside the repo.
-
-Owner review refinement (2026-10-22): single-action admission, initial environment
-before goal entry, clean history on successful restart, in-chat confirmation and
-operator decision cards, persistent home navigation and contextual disabled input.
-Shared actor styling and denser desktop layout are implemented. Targeted React
-checks cover restart clearing, decision placement and terminal composer state.
-Browser visual acceptance remains pending: local Chromium download failed and
-the cloud browser could not reach the loopback server. No visual PASS claimed.
-
-Desktop/deadline refinement (2026-10-22): session server-time alignment fixes
-false zero countdowns before goal submission. Expiry is also checked at command
-admission, releases the reservation and requires explicit restart. Regression
-checks cover clock skew, zero-time submission and expiry without maintenance.
-Compact task navigation, common desktop panel bounds and actor labels are added;
-the heading font is bundled locally with its license. Visual acceptance of this
-revision remains pending (Chromium download returned a truncated archive).
-
-Navigation refinement (2026-10-22): owner-aware return/result access on home and
-demo, server-aligned confirmation countdown, shared logo/history navigation and
-unused-reservation release. Navigation never starts a run. Controls move below
-chat; provider identity remains visible in the live chat header. Desktop panels use stable
-viewport-bounded heights. Owner/visitor, terminal-result and history regression
-checks pass; browser/mobile visual review of this revision remains pending.
-
-Interaction review (2026-10-23): central start/return/restart/result controls;
-home navigation restored beside the task heading. Recorded proposals and checks
-link reciprocally by trace tick, with scoped scrolling/highlight and no future
-playback disclosure. Tests cover both examples, direct restart and admission-race
-result preservation. State spacing is reduced; browser/mobile visual review is
-still pending. Source evidence is unchanged.
-
-Live readability refinement: compact header on all screens, quiet composer
-surround and sage operator cards. Server-bound proposal/check references now
-support reciprocal live navigation and two-second highlighting. Journal follows
-new entries only when already at the bottom; tests cover preserving reading
-position. Browser/mobile visual review remains pending; no real inference.
-
-Viewport review refinement: task-toolbar entry alignment and compact failure note;
-shared modal reports with focus restoration; explicit mobile cross-panel links
-reveal their target before highlighting. Mobile header/stop and welcome spacing
-are reduced, with more height for unchanged message text. Visual acceptance on
-real desktop/mobile browsers remains pending.
-
-Final prototype spacing: compact desktop toolbar and single-paragraph failure
-context; mobile own-run access is outside chat beside home navigation. The
-disabled composer grows only to fit its text. Read-only return is covered for
-active and terminal runs. Human visual review remains pending.
-
-[Local startup and limits](../docs/local-ui-simulator.md). Local Ollama integration
-now has a pinned B-18 profile, revision-bound one-use private approval, fixed
-loopback transport, no proxy/redirect, two preparation attempts and shared
-coordinator/quarantine state. Provider-owned UI labels distinguish real mode from
-the simulator. Offline tests cover metadata mismatch, bounded transport, approval,
-exclusive coordination and actual runtime consent with fake provider responses.
-Next: review the concrete revision/profile and station listener configuration,
-then explicitly approve a bounded local real-inference smoke. Public authentication, station exposure, resource
-limits and scheduling remain separate decisions. Keep_alive is unchanged.
+Next: return to the separately drafted BC-012 initial-dialogue design after
+integration. No BC-012 code, new inference or accessibility audit is included.
 
 ## Accepted operator presentation — 2026-10-21
 

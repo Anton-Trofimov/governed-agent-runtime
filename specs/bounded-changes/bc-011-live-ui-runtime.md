@@ -1,5 +1,9 @@
 # BC-011 — local live UI/runtime interaction
 
+Closure 2026-10-24: accepted for local integration with recorded limitations;
+implementation baseline 02ca894. See [disposition](../../reports/decisions/bc-011-live-ui-runtime-disposition.md).
+The approval history and design below remain context; public exposure is excluded.
+
 Local implementation authorized by human, 2026-10-21, with deterministic model
 simulation only. Real model calls and station/public deployment remain separately
 gated. The offline server must identify the simulator and provide no real-provider

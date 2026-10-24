@@ -1,10 +1,12 @@
 # Local live UI/runtime contract
 
-Contract v0.3 with local simulator implementation authorized by the human,
-2026-10-22. Real provider integration/inference and deployment remain gated.
+Contract v0.4 includes the approved BC-012 initial-dialogue extension below.
+Local simulator implementation is authorized; real inference and deployment
+remain separately gated.
 BC-006 execution and confirmation contracts remain authoritative; recorded
-BC-010 data and schemas are unchanged. The executable server accepts only a
-deterministic simulator; injected providers in tests exercise failure boundaries.
+BC-010 data and schemas are unchanged. The simulator entry point uses a deterministic provider; the separate Ollama
+entry point requires revision/profile-bound approval. Injected providers in tests
+exercise failure boundaries without real inference.
 
 ## HTTP adapter and session design
 
@@ -468,3 +470,47 @@ Consumed approval is rejected with a concise CLI error before preflight/provider
 activation; consumption remains exclusive and durable, including races.
 Action summaries use actual proposal/confirmation arguments, never a fixed replica
 count. Unknown tools receive a neutral label; no summary grants permission.
+
+
+## BC-012 initial dialogue extension (approved design)
+
+The dialogue-enabled local service preserves `live.v1` execution events and adds
+`POST /api/dialogue` (`command=dialogue`, command_id, reservation_id, text).
+Text is nonblank, at most 2,000 code points. The old external `start_run` command
+is rejected with GOAL_ADMISSION_REQUIRED in this service; only a validated
+`start_remediation` dialogue result can create a run. Historical BC-011 fixtures
+continue to exercise the earlier service contract.
+
+The session adds `dialogue`: null or an owned bounded transcript with reservation_id,
+state (`preparing`, `ready`, `thinking`, `admitted`, `terminal`), messages, calls,
+reason, absolute_expires_at and run_id. Messages have opaque IDs, actor, text and
+time; agent messages additionally identify answer/clarify/unsupported/start_remediation.
+This history is separate from remediation events, retained after completion and
+reconnect, and replaced only by an explicitly admitted new scenario. No cross-session
+transcript access is allowed. A single message may wait for preparation; there is
+no queue of additional messages and no automatic resend or model retry.
+
+`schemas/bc012-dialogue.schema.json` defines the separate model result. The model
+returns a bounded reply and user-message references only for start_remediation.
+The server requires existing user references including the latest message, checks
+schema, ownership, phase, deadline and budget, and retains all exact user text plus
+clarification context in private dialogue evidence. The runtime goal preserves all exact
+user text in transcript order, including earlier constraints, never a model
+summary or a model-selected subset. Agent replies remain separate context in
+the private transcript; they are not attributed as operator intent. If the combined
+goal exceeds the existing 2,000-code-point runtime bound, end with
+DIALOGUE_GOAL_TOO_LONG; never truncate or summarize it silently. These checks do
+not prove semantic classification correctness. Dialogue has no tool interface.
+
+The profile fixes 5 calls, including classification of an immediate recovery goal,
+300 seconds per call, 300 seconds waiting for the next user message, and 600 seconds
+absolute time from successful preparation. The fifth response may admit a goal;
+a fifth non-start response ends dialogue with DIALOGUE_LIMIT. The idle clock starts
+at readiness or completion of a reply; the absolute clock never resets. Expiry,
+release, invalid output and provider failure cannot start remediation. A late
+reply is discarded. In-flight work retains the slot until completion is known;
+unknown completion retains provider quarantine. Polling never renews deadlines.
+
+Profile/version and revision approval must be renewed before real-model evaluation.
+The two-preparation allowance and all BC-006 confirmation/execution budgets remain
+unchanged. Fake-provider tests verify transport and transitions, not semantic quality.

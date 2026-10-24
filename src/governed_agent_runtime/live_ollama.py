@@ -35,7 +35,8 @@ def private_json(path, value):
 
 def load_profile(root):
     profile = json.loads((Path(root) / PROFILE).read_text())
-    if (profile['profile_id'] != 'BC011-local-ollama-v1'
+    if (profile['profile_id'] != 'BC012-local-ollama-v1'
+            or profile.get('dialogue') != {'max_calls': 5, 'idle_seconds': 300, 'absolute_seconds': 600}
             or profile['fixture'] != 'fixtures/scenarios/bc-006/s12.json'
             or profile['max_preparations'] != 2
             or any(profile[k] != 300 for k in ('preparation_seconds', 'inference_seconds',
@@ -152,6 +153,21 @@ class LocalOllamaModel:
                                 {'role': 'user', 'content': canonical(context)}],
                    'stream': False, 'think': self.adapter.invocation_parameters['think'],
                    'format': self.adapter.model_schema,
+                   'keep_alive': self.adapter.invocation_parameters['keep_alive'],
+                   'options': self.adapter._request_options()}
+        return self._operation('/api/chat', payload, evidence_dir,
+                               self.profile['inference_seconds'])
+
+
+    def converse(self, context, *, evidence_dir):
+        from governed_agent_runtime.live_dialogue import SYSTEM as DIALOGUE_SYSTEM
+        schema = json.loads((Path(__file__).resolve().parents[2] /
+                             'schemas/bc012-dialogue.schema.json').read_text())
+        payload = {'model': self.adapter.model_identity,
+                   'messages': [{'role': 'system', 'content': DIALOGUE_SYSTEM},
+                                {'role': 'user', 'content': canonical(context)}],
+                   'stream': False, 'think': self.adapter.invocation_parameters['think'],
+                   'format': schema,
                    'keep_alive': self.adapter.invocation_parameters['keep_alive'],
                    'options': self.adapter._request_options()}
         return self._operation('/api/chat', payload, evidence_dir,

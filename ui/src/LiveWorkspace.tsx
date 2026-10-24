@@ -94,13 +94,13 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     };
     update();const timer=window.setInterval(update,1000);return()=>window.clearInterval(timer);
   },[snapshot?.pending_confirmation?.expires_at,session?.reservation?.expires_at]);
-  useEffect(()=>{if(messages.current)messages.current.scrollTop=messages.current.scrollHeight;},[events.length]);
+  useEffect(()=>{if(messages.current)messages.current.scrollTop=messages.current.scrollHeight;},[events.length,session?.dialogue?.messages.length]);
   async function send(cmd:ReturnType<typeof command>){
     pending.current=cmd;setBusy(true);setError('');
     try{
       await request(cmd.path,cmd.body);pending.current=null;
       if(cmd.body.command==='decide')submittedDecision.current=String(cmd.body.confirmation_id);
-      if(cmd.body.command==='start_run')setGoal('');
+      if(cmd.body.command==='start_run'||cmd.body.command==='dialogue')setGoal('');
       if(cmd.body.command==='prepare'){
         scrolledAdmission.current=null;setGoal('');setSnapshot(undefined);setEvents([]);followJournal.current=true;eventsRef.current=[];runRef.current=null;
       }
@@ -121,11 +121,14 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       await send(command('/api/sessions','prepare'));
     }catch(err){setError(explainError(err));}finally{setBusy(false);}
   }
-  const phase=snapshot?.phase??session?.reservation?.phase??'';
-  const statusLabel=(session?.preparation_error?.code==='READY_EXPIRED'||snapshot?.terminal?.reason_code==='CONFIRMATION_EXPIRED')?'Время ожидания истекло':
+  const dialogue=session?.dialogue;
+  const thinking=dialogue?.state==='thinking';
+  const queued=dialogue?.state==='preparing'&&dialogue.messages.at(-1)?.actor==='operator';
+  const phase=snapshot?.phase??(thinking?'running':session?.reservation?.phase??(dialogue?.state==='terminal'?'terminal':''));
+  const statusLabel=thinking?'Агент отвечает':dialogue?.state==='terminal'?(dialogue.reason==='DIALOGUE_EXPIRED'?'Время ожидания истекло':'Начальный диалог завершён'):(session?.preparation_error?.code==='READY_EXPIRED'||snapshot?.terminal?.reason_code==='CONFIRMATION_EXPIRED')?'Время ожидания истекло':
     session?.provider?.kind==='simulator'&&phase==='ready'?'Имитатор готов к работе':
     session?.provider?.kind==='simulator'&&phase==='preparing'?'Подготовка имитатора':labels[phase]??'Готов к началу';
-  const expired=session?.preparation_error?.code==='READY_EXPIRED'||snapshot?.terminal?.reason_code==='CONFIRMATION_EXPIRED';
+  const expired=dialogue?.reason==='DIALOGUE_EXPIRED'||session?.preparation_error?.code==='READY_EXPIRED'||snapshot?.terminal?.reason_code==='CONFIRMATION_EXPIRED';
   const notice=connectionError||error||session?.preparation_error?.message||'';
   const active=snapshot&&snapshot.phase!=='terminal';
   const admission=session?.reservation?.reservation_id??snapshot?.run_id;
@@ -138,13 +141,13 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   },[admission,notice,snapshot?.run_id]);
   const pendingConfirmation=snapshot?.pending_confirmation;
   const canSubmit=!!session?.reservation&&!active&&connected&&!busy&&!pending.current&&
-    session.reservation.phase!=='stopping'&&seconds!==0&&
+    session.reservation.phase!=='stopping'&&!thinking&&!queued&&dialogue?.state!=='terminal'&&seconds!==0&&
     (!session.reservation.expires_at||Date.parse(session.reservation.expires_at)>Date.parse(session.server_time));
   const currentEvents=events.filter(e=>!['phase_changed','model_status_changed'].includes(e.event_kind));
-  const serviceView=snapshot?.service_view??session?.reservation?.service_view??
+  const serviceView=snapshot?.service_view??session?.reservation?.service_view??dialogue?.service_view??
     (session?.preparation_error?.code==='READY_EXPIRED'?lastServiceView.current:null);
   const unknown=!!snapshot?.terminal?.runtime_outcome?.unknown_write_effect;
-  const blockedText=session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания запроса истекло. Начните сценарий заново.':!connected?'Восстанавливаем связь. Отправка временно недоступна.':
+  const blockedText=thinking?'Агент обрабатывает сообщение. Выполнение ещё не начато.':queued?'Запрос принят. Ожидаем готовности модели.':dialogue?.state==='terminal'?'Начальный диалог завершён. Можно посмотреть переписку или начать заново.':session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания запроса истекло. Начните сценарий заново.':!connected?'Восстанавливаем связь. Отправка временно недоступна.':
     snapshot?.phase==='terminal'?'Запуск завершён. Можно посмотреть результат или начать заново.':
     snapshot?.stop_requested?'Остановка запрошена. Ожидаем завершения текущего шага.':
     pendingConfirmation?'Ожидается ваше решение по действию выше.':
@@ -155,7 +158,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     <div className="task-toolbar live-toolbar"><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
       <nav className="live-navigation" aria-label="Управление сценарием">
       <button className="action" disabled={busy} onClick={onExit}>К началу</button>
-      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
+      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot||dialogue?.state==='terminal'||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
       <button className="action chat-jump" onClick={()=>chat.current?.scrollIntoView?.({block:'start'})}>К чату ↓</button>
       {notice&&<p role="alert" className="admission-notice">{notice}</p>}
       {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}
@@ -166,9 +169,11 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}
       <section className="chat" ref={chat} aria-label="Интерактивный диалог">
         {serviceView&&renderCompact(serviceView,unknown)}
-        <div className={"chat-head"+(phase==='preparing'&&session?.provider?.kind==='ollama'?' preparing-model':'')}><div><h2>Агент управления сервисом</h2><span className="simulator-label">{session?.provider?.kind==='ollama'?<>Локальная LLM<span className="model-separator"> · </span><span className="model-name">{session.provider.model_name}</span></>:providerLabel(session?.provider)}</span><div className="agent-controls"><AgentStatus phase={expired?'expired':phase} label={statusLabel} compactLabel={expired?'Время истекло':session?.provider?.kind==='simulator'?undefined:({preparing:`Подготовка модели · ${session?.provider?.model_name??''}`,ready:'Агент готов',running:'Выполняется',awaiting_confirmation:'Ожидается решение'} as Record<string,string>)[phase]} hint={phase==='preparing'&&session?.provider?.kind!=='simulator'?'Первый запуск может занять несколько минут':undefined} since={events.filter(e=>e.event_kind==='model_status_changed'&&e.payload.model_status==='inference').at(-1)?.occurred_at}/>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
+        <div className={"chat-head"+(phase==='preparing'&&session?.provider?.kind==='ollama'?' preparing-model':'')}><div><h2>Агент управления сервисом</h2><span className="simulator-label">{session?.provider?.kind==='ollama'?<>Локальная LLM<span className="model-separator"> · </span><span className="model-name">{session.provider.model_name}</span></>:providerLabel(session?.provider)}</span><div className="agent-controls"><AgentStatus phase={expired?'expired':phase} label={statusLabel} compactLabel={expired?'Время истекло':thinking?'Отвечает':session?.provider?.kind==='simulator'?undefined:({preparing:`Подготовка модели · ${session?.provider?.model_name??''}`,ready:'Агент готов',running:'Выполняется',awaiting_confirmation:'Ожидается решение'} as Record<string,string>)[phase]} hint={phase==='preparing'&&session?.provider?.kind!=='simulator'?'Первый запуск может занять несколько минут':undefined} since={events.filter(e=>e.event_kind==='model_status_changed'&&e.payload.model_status==='inference').at(-1)?.occurred_at}/>{session?.reservation&&dialogue&&<button className="live-stop" title="Завершить начальный диалог" aria-label="Завершить начальный диалог" disabled={!connected||busy||!!pending.current||dialogue.state==='terminal'} onClick={()=>void send(command('/api/session/release','release',{reservation_id:session.reservation!.reservation_id}))}>■</button>}{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
         <div className="messages" ref={messages} aria-label="События интерактивного диалога">
-          {currentEvents.filter(e=>['goal_accepted','proposal_recorded','operator_decision','confirmation_requested'].includes(e.event_kind)).map(e=>{
+          {dialogue?.messages.map(message=><article key={message.id} className={message.actor==='operator'?'user-message':'agent-message'}><div className="author"><span className="actor-label">{message.actor==='operator'?'Оператор':session?.provider?.kind==='simulator'?'Агент · имитатор':'Агент'}</span> · <time dateTime={message.occurred_at}>{new Date(message.occurred_at).toLocaleString('ru-RU')}</time></div><p>{message.text}</p></article>)}
+          {dialogue?.state==='terminal'&&<p role="status">{session?.preparation_error?.message??'Начальный диалог завершён. Выполнение не начато.'}</p>}
+          {currentEvents.filter(e=>!(dialogue?.state==='admitted'&&e.event_kind==='goal_accepted')).filter(e=>['goal_accepted','proposal_recorded','operator_decision','confirmation_requested'].includes(e.event_kind)).map(e=>{
             const decision=e.event_kind==='operator_decision'?e:null;
             const context=decision?events.find(x=>x.event_kind==='confirmation_requested'&&x.payload.confirmation_id===decision.payload.confirmation_id):undefined;
             const confirmationEvent=e.event_kind==='confirmation_requested'?e:null;
@@ -183,11 +188,12 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
             </article>;
           })}
           {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><TerminalCodes terminal={snapshot.terminal}/><ReportDialog><p>{providerLabel(session?.provider)}</p><LiveReport snapshot={snapshot} events={events}/></ReportDialog></section>}
-          {!snapshot&&session?.reservation&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте цель агенту.</p>}
+          {!snapshot&&session?.reservation&&!dialogue?.messages.length&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте вопрос или цель агенту.</p>}
         </div>
-        {session?.reservation&&!active?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
-          <div className="live-suggestions">{['Восстанови работу сервиса','После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'].map(text=><button type="button" className="action" key={text} disabled={!canSubmit} onClick={()=>setGoal(text)}>{text}</button>)}</div>
+        {session?.reservation&&!active&&!thinking&&!queued&&dialogue?.state!=='terminal'?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(dialogue?command('/api/dialogue','dialogue',{reservation_id:session.reservation!.reservation_id,text:goal}):command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
+          <div className="live-suggestions">{(dialogue?['Что ты умеешь?','Восстанови работу сервиса']:['Восстанови работу сервиса','После обновления сервис работает нестабильно. Восстанови его работу безопасным способом']).map(text=><button type="button" className="action" key={text} disabled={!canSubmit} onClick={()=>setGoal(text)}>{text}</button>)}</div>
           <label htmlFor="live-goal">Запрос агенту</label><textarea id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}</div>
+          {dialogue&&<small>До начала выполнения: {dialogue.calls} из 5 обращений. После начала — только решения по действиям.</small>}{dialogue&&session.provider?.kind==='simulator'&&<small>Имитатор отвечает по фиксированным примерам; понимание произвольного текста здесь не проверяется.</small>}
           {session.provider?.kind==='ollama'&&<small>Можно изменить подсказку: формулировка запроса может повлиять на результат. Ответ модели может быть на английском.</small>}
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
         </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><CompactComposer text={blockedText}/></div>}

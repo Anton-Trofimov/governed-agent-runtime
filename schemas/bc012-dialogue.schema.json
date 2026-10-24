@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BC-012 pre-execution model result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome",
+    "reply",
+    "goal_message_ids"
+  ],
+  "properties": {
+    "outcome": {
+      "enum": [
+        "answer",
+        "clarify",
+        "unsupported",
+        "start_remediation"
+      ]
+    },
+    "reply": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "pattern": "\\S"
+    },
+    "goal_message_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80,
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "uniqueItems": true,
+      "maxItems": 5
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "start_remediation"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "goal_message_ids": {
+            "minItems": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "goal_message_ids": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}

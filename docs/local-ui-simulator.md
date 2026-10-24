@@ -121,3 +121,20 @@ Raw goals, requests, responses, approval and results stay in private local evide
 Only reviewed/sanitized conclusions belong in Git. Never upload these directories
 wholesale. A successful smoke is an integration observation, not a new quality
 benchmark or evidence of safe public deployment.
+
+
+## BC-012 initial dialogue (local development)
+
+The simulator entry point now uses a bounded initial dialogue before creating a
+remediation run. `Что ты умеешь?` and `Почему сервис работает нестабильно?` return
+fixed informational replies; `Восстанови работу сервиса` starts the existing
+confirmation-governed scenario. `Напиши стихотворение` returns a scope reply;
+other text receives a scripted clarification. This is a deterministic UI fixture,
+not evidence of language understanding.
+
+Up to five dialogue calls share the reservation, with a 300-second user wait and
+a 600-second absolute window after model readiness. Reload restores the owned
+transcript without resending a call. During execution only existing exact-action
+decisions are accepted. The local profile is now BC012-local-ollama-v1; earlier
+revision/profile approvals cannot authorize this version. Real-model semantic
+checks have not been performed for BC-012.

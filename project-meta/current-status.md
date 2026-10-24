@@ -3,6 +3,24 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-012 local implementation — 2026-10-25
+
+[Initial dialogue and goal admission](../specs/bounded-changes/bc-012-initial-dialogue-and-goal-admission.md)
+implemented on a separate development branch after owner approval, including the
+5-call limit. Dialogue answers/clarifications do not create remediation runs.
+Only a valid start proposal can enter the existing executor; exact operator text,
+action confirmations and provider quarantine are preserved.
+
+Local verification: 357 Python tests, 66 UI tests, Ruff, TypeScript/Vite build,
+recorded-data export and diff checks PASS. The new HTTP test first failed because
+initial dialogue was unsupported, then passed after implementation. Tests use
+fake providers; no real model was called and no semantic-quality claim is made.
+UI behavior was checked in jsdom, not a new physical-device/browser visual review.
+
+Next: owner review of local simulator interaction, then a separately approved,
+revision/profile-bound small semantic smoke. The profile changed to BC012;
+BC-011 approvals are not reusable. Public access and GPU scheduling remain excluded.
+
 ## BC-011 closure — 2026-10-24
 
 **Accepted as a bounded local integration with recorded limitations.**
@@ -28,8 +46,11 @@ GPU arbitration with unrelated Ollama clients. Public exposure is not authorized
 [Startup and limits](../docs/local-ui-simulator.md).
 Integration status and CI are recorded in [PR #12](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/12).
 
-Next: return to the separately drafted BC-012 initial-dialogue design after
-integration. No BC-012 code, new inference or accessibility audit is included.
+BC-011 merged through PR #12 at `668a50e`.
+Next: [BC-012 initial dialogue](../specs/bounded-changes/bc-012-initial-dialogue-and-goal-admission.md).
+The owner approved its design and resource bounds with a limit of 5 pre-execution
+model calls. Local fake-provider implementation is recorded above.
+Real inference requires separate revision-bound approval.
 
 ## Accepted operator presentation — 2026-10-21
 

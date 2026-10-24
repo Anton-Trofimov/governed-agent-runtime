@@ -1,4 +1,4 @@
-"""Loopback-only BC-011 HTTP server. Only the deterministic provider is executable."""
+"""Loopback-only live HTTP server. Only the deterministic provider is executable."""
 
 import argparse
 import json
@@ -14,7 +14,7 @@ from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from governed_agent_runtime.live_service import LiveError, LiveService, now
+from governed_agent_runtime.live_service import LiveError, now
 
 COOKIE = "gar_local_session"
 
@@ -105,7 +105,7 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                         return response(service.events(run, query["after"], query.get("limit", 100)))
                     return response(service.snapshot(run))
                 commands = {"/api/sessions": "prepare", "/api/runs": "start_run",
-                            "/api/session/release": "release"}
+                            "/api/session/release": "release", "/api/dialogue": "dialogue"}
                 command = commands.get(path)
                 if run_id:
                     command = "decide" if path.endswith("/decisions") else "stop"
@@ -124,7 +124,7 @@ def create_app(service, origin="http://127.0.0.1:8000"):
     routes = [Route(path, endpoint, methods=methods) for path, methods in [
         ("/api/status", ["GET"]), ("/api/session", ["GET"]),
         ("/api/session/bootstrap", ["POST"]), ("/api/session/release", ["POST"]),
-        ("/api/sessions", ["POST"]), ("/api/runs", ["POST"]),
+        ("/api/dialogue", ["POST"]), ("/api/sessions", ["POST"]), ("/api/runs", ["POST"]),
         ("/api/runs/{run_id}", ["GET"]), ("/api/runs/{run_id}/events", ["GET"]),
         ("/api/runs/{run_id}/decisions", ["POST"]), ("/api/runs/{run_id}/stop", ["POST"])]]
     if (service.root / "ui/dist/index.html").exists():
@@ -162,7 +162,7 @@ def main():
 
     import uvicorn
 
-    parser = argparse.ArgumentParser(description="BC-011 local simulator; no LLM calls")
+    parser = argparse.ArgumentParser(description="BC-012 local dialogue simulator; no LLM calls")
     parser.add_argument("--evidence-dir", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
@@ -171,7 +171,8 @@ def main():
     for command in ([sys.executable, "-m", "ruff", "check", "."],
                     [sys.executable, "-m", "pytest", "-q"], ["git", "diff", "--check"]):
         subprocess.run(command, cwd=root, check=True)
-    service = LiveService(root, args.evidence_dir)
+    from governed_agent_runtime.live_dialogue import DialogueService
+    service = DialogueService(root, args.evidence_dir)
     app = create_app(service, f"http://127.0.0.1:{args.port}")
     uvicorn.run(app, host="127.0.0.1", port=args.port, workers=1, proxy_headers=False,
                 access_log=False)

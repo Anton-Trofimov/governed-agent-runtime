@@ -18,7 +18,7 @@ export function ReportDialog({children}:{children:ReactNode}){
   return <><button className="action" ref={trigger} onClick={()=>{setOpened(true);dialog.current?.showModal();}}>Открыть итоговый отчёт</button>
     <dialog className="report report-dialog" ref={dialog} aria-label="Итоговый отчёт" onClose={()=>{setOpened(false);trigger.current?.focus({preventScroll:true});}}>
       <button className="action report-close" autoFocus onClick={()=>dialog.current?.close()}>Закрыть</button>
-      <h2>Отчёт и источники</h2>{opened&&children}
+      <h2>Отчёт и источники</h2>{opened&&<>{children}<p className="report-source-link"><a href="https://github.com/Anton-Trofimov/governed-agent-runtime">Исходный код и спецификации — GitHub</a></p></>}
     </dialog></>;
 }
 

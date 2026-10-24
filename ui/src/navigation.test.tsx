@@ -86,12 +86,13 @@ it('preserves result access when another session wins admission before restart',
  expect(mutations(fetcher)).toHaveLength(1);
 });
 
-it.each([false,true])('keeps mobile owner access outside demo chat (terminal=%s)',async terminal=>{
- vi.stubGlobal('innerWidth',390);
+it.each([[390,false],[390,true],[1280,false],[1280,true]])('keeps owner access beside navigation at width %s (terminal=%s)',async(width,terminal)=>{
+ vi.stubGlobal('innerWidth',width);
  const fetcher=mockBackend({terminal});render(<App/>);
  fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));
- const button=await screen.findByRole('button',{name:terminal?'Результат живого запуска':/Вернуться к запуску · 5:00/});
+ const button=await screen.findByRole('button',{name:terminal?(width===390?'Результат живого запуска':'Результат запуска'):(width===390?/Вернуться к запуску · 5:00/:'Вернуться к запуску')});
  expect(button.closest('.demo-navigation')).not.toBeNull();
+ expect(button.classList.contains('action')).toBe(true);
  expect(document.querySelector('.chat .owner-access')).toBeNull();
  fireEvent.click(button);
  await screen.findByRole('region',{name:'Интерактивный диалог'});

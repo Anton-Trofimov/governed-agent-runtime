@@ -5,6 +5,11 @@ This file is not model-visible operational evidence.
 
 ## Local UI/runtime implementation — BC-011
 
+Presentation follow-up (2026-10-24): compact attribution/source links, preparation
+hint, neutral welcome status, and own-result buttons beside demo navigation on
+desktop/mobile. Public quotas, provider arbitration and intent routing are not
+implemented by this UI change; the exclusive-provider precondition still applies.
+
 Latest review refinement (2026-10-23): shared summary/agent-response labels,
 status indicators and quieter stop control, compact desktop geometry, contextual
 observation dates, evidence-derived live report, explicit exhausted-smoke status,
@@ -25,7 +30,7 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 337 Python tests, 58 UI tests, Ruff, TypeScript/Vite build,
+Verification: 337 Python tests, 60 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.

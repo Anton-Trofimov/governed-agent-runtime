@@ -519,3 +519,18 @@ body{background:#f7f9fa}
  #operator-workspace .live-workspace .live-stop{width:44px;height:44px;min-width:44px;border:0}
  #operator-workspace .live-stop::before{display:block;inset:9px;border-color:#afbec6}
 }
+
+/* Compact attribution and consistent result navigation across viewports. */
+#operator-workspace .brand-identity{line-height:1.15}
+#operator-workspace .brand-identity small{display:block;font-size:10px;color:#b7cbd4;margin-top:3px}
+#operator-workspace .brand-identity small a{color:inherit}
+#operator-workspace .messages .original-label{color:#25343b;font-weight:650}
+#operator-workspace .status-idle{background:#f3f6f7;border-color:#dce5e8;color:#617782}
+#operator-workspace .status-idle .status-indicator{background:#98abb4}
+#operator-workspace .demo-navigation .owner-access{display:flex;align-items:center;gap:8px;padding:0;margin:0;border:0;background:none;font-size:11px}
+#operator-workspace .demo-navigation .mobile-owner-access{font-size:12px;min-height:44px}
+#operator-workspace .report-source-link{margin-top:18px;font-size:12px}
+@media(min-width:881px){
+ #operator-workspace .task-toolbar{padding-top:7px;padding-bottom:7px}
+ #operator-workspace .brandbar{padding-top:5px;padding-bottom:5px}
+}

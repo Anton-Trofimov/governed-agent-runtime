@@ -349,3 +349,10 @@ The live report summarizes the actual goal, terminal explanation, observed initi
 and final state, recorded operator decisions and tool calls. Tool calls are not
 labelled successful changes without result evidence; unknown write effects remain
 explicit. No new inference is used to produce the report.
+
+Accepted presentation refinement: compact author/source attribution in the header,
+source link in both report modes, and a neutral welcome badge. Own live-result
+access is a button beside home navigation on desktop and mobile, outside the
+demo chat; mobile explicitly names the live result. Return remains read-only.
+Preparation may say the first start takes several minutes, without promising
+VRAM placement or a two-minute deadline. Motion respects reduced-motion settings.

@@ -25,6 +25,10 @@ PR/merge before continuing the separately drafted initial-dialogue change.
   No aggregated real-call success rate, universal model reliability, production
   readiness or measured financial/productivity ROI is claimed.
 
+CI initially exposed a test-helper import-path mismatch between pytest entry
+points. The explicit test root path fixes collection/import behavior without
+changing assertions or runtime code; the closure PR records the rerun.
+
 ## Material limits and next boundary
 
 Arbitrary initial text still becomes a recovery goal: a capabilities question can

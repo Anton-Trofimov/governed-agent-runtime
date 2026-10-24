@@ -356,3 +356,20 @@ access is a button beside home navigation on desktop and mobile, outside the
 demo chat; mobile explicitly names the live result. Return remains read-only.
 Preparation may say the first start takes several minutes, without promising
 VRAM placement or a two-minute deadline. Motion respects reduced-motion settings.
+
+### Responsive review and admission feedback — 2026-10-24
+
+Mobile status shares a wrapping row with model identity; ready/preparation labels
+are concise and timeout has a muted error tone on all viewports. Help text stays
+secondary and readable. Versions/replicas remain expanded. Both modes expose an
+explicit mobile chat anchor. Successful live entry/admission may scroll once to
+chat and its state summary; polling must not move the page. Rejected admission
+stays at its notice. Replay entry preserves scenario selection and failure context.
+Latest command rejection and prior reservation expiry are separate facts: session
+polling must not overwrite a newer busy/limit rejection with historical expiry.
+Connection feedback may temporarily take precedence without losing that rejection.
+Task outcome and termination reason have explicit labels; codes are diagnostic,
+not a claim of service recovery. Report actions have independent spacing.
+Brand attribution aligns to the brand text's right edge; platform title stays
+centered. Replay warning is one wrapping paragraph with bold title and italic
+explanation. Footer and secondary notes use compact spacing without overlays.

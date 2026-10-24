@@ -13,7 +13,7 @@ export function LiveReport({snapshot,events}:{snapshot:Snapshot;events:LiveEvent
   </>;}
   return <>
     <h3>Запрос оператора</h3><p>{snapshot.goal}</p>
-    <h3>Результат</h3><p>{snapshot.terminal?.explanation}</p><p><code>{snapshot.terminal?.runtime_outcome?.task_state} · {snapshot.terminal?.reason_code}</code></p>
+    <h3>Результат</h3><p>{snapshot.terminal?.explanation}</p>{snapshot.terminal&&<TerminalCodes terminal={snapshot.terminal}/>}
     <h3>Исходное наблюдение</h3>{initial?state(initial):<p>Не получено.</p>}
     <h3>{snapshot.terminal?.runtime_outcome?.unknown_write_effect?'Последнее наблюдение — исход изменения неизвестен':'Последнее наблюдение'}</h3>{final?state(final):<p>Не получено.</p>}
     <h3>Решения оператора</h3>{decisions.length?<ul>{decisions.map(e=>{
@@ -23,4 +23,14 @@ export function LiveReport({snapshot,events}:{snapshot:Snapshot;events:LiveEvent
     <h3>Вызовы инструментов</h3><p className="subtle">Начало вызова само по себе не подтверждает успешное изменение. Результат отражён в наблюдениях выше.</p>
     {calls.length?<ul>{calls.map(e=><li key={e.sequence}>{e.payload.summary} (<code>{e.payload.tool_name}</code>) · event-{e.sequence}</li>)}</ul>:<p>Вызовов не зарегистрировано.</p>}
   </>;
+}
+
+export function TerminalCodes({terminal}:{terminal:NonNullable<Snapshot['terminal']>}){
+  const state=terminal.runtime_outcome?.task_state;
+  const states:Record<string,string>={COMPLETED:'Завершена',SAFE_FALLBACK:'Безопасное завершение',FAILED:'Завершена с ошибкой'};
+  const reasons:Record<string,string>={COMPLETED:'Выполнение завершено',CONFIRMATION_REJECTED:'Оператор отклонил действие',CONFIRMATION_EXPIRED:'Срок подтверждения оператором истёк',MODEL_REQUESTED_STOP:'Агент запросил остановку',UNKNOWN_WRITE_OUTCOME:'Исход изменения неизвестен'};
+  return <div className="terminal-codes">
+    {state&&<p>Состояние задачи: {states[state]??'Код runtime'} (<code>{state}</code>).</p>}
+    <p>Причина завершения: {reasons[terminal.reason_code]??'Код платформы'} (<code>{terminal.reason_code}</code>).</p>
+  </div>;
 }

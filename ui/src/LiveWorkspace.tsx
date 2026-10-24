@@ -1,5 +1,5 @@
 import { AgentStatus } from './AgentStatus';
-import { LiveReport } from './LiveReport';
+import { LiveReport, TerminalCodes } from './LiveReport';
 import { CompactComposer, ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, command, ensureSession, explainError, loadEvents, request, sessionSchema,
@@ -14,6 +14,9 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const [events,setEvents]=useState<LiveEvent[]>([]);
   const [goal,setGoal]=useState('');
   const [error,setError]=useState('');
+  const [connectionError,setConnectionError]=useState('');
+  const chat=useRef<HTMLElement>(null);
+  const scrolledAdmission=useRef<string|null>(null);
   const [connected,setConnected]=useState(false);
   const [busy,setBusy]=useState(false);
   const [seconds,setSeconds]=useState<number>();
@@ -68,15 +71,14 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
         reservationRef.current=s.reservation?.reservation_id??null;
         if(s.reservation)lastServiceView.current=s.reservation.service_view;
         setSession(s);setSnapshot(snap);setConnected(true);failedAt=undefined;
-        setError(current=>current==='Восстанавливаем связь…'?'':current);
-        if(s.preparation_error)setError(s.preparation_error.message);
+        setConnectionError('');
       }catch(err){
         if(!active)return;
         setConnected(false);
         if(err instanceof ApiError&&err.code==='SESSION_REQUIRED'){
-          setSession(undefined);setSnapshot(undefined);setError('');
+          setSession(undefined);setSnapshot(undefined);setError('');setConnectionError('');
         }else{
-          failedAt??=Date.now();setError('Восстанавливаем связь…');
+          failedAt??=Date.now();setConnectionError('Восстанавливаем связь…');
           if(Date.now()-failedAt>=30000){setTimedOut(true);return;}
         }
       }
@@ -100,7 +102,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       if(cmd.body.command==='decide')submittedDecision.current=String(cmd.body.confirmation_id);
       if(cmd.body.command==='start_run')setGoal('');
       if(cmd.body.command==='prepare'){
-        setGoal('');setSnapshot(undefined);setEvents([]);followJournal.current=true;eventsRef.current=[];runRef.current=null;
+        scrolledAdmission.current=null;setGoal('');setSnapshot(undefined);setEvents([]);followJournal.current=true;eventsRef.current=[];runRef.current=null;
       }
       if(mounted.current)setRetry(x=>x+1);
       return true;
@@ -120,10 +122,20 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     }catch(err){setError(explainError(err));}finally{setBusy(false);}
   }
   const phase=snapshot?.phase??session?.reservation?.phase??'';
-  const statusLabel=session?.preparation_error?.code==='READY_EXPIRED'?'Время ожидания истекло':
+  const statusLabel=(session?.preparation_error?.code==='READY_EXPIRED'||snapshot?.terminal?.reason_code==='CONFIRMATION_EXPIRED')?'Время ожидания истекло':
     session?.provider?.kind==='simulator'&&phase==='ready'?'Имитатор готов к работе':
     session?.provider?.kind==='simulator'&&phase==='preparing'?'Подготовка имитатора':labels[phase]??'Готов к началу';
+  const expired=session?.preparation_error?.code==='READY_EXPIRED'||snapshot?.terminal?.reason_code==='CONFIRMATION_EXPIRED';
+  const notice=connectionError||error||session?.preparation_error?.message||'';
   const active=snapshot&&snapshot.phase!=='terminal';
+  const admission=session?.reservation?.reservation_id??snapshot?.run_id;
+  useEffect(()=>{
+    if(window.innerWidth>620||!admission||notice||scrolledAdmission.current===admission)return;
+    // A submitted goal belongs to the same admission: do not scroll again.
+    if(scrolledAdmission.current&&snapshot?.run_id){scrolledAdmission.current=admission;return;}
+    scrolledAdmission.current=admission;
+    chat.current?.scrollIntoView?.({block:'start'});
+  },[admission,notice,snapshot?.run_id]);
   const pendingConfirmation=snapshot?.pending_confirmation;
   const canSubmit=!!session?.reservation&&!active&&connected&&!busy&&!pending.current&&
     session.reservation.phase!=='stopping'&&seconds!==0&&
@@ -140,20 +152,21 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
     active?'Агент готовит следующий шаг. Выполнение можно остановить.':
     'Для нового запроса начните сценарий.';
   return <>
-    <div className="task-toolbar live-toolbar"><h1 id="task-heading">Восстановление сервиса <span className="service-name">payment-api</span></h1>
+    <div className="task-toolbar live-toolbar"><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
       <nav className="live-navigation" aria-label="Управление сценарием">
       <button className="action" disabled={busy} onClick={onExit}>К началу</button>
       {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current} onClick={()=>void prepare()}>{snapshot||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
-      {error&&<p role="alert" className="admission-notice">{error}</p>}
+      <button className="action chat-jump" onClick={()=>chat.current?.scrollIntoView?.({block:'start'})}>К чату ↓</button>
+      {notice&&<p role="alert" className="admission-notice">{notice}</p>}
       {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}
       {pending.current&&!busy&&<button className="action" onClick={()=>void send(pending.current!)}>Проверить / повторить ту же команду</button>}
       {active&&<small>К началу — экран выбора режима. Вы сможете вернуться к запуску.</small>}
     </nav></div>
     <div className="workspace replaying live-workspace">
       {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}
-      <section className="chat" aria-label="Интерактивный диалог">
+      <section className="chat" ref={chat} aria-label="Интерактивный диалог">
         {serviceView&&renderCompact(serviceView,unknown)}
-        <div className="chat-head"><div><h2>Агент управления сервисом<span className="simulator-label" >{providerLabel(session?.provider)}</span></h2><div className="agent-controls"><AgentStatus phase={phase} label={statusLabel} hint={phase==='preparing'&&session?.provider?.kind!=='simulator'?'Первый запуск может занять несколько минут':undefined} since={events.filter(e=>e.event_kind==='model_status_changed'&&e.payload.model_status==='inference').at(-1)?.occurred_at}/>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
+        <div className="chat-head"><div><h2>Агент управления сервисом</h2><span className="simulator-label">{providerLabel(session?.provider)}</span><div className="agent-controls"><AgentStatus phase={expired?'expired':phase} label={statusLabel} compactLabel={expired?'Время истекло':session?.provider?.kind==='simulator'?undefined:({preparing:'Подготовка модели',ready:'Агент готов',running:'Выполняется',awaiting_confirmation:'Ожидается решение'} as Record<string,string>)[phase]} hint={phase==='preparing'&&session?.provider?.kind!=='simulator'?'Первый запуск может занять несколько минут':undefined} since={events.filter(e=>e.event_kind==='model_status_changed'&&e.payload.model_status==='inference').at(-1)?.occurred_at}/>{active&&<button className="live-stop" title="Остановить выполнение" aria-label="Остановить выполнение" disabled={!connected||busy||snapshot.stop_requested||!!pending.current} onClick={()=>void send(command(`/api/runs/${snapshot.run_id}/stop`,'stop'))}>■</button>}</div></div></div>
         <div className="messages" ref={messages} aria-label="События интерактивного диалога">
           {currentEvents.filter(e=>['goal_accepted','proposal_recorded','operator_decision','confirmation_requested'].includes(e.event_kind)).map(e=>{
             const decision=e.event_kind==='operator_decision'?e:null;
@@ -169,7 +182,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
               {awaiting&&<div className="confirmation-actions"><div className="buttons">{(['approve','reject'] as const).map(choice=><button className={'action '+(choice==='approve'?'primary':'')} key={choice} disabled={!connected||busy||!!pending.current||seconds===0||snapshot?.stop_requested} onClick={()=>void send(command(`/api/runs/${snapshot!.run_id}/decisions`,'decide',{confirmation_id:pendingConfirmation.confirmation_id,decision:choice}))}>{choice==='approve'?'Подтвердить':'Отклонить'}</button>)}</div>{seconds!==undefined&&<small>На решение: {seconds} сек.</small>}</div>}
             </article>;
           })}
-          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><small>{snapshot.terminal.reason_code}</small><ReportDialog><p>{providerLabel(session?.provider)}</p><LiveReport snapshot={snapshot} events={events}/></ReportDialog></section>}
+          {snapshot?.terminal&&<section className="outcome"><h3>{snapshot.terminal.runtime_outcome?.rollback_completed?'Откат завершён':'Выполнение завершено'}</h3><p>{snapshot.terminal.explanation}</p><TerminalCodes terminal={snapshot.terminal}/><ReportDialog><p>{providerLabel(session?.provider)}</p><LiveReport snapshot={snapshot} events={events}/></ReportDialog></section>}
           {!snapshot&&session?.reservation&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте цель агенту.</p>}
         </div>
         {session?.reservation&&!active?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>

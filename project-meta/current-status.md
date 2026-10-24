@@ -5,6 +5,14 @@ This file is not model-visible operational evidence.
 
 ## Local UI/runtime implementation — BC-011
 
+Responsive review (2026-10-24): concise mobile status and chat navigation,
+aligned attribution, compact replay context and explicit terminal-code labels.
+A newer busy/limit rejection now survives polling an expired reservation.
+Regression checks cover both rejection paths and one-time mobile chat scrolling.
+Runtime admission, confirmation deadlines and provider budgets are unchanged.
+Browser rendering review remains pending; this environment has no browser binary.
+No real inference was performed for this change.
+
 Dependency maintenance (2026-10-24): update test-only transitive undici from
 8.12.1 to 8.12.3 for published availability/integrity advisories. jsdom remains
 pinned; runtime behavior and provider budgets are unchanged.
@@ -34,7 +42,7 @@ refresh retrieves state without replaying commands. Refusal/expiry terminates;
 new starts use a fresh modeled environment. Unknown provider completion blocks
 admission, including after backend restart.
 
-Verification: 337 Python tests, 60 UI tests, Ruff, TypeScript/Vite build,
+Verification: 337 Python tests, 63 UI tests, Ruff, TypeScript/Vite build,
 deterministic recorded-data export and diff checks PASS. Tests cover ownership,
 idempotency, confirmation expiry, cooperative stop, late/unknown completion and
 read-only restoration. Starlette's test client emits an httpx deprecation warning.

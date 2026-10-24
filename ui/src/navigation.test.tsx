@@ -47,11 +47,11 @@ it('keeps a visitor in recorded mode without offering another sessions run',asyn
 it('opens a terminal result read-only and history transitions never start a run',async()=>{
  const fetcher=mockBackend({terminal:true});render(<App/>);
  fireEvent.click(await screen.findByRole('button',{name:'Посмотреть результат'}));
- await screen.findByText('Время истекло');
+ await screen.findByText('Время истекло',{selector:'.outcome > p'});
  window.history.replaceState({garScreen:'demo'},'','#demo');fireEvent.popState(window);
  await screen.findByRole('button',{name:'Далее'});
  window.history.replaceState({garScreen:'live'},'','#live');fireEvent.popState(window);
- await screen.findByText('Время истекло');
+ await screen.findByText('Время истекло',{selector:'.outcome > p'});
  expect(mutations(fetcher)).toEqual([]);
 });
 it('releases an unused reservation on browser history exit, without admitting another run',async()=>{

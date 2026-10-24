@@ -46,7 +46,7 @@ it('restores an existing session read-only after mounting',async()=>{
   await waitFor(()=>expect(screen.getByText('CONFIRMATION_EXPIRED')).toBeVisible());
   expect(fetcher.mock.calls.every((call)=>!String(call[0]).includes('/decisions'))).toBe(true);
   expect(fetcher.mock.calls.some(call=>call[0]==='/api/sessions')).toBe(false);
-  expect(screen.getByRole('heading',{name:/Агент управления сервисом/})).toHaveTextContent('Локальная проверка · имитатор модели');
+  expect(screen.getByRole('heading',{name:/Агент управления сервисом/}).closest('.chat-head')).toHaveTextContent('Локальная проверка · имитатор модели');
 });
 
 it('keeps only a disabled contextual composer after completion and exposes home navigation',async()=>{
@@ -187,7 +187,7 @@ it('uses server provider identity for real-model labels without sending commands
   vi.stubGlobal('fetch',fetcher);
   render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
   await screen.findByRole('button',{name:'Начать заново'});
-  expect(screen.getByRole('heading',{name:/Агент управления сервисом/})).toHaveTextContent('Локальная LLM · qwen3.8:27b');
+  expect(screen.getByRole('heading',{name:/Агент управления сервисом/}).closest('.chat-head')).toHaveTextContent('Локальная LLM · qwen3.8:27b');
   expect(screen.queryByText(/имитатор/i)).not.toBeInTheDocument();
   expect(fetcher.mock.calls.every(call=>!String(call[0]).includes('/decisions'))).toBe(true);
 });
@@ -205,4 +205,42 @@ it('explains exhausted smoke allowance without submitting another preparation',a
   expect(await screen.findByRole('alert')).toHaveTextContent('Лимит запусков локальной проверки исчерпан');
   expect(fetcher.mock.calls.every(call=>!call[1]?.body)).toBe(true);
   expect(screen.getByRole('button',{name:'Открыть итоговый отчёт'})).toBeEnabled();
+});
+
+it.each(['LIVE_BUSY','SMOKE_LIMIT'])('keeps latest admission rejection across polls of an expired reservation: %s',async code=>{
+  let polls=0;
+  const fetcher=vi.fn(async(path:string)=>({ok:true,json:async()=>{
+    if(path==='/api/status')return {kind:'status',version:'live.v1',availability:code==='LIVE_BUSY'?'busy':'unavailable',unavailability_reason:code==='SMOKE_LIMIT'?code:null,model_status:'ready',server_time:snapshot.server_time};
+    if(path==='/api/session'){polls++;return {...sessionBase,current_run_id:null,preparation_error:{code:'READY_EXPIRED',message:'Старое ожидание истекло'}};}
+  }}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Начать заново'}));
+  const expected=code==='LIVE_BUSY'?'Живой режим занят':'Лимит запусков локальной проверки исчерпан';
+  expect(await screen.findByRole('alert')).toHaveTextContent(expected);
+  const before=polls;
+  await waitFor(()=>expect(polls).toBeGreaterThan(before),{timeout:2500});
+  expect(screen.getByRole('alert')).toHaveTextContent(expected);
+});
+
+it('scrolls mobile live entry to chat once, without scrolling on session polls',async()=>{
+  vi.stubGlobal('innerWidth',390);
+  const scroll=vi.fn();
+  const original=HTMLElement.prototype.scrollIntoView;
+  HTMLElement.prototype.scrollIntoView=scroll;
+  let polls=0;
+  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>{
+    polls++;
+    return {...sessionBase,current_run_id:null,reservation:{reservation_id:'mobile',phase:'ready',expires_at:null,service_view:initialView}};
+  }})));
+  try{
+    render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+    await screen.findByRole('textbox',{name:'Запрос агенту'});
+    expect(scroll).toHaveBeenCalledTimes(1);
+    const before=polls;
+    await waitFor(()=>expect(polls).toBeGreaterThan(before),{timeout:2500});
+    expect(scroll).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button',{name:'К чату ↓'}));
+    expect(scroll).toHaveBeenCalledTimes(2);
+  }finally{HTMLElement.prototype.scrollIntoView=original;}
 });

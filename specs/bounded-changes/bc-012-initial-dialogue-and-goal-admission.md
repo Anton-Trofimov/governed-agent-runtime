@@ -1,9 +1,10 @@
 # BC-012 — Initial dialogue and goal admission
 
 Status: design and resource bounds approved by the owner; pre-execution call limit amended to 5.
-Local implementation and fake-provider verification are complete; owner
-interaction review remains pending. Real-model
-evaluation has not started. BC-011 remains the
+Local implementation and fake-provider verification are complete; owner desktop
+interaction review is accepted, with mobile review pending. The first approved
+station smoke stopped at a provider HTTP 400 integration failure; semantic
+acceptance remains unassessed. See [current status](../../project-meta/current-status.md). BC-011 remains the
 accepted local baseline, merged via PR #12 at 668a50eb2dcacc665cc96e2ac35f508f1b1d2df7.
 
 ## Problem and outcome
@@ -115,6 +116,6 @@ No public deployment, public authentication, GPU sharing/scheduler, telemetry,
 accessibility audit, framework migration or general-purpose conversational tools.
 No new mandatory review artifact or reusable SDD Model change.
 
-Next: review the local simulator interaction, then separately approve a small
-real-model semantic smoke on an exact revision/profile. No real inference has
-been authorized or performed for this implementation checkpoint.
+Next: diagnose the observed provider HTTP failure with bounded private diagnostics
+and offline regression checks, then separately approve a new revision/profile-bound
+semantic smoke. Do not infer semantic quality from the failed integration attempt.

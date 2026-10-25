@@ -20,13 +20,31 @@ compact suggestions/input, hide answered preset questions and warn before the fi
 call without changing the budget. Owner accepted the desktop baseline and observed
 five questions ending without execution. The final-call warning now has a one-time
 dismissible modal and inline emphasis; refresh and server expiry are covered by UI
-tests. Visual review of this refinement and mobile review remain pending.
+tests. Owner accepted the desktop warning refinement; mobile review remains pending.
 Public-profile candidate: three initial calls plus separate station-wide budgets;
 implementation and exposure require a separate decision. Local limit stays five.
 
-Next: owner review of local simulator interaction, then a separately approved,
-revision/profile-bound small semantic smoke. The profile changed to BC012;
-BC-011 approvals are not reusable. Public access and GPU scheduling remain excluded.
+Owner station smoke on `dd47436f0fd3ed63c75b9570d58cb0890f2b55d7`, profile
+`BC012-local-ollama-v1`: two preparations were approved, but the first attempt
+stopped at an integration failure. Owner-provided private-evidence summary shows
+one successful preload (88.8 s), followed by one dialogue operation failing after
+2.0 s with no captured response. The provider journal reports HTTP 400 from
+`/api/chat`, task cancellation and all slots idle at that time. No accepted agent
+answer or remediation run was observed; semantic acceptance remains unassessed.
+This is an owner-observed smoke, not a completed model-quality evaluation.
+
+The adapter retained only `PROVIDER_OPERATION_FAILED`, losing HTTP error details.
+Runtime retained the outstanding-operation marker and disabled new admission for
+both browser sessions. A schema/format incompatibility is a hypothesis, not an
+established cause. The historical idle log does not establish current provider
+state or authorize deleting the marker.
+
+Next: preserve bounded, private HTTP failure diagnostics; inspect request-format
+compatibility and add an offline regression for this failure path. Preserve
+quarantine for uncertain completion. Reconcile current provider state before any
+recovery; new real calls require revision/profile-bound approval. No retry or
+marker removal was performed in this documentary step. Raw station logs and
+private evidence stay outside Git. Public access and GPU scheduling remain excluded.
 
 ## BC-011 closure — 2026-10-24
 

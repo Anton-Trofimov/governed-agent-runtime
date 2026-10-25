@@ -392,9 +392,12 @@ Suggestions populate editable text only. Hide an informational suggestion after
 its exact full query has a subsequent agent reply in the retained transcript;
 do not infer answer quality or prohibit manually repeating a question.
 
-Show `Обращения: n/5` beside the send timer and the quiet explanation
-`Восстановление начнётся только по вашему запросу.` Before the fifth call replace
-that explanation with `Осталось одно обращение. Можно задать вопрос или запросить
-восстановление сервиса.` The fifth call may be a question or a recovery request;
+Show `Обращения: n/5` beside the send timer and, to its right, the quiet terracotta explanation
+`Восстановление начнётся только по вашему запросу.` After the fourth reply, show a dismissible modal once per dialogue, explaining
+that one call remains and a final question ends the initial dialogue after its answer.
+Dismissal sends no command, preserves draft text and does not pause server deadlines.
+Remember dismissal across refresh in this browser tab; keep a muted red inline
+warning with a circled exclamation mark. Close the modal if the dialogue expires.
+The ordinary explanation and warning wrap on narrow screens. The fifth call may be a question or a recovery request;
 there is no extra sixth call and no automatic recovery on budget exhaustion.
 Simulator-specific explanation remains conditional on the provider kind.

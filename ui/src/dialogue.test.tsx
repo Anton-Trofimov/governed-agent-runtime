@@ -1,8 +1,13 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { LiveWorkspace } from './LiveWorkspace';
 import { sessionSchema } from './live';
 
+beforeEach(()=>{
+  sessionStorage.clear();
+  HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+  HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new Event('close'));};
+});
 afterEach(()=>vi.unstubAllGlobals());
 const service={observation_id:'obs-0',observed_at:'2026-10-25T00:00:00Z',stable_version_id:'2.4.1',candidate_version_id:'2.4.2',
   desired:6,healthy:6,candidate_count:2,stable_traffic_rps:615,total_rps:820,safe_rps_per_replica:150,
@@ -63,12 +68,29 @@ it('retains terminal dialogue without a remediation result and permits a new adm
 it('warns before the fifth call and suggestions only populate editable text',async()=>{
   const current=session();current.dialogue!.calls=4;
   const fetcher=vi.fn(async()=>({ok:true,json:async()=>current}));vi.stubGlobal('fetch',fetcher);
-  render(<LiveWorkspace {...props}/>);
-  await screen.findByText('Осталось одно обращение. Можно задать вопрос или запросить восстановление сервиса.');
+  const view=render(<LiveWorkspace {...props}/>);
+  expect(await screen.findByRole('dialog',{name:'Осталось одно обращение'})).toBeVisible();
+  fireEvent.click(screen.getByRole('button',{name:'Понятно'}));
+  expect(screen.queryByRole('dialog')).toBeNull();
+  view.unmount();render(<LiveWorkspace {...props}/>);
+  await screen.findByText('Обращения: 4/5');
+  expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByText('Обращения: 4/5')).toBeVisible();
   fireEvent.click(screen.getByRole('button',{name:'Почему сервис нестабилен?'}));
   expect(screen.getByRole('textbox',{name:'Запрос агенту'})).toHaveValue('Почему сервис работает нестабильно?');
   fireEvent.click(screen.getByRole('button',{name:'Восстанови сервис'}));
   expect(screen.getByRole('textbox',{name:'Запрос агенту'})).toHaveValue('Восстанови работу сервиса');
-  expect(fetcher.mock.calls).toHaveLength(1);
+  expect(fetcher.mock.calls.filter(c=>(c as unknown as [string,RequestInit])[1]?.method==='POST')).toHaveLength(0);
+});
+
+it('closes the notice when the server expires the dialogue without sending a command',async()=>{
+  const current=session();current.dialogue!.calls=4;
+  const fetcher=vi.fn(async()=>({ok:true,json:async()=>current}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace {...props}/>);
+  await screen.findByRole('dialog',{name:'Осталось одно обращение'});
+  current.dialogue!.state='terminal';current.dialogue!.reason='DIALOGUE_EXPIRED';current.reservation=null;
+  await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull(),{timeout:4000});
+  expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
+  expect(fetcher.mock.calls.filter(c=>(c as unknown as [string,RequestInit])[1]?.method==='POST')).toHaveLength(0);
 });

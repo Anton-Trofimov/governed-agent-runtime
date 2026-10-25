@@ -11,14 +11,18 @@ implemented on a separate development branch after owner approval, including the
 Only a valid start proposal can enter the existing executor; exact operator text,
 action confirmations and provider quarantine are preserved.
 
-Local verification: 357 Python tests, 67 UI tests, Ruff, TypeScript/Vite build,
+Local verification: 357 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
 recorded-data export and diff checks PASS. The new HTTP test first failed because
 initial dialogue was unsupported, then passed after implementation. Tests use
 fake providers; no real model was called and no semantic-quality claim is made.
 Owner confirmed dialogue history survives refresh. The follow-up composer changes
 compact suggestions/input, hide answered preset questions and warn before the fifth
-call without changing the budget. Updated UI behavior was checked in jsdom; visual
-review of this follow-up remains pending.
+call without changing the budget. Owner accepted the desktop baseline and observed
+five questions ending without execution. The final-call warning now has a one-time
+dismissible modal and inline emphasis; refresh and server expiry are covered by UI
+tests. Visual review of this refinement and mobile review remain pending.
+Public-profile candidate: three initial calls plus separate station-wide budgets;
+implementation and exposure require a separate decision. Local limit stays five.
 
 Next: owner review of local simulator interaction, then a separately approved,
 revision/profile-bound small semantic smoke. The profile changed to BC012;

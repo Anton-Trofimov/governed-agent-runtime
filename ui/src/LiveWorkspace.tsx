@@ -205,8 +205,8 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
         </div>
         {session?.reservation&&!active&&!thinking&&!queued&&dialogue?.state!=='terminal'?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(dialogue?command('/api/dialogue','dialogue',{reservation_id:session.reservation!.reservation_id,text:goal}):command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
           <div className="composer-heading"><label htmlFor="live-goal">Запрос агенту</label><div className="live-suggestions">{(dialogue?suggestions:[{label:'Восстанови работу сервиса',text:'Восстанови работу сервиса'},{label:'После обновления сервис работает нестабильно. Восстанови его работу безопасным способом',text:'После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'}]).map(suggestion=><button type="button" className="action" key={suggestion.text} disabled={!canSubmit} onClick={()=>setGoal(suggestion.text)}>{suggestion.label}</button>)}</div></div>
-          <textarea ref={input} rows={2} id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<small>Обращения: {dialogue.calls}/5</small>}</div>
-          {dialogue&&<small className="dialogue-guidance">{dialogue.calls===4?'Осталось одно обращение. Можно задать вопрос или запросить восстановление сервиса.':'Восстановление начнётся только по вашему запросу.'}</small>}{dialogue&&session.provider?.kind==='simulator'&&<small>Имитатор отвечает по фиксированным примерам; понимание произвольного текста здесь не проверяется.</small>}
+          <textarea ref={input} rows={2} id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<><small>Обращения: {dialogue.calls}/5</small><small className={"dialogue-guidance"+(dialogue.calls===4?" last-call-warning":"")}>{dialogue.calls===4?<><span className="warning-symbol" aria-hidden="true">!</span> Осталось одно обращение</>:"Восстановление начнётся только по вашему запросу."}</small></>}</div>
+          {dialogue&&session.provider?.kind==='simulator'&&<small>Имитатор отвечает по фиксированным примерам; понимание произвольного текста здесь не проверяется.</small>}
           {session.provider?.kind==='ollama'&&<small>Можно изменить подсказку: формулировка запроса может повлиять на результат. Ответ модели может быть на английском.</small>}
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
         </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><CompactComposer text={blockedText}/></div>}
@@ -214,7 +214,32 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       </section>
       <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e} simulator={session?.provider?.kind==='simulator'}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>
     </div>
+    {dialogue&&<LastCallNotice key={dialogue.reservation_id} identity={dialogue.reservation_id} eligible={dialogue.calls===4&&dialogue.state==='ready'&&!!session?.reservation} onDismiss={()=>input.current?.focus()}/>}
   </>;
+}
+
+function LastCallNotice({identity,eligible,onDismiss}:{identity:string;eligible:boolean;onDismiss:()=>void}){
+  const dialog=useRef<HTMLDialogElement>(null);
+  const storageKey='gar:last-call-dismissed';
+  const [dismissed,setDismissed]=useState(()=>{
+    try{return sessionStorage.getItem(storageKey)===identity;}catch{return false;}
+  });
+  useEffect(()=>{
+    const node=dialog.current;
+    if(eligible&&!dismissed){if(node&&!node.open)node.showModal();}
+    else if(node?.open)node.close();
+  },[eligible,dismissed]);
+  function dismiss(){
+    setDismissed(true);
+    try{sessionStorage.setItem(storageKey,identity);}catch{/* In-memory dismissal still works. */}
+    dialog.current?.close();
+    onDismiss();
+  }
+  return <dialog ref={dialog} className="about-dialog last-call-dialog" aria-labelledby="last-call-title" aria-describedby="last-call-description" onCancel={e=>{e.preventDefault();dismiss();}}>
+    <h2 id="last-call-title"><span className="warning-symbol" aria-hidden="true">!</span> Осталось одно обращение</h2>
+    <p id="last-call-description">Можно задать последний вопрос или запросить восстановление сервиса. Если выбрать вопрос, после ответа начальный диалог завершится.</p>
+    <button type="button" className="action" autoFocus onClick={dismiss}>Понятно</button>
+  </dialog>;
 }
 
 export function EventText({event:e,simulator=false}:{event:LiveEvent;simulator?:boolean}){

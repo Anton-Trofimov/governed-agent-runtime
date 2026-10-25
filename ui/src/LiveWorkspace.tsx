@@ -6,6 +6,11 @@ import { ApiError, command, ensureSession, explainError, loadEvents, request, se
   snapshotSchema, statusSchema, providerLabel, type LiveEvent, type Session, type Snapshot, type ServiceView } from './live';
 
 type Props={onExit:()=>void;renderState:(s:ServiceView,unknown:boolean)=>ReactNode;renderCompact:(s:ServiceView,unknown:boolean)=>ReactNode};
+const dialogueSuggestions=[
+  {label:'Что ты умеешь?',text:'Что ты умеешь?',question:true},
+  {label:'Почему сервис нестабилен?',text:'Почему сервис работает нестабильно?',question:true},
+  {label:'Восстанови сервис',text:'Восстанови работу сервиса',question:false},
+];
 const labels:Record<string,string>={preparing:'Подготовка модели',ready:'Модель загружена. Агент готов к работе',running:'Агент выполняет задачу',
   awaiting_confirmation:'Ожидается решение оператора',stopping:'Останавливается',terminal:'Завершён'};
 export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
@@ -31,6 +36,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const mounted=useRef(true);
   const offset=useRef(0);
   const messages=useRef<HTMLDivElement>(null);
+  const input=useRef<HTMLTextAreaElement>(null);
   const journal=useRef<HTMLOListElement>(null);
   const followJournal=useRef(true);
   const [highlight,setHighlight]=useState<{sequence:number;side:'chat'|'journal'}>();
@@ -143,6 +149,13 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
   const canSubmit=!!session?.reservation&&!active&&connected&&!busy&&!pending.current&&
     session.reservation.phase!=='stopping'&&!thinking&&!queued&&dialogue?.state!=='terminal'&&seconds!==0&&
     (!session.reservation.expires_at||Date.parse(session.reservation.expires_at)>Date.parse(session.server_time));
+  useEffect(()=>{
+    if(!input.current)return;
+    input.current.style.height='auto';
+    input.current.style.height=`${Math.min(120,Math.max(52,input.current.scrollHeight))}px`;
+  },[goal,canSubmit]);
+  const suggestions=dialogueSuggestions.filter(suggestion=>!suggestion.question||!dialogue?.messages.some((message,index)=>
+    message.actor==='operator'&&message.text.trim().toLowerCase()===suggestion.text.toLowerCase()&&dialogue.messages[index+1]?.actor==='agent'));
   const currentEvents=events.filter(e=>!['phase_changed','model_status_changed'].includes(e.event_kind));
   const serviceView=snapshot?.service_view??session?.reservation?.service_view??dialogue?.service_view??
     (session?.preparation_error?.code==='READY_EXPIRED'?lastServiceView.current:null);
@@ -191,9 +204,9 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
           {!snapshot&&session?.reservation&&!dialogue?.messages.length&&<p className="empty-dialog">Исходное состояние сервиса доступно в панели состояния. Задайте вопрос или цель агенту.</p>}
         </div>
         {session?.reservation&&!active&&!thinking&&!queued&&dialogue?.state!=='terminal'?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(dialogue?command('/api/dialogue','dialogue',{reservation_id:session.reservation!.reservation_id,text:goal}):command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
-          <div className="live-suggestions">{(dialogue?['Что ты умеешь?','Восстанови работу сервиса']:['Восстанови работу сервиса','После обновления сервис работает нестабильно. Восстанови его работу безопасным способом']).map(text=><button type="button" className="action" key={text} disabled={!canSubmit} onClick={()=>setGoal(text)}>{text}</button>)}</div>
-          <label htmlFor="live-goal">Запрос агенту</label><textarea id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}</div>
-          {dialogue&&<small>До начала выполнения: {dialogue.calls} из 5 обращений. После начала — только решения по действиям.</small>}{dialogue&&session.provider?.kind==='simulator'&&<small>Имитатор отвечает по фиксированным примерам; понимание произвольного текста здесь не проверяется.</small>}
+          <div className="composer-heading"><label htmlFor="live-goal">Запрос агенту</label><div className="live-suggestions">{(dialogue?suggestions:[{label:'Восстанови работу сервиса',text:'Восстанови работу сервиса'},{label:'После обновления сервис работает нестабильно. Восстанови его работу безопасным способом',text:'После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'}]).map(suggestion=><button type="button" className="action" key={suggestion.text} disabled={!canSubmit} onClick={()=>setGoal(suggestion.text)}>{suggestion.label}</button>)}</div></div>
+          <textarea ref={input} rows={2} id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<small>Обращения: {dialogue.calls}/5</small>}</div>
+          {dialogue&&<small className="dialogue-guidance">{dialogue.calls===4?'Осталось одно обращение. Можно задать вопрос или запросить восстановление сервиса.':'Восстановление начнётся только по вашему запросу.'}</small>}{dialogue&&session.provider?.kind==='simulator'&&<small>Имитатор отвечает по фиксированным примерам; понимание произвольного текста здесь не проверяется.</small>}
           {session.provider?.kind==='ollama'&&<small>Можно изменить подсказку: формулировка запроса может повлиять на результат. Ответ модели может быть на английском.</small>}
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
         </form>:<div className={'live-input inactive-composer'+(pendingConfirmation?' awaiting-decision':'')}><CompactComposer text={blockedText}/></div>}

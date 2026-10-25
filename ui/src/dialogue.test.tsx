@@ -30,6 +30,8 @@ it('submits an initial question through dialogue and keeps answer plus input aft
   fireEvent.click(screen.getByRole('button',{name:'Отправить'}));
   await screen.findByText('Могу объяснить состояние сервиса.');
   expect(screen.getByRole('textbox',{name:'Запрос агенту'})).toBeEnabled();
+  expect(screen.queryByRole('button',{name:'Что ты умеешь?'})).toBeNull();
+  expect(screen.getByRole('button',{name:'Почему сервис нестабилен?'})).toBeVisible();
   expect(screen.getByRole('textbox',{name:'Запрос агенту'})).toHaveValue('');
   expect(fetcher.mock.calls.filter(c=>c[1]?.method==='POST')).toHaveLength(1);
   view.unmount();render(<LiveWorkspace {...props}/>);
@@ -56,4 +58,17 @@ it('retains terminal dialogue without a remediation result and permits a new adm
   expect(screen.queryByRole('button',{name:'Открыть итоговый отчёт'})).toBeNull();
   expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
   expect(screen.getByRole('button',{name:/Начать/})).toBeEnabled();
+});
+
+it('warns before the fifth call and suggestions only populate editable text',async()=>{
+  const current=session();current.dialogue!.calls=4;
+  const fetcher=vi.fn(async()=>({ok:true,json:async()=>current}));vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace {...props}/>);
+  await screen.findByText('Осталось одно обращение. Можно задать вопрос или запросить восстановление сервиса.');
+  expect(screen.getByText('Обращения: 4/5')).toBeVisible();
+  fireEvent.click(screen.getByRole('button',{name:'Почему сервис нестабилен?'}));
+  expect(screen.getByRole('textbox',{name:'Запрос агенту'})).toHaveValue('Почему сервис работает нестабильно?');
+  fireEvent.click(screen.getByRole('button',{name:'Восстанови сервис'}));
+  expect(screen.getByRole('textbox',{name:'Запрос агенту'})).toHaveValue('Восстанови работу сервиса');
+  expect(fetcher.mock.calls).toHaveLength(1);
 });

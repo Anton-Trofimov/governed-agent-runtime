@@ -382,3 +382,19 @@ viewport-height adjustment. Native scrollbars remain visible when the platform
 permits, with a reserved gutter and neutral thumb; no custom scroll implementation.
 Initial degradation is emphasized in the compact state. Accessibility methodology
 and audit scope remain a separate deferred decision, not part of this update.
+
+
+### BC-012 initial dialogue composer
+
+Keep short suggestions beside the input label when width permits, wrapping on
+narrow screens. Use a two-line input that grows with text up to a bounded height.
+Suggestions populate editable text only. Hide an informational suggestion after
+its exact full query has a subsequent agent reply in the retained transcript;
+do not infer answer quality or prohibit manually repeating a question.
+
+Show `Обращения: n/5` beside the send timer and the quiet explanation
+`Восстановление начнётся только по вашему запросу.` Before the fifth call replace
+that explanation with `Осталось одно обращение. Можно задать вопрос или запросить
+восстановление сервиса.` The fifth call may be a question or a recovery request;
+there is no extra sixth call and no automatic recovery on budget exhaustion.
+Simulator-specific explanation remains conditional on the provider kind.

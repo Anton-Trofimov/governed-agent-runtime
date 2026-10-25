@@ -2,9 +2,9 @@
 
 Status: design and resource bounds approved by the owner; pre-execution call limit amended to 5.
 Local implementation and fake-provider verification are complete; owner desktop
-interaction review is accepted, with mobile review pending. The first approved
-station smoke stopped at a provider HTTP 400 integration failure; semantic
-acceptance remains unassessed. See [current status](../../project-meta/current-status.md). BC-011 remains the
+interaction review is accepted, with mobile review pending. Station smokes exposed a provider schema-conversion defect, then an invalid
+non-start reply after that defect was corrected. Runtime rejected the reply without
+starting remediation; semantic acceptance remains pending. See [current status](../../project-meta/current-status.md). BC-011 remains the
 accepted local baseline, merged via PR #12 at 668a50eb2dcacc665cc96e2ac35f508f1b1d2df7.
 
 ## Problem and outcome

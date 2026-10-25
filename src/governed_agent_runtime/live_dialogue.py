@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
+import yaml
 from jsonschema import Draft202012Validator
 
 from governed_agent_runtime.bc006_runtime import canonical
@@ -23,7 +24,17 @@ Return exactly the provided JSON schema. Answer questions without starting work;
 clarify ambiguous intent; explain scope for unrelated requests. Only propose
 start_remediation when actual user messages explicitly request recovery now.
 Hypothetical questions and explicit requests not to act are not recovery goals.
-Reference the original user message IDs (including the latest) for a start.
+For answer, clarify and unsupported, goal_message_ids MUST be []. Do not cite
+message IDs in this field for informational answers, even when answering a user.
+Only start_remediation requires original user message IDs, including the latest.
+The remediation_capabilities catalog describes the later executor, not tools you
+can call here. Describe only these operations and the executor's option to STOP.
+Do not offer resume rollout, candidate scaling, partial traffic shifts or arbitrary
+deployments. Runtime checks every proposed operation; only state-changing actions
+require operator confirmation, not read-only observations. A recovery request is
+not approval of later actions. Do not promise that every requested action is allowed.
+Use observation_scope to qualify replica counts by version. Stable healthy counts
+do not establish candidate health or overall service recovery.
 Do not invent tools, execute actions, change targets or claim successful recovery.
 Reply concisely, preferably in the user's language. You have no tools here.
 """
@@ -55,6 +66,10 @@ class DialogueService(LiveService):
     def __init__(self, root, evidence, *, provider=None, **kwargs):
         self.dialogue_validator = Draft202012Validator(json.loads(
             (Path(root) / 'schemas/bc012-dialogue.schema.json').read_text()))
+        contract = yaml.safe_load((Path(root) / 'specs/core/bounded-remediation.yaml').read_text())
+        fields = ('tool_name', 'category', 'preconditions', 'confirmation_required')
+        self.remediation_capabilities = [
+            {key: tool[key] for key in fields} for tool in contract['tools']]
         super().__init__(root, evidence, provider=provider or DialogueSimulator(), **kwargs)
 
     def session_view(self, session):
@@ -176,6 +191,10 @@ class DialogueService(LiveService):
                 context = {'scenario': 'Modeled payment-api recovery after failed rollout',
                            'capabilities': ['explain supplied state', 'clarify recovery intent',
                                             'request bounded remediation with explicit action confirmations'],
+                           'remediation_capabilities': deepcopy(self.remediation_capabilities),
+                           'observation_scope': {
+                               'desired': 'stable_version_id', 'healthy': 'stable_version_id',
+                               'candidate_count': 'candidate_version_id; health not established'},
                            'observation': deepcopy(slot['service_view']),
                            'messages': deepcopy(dialogue['messages'])}
                 remaining = slot['dialogue_deadline'] - self.monotonic()

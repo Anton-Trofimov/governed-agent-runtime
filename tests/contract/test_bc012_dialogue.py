@@ -327,3 +327,40 @@ def test_dialogue_provider_projection_preserves_authoritative_validation(tmp_pat
     for text in ('', ' ', '\n\t', '\u00a0'):
         assert not validator.is_valid({'outcome': 'answer', 'reply': text, 'goal_message_ids': []})
     assert validator.is_valid({'outcome': 'answer', 'reply': 'Первая строка.\nВторая строка.', 'goal_message_ids': []})
+
+
+def test_dialogue_context_exposes_only_contracted_execution_capabilities(setup):
+    import yaml
+
+    service, client, reservation = setup()
+    say(client, reservation)
+    settled(client)
+    context = service.provider.contexts[0]
+    contract = yaml.safe_load((ROOT / 'specs/core/bounded-remediation.yaml').read_text())
+    fields = ('tool_name', 'category', 'preconditions', 'confirmation_required')
+    assert context['remediation_capabilities'] == [
+        {key: tool[key] for key in fields} for tool in contract['tools']]
+    assert context['observation_scope']['healthy'] == 'stable_version_id'
+    assert context['observation_scope']['desired'] == 'stable_version_id'
+    assert context['observation_scope']['candidate_count'] == 'candidate_version_id; health not established'
+    assert not service.runs
+
+
+@pytest.mark.parametrize('outcome', ['answer', 'clarify', 'unsupported'])
+def test_non_start_with_real_user_reference_is_rejected_without_retry(setup, outcome):
+    class ReferencingAnswer(Scripted):
+        def converse(self, context, *, evidence_dir):
+            self.contexts.append(context)
+            return {'done': True, 'proposal': {
+                'outcome': outcome, 'reply': 'Информационный ответ',
+                'goal_message_ids': [context['messages'][-1]['id']]}}
+
+    provider = ReferencingAnswer()
+    service, client, reservation = setup(provider)
+    say(client, reservation)
+    view = settled(client)
+    assert view['dialogue']['state'] == 'terminal'
+    assert view['dialogue']['reason'] == 'DIALOGUE_INVALID_OUTPUT'
+    assert [m['actor'] for m in view['dialogue']['messages']] == ['operator']
+    assert len(provider.contexts) == 1
+    assert not service.runs

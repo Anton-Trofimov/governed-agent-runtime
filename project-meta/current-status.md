@@ -11,7 +11,7 @@ implemented on a separate development branch after owner approval, including the
 Only a valid start proposal can enter the existing executor; exact operator text,
 action confirmations and provider quarantine are preserved.
 
-Local verification: 362 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
+Local verification: 366 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
 recorded-data export and diff checks PASS. The new HTTP test first failed because
 initial dialogue was unsupported, then passed after implementation. Tests use
 fake providers; no real model was called and no semantic-quality claim is made.
@@ -54,10 +54,21 @@ appearance before asserting an effect, so timing remains a known test limitation
 Compatibility fix: omit only `reply.pattern` from the schema sent to Ollama; keep
 the full authoritative server schema unchanged. Offline tests check the exact
 projection, whitespace rejection and no execution on invalid replies. This removes
-the observed incompatible constraint; actual provider acceptance still requires
-a new approved station smoke. Model settings and profile remain unchanged.
+the observed incompatible constraint. Owner smoke on `a382ab3` then completed one
+provider dialogue call in 9.17 s (`done=true`, `done_reason=stop`). Runtime rejected
+an `answer` carrying a nonempty goal_message_ids array with DIALOGUE_INVALID_OUTPUT;
+no remediation was admitted. The answer also overstated available operations and
+did not qualify healthy replicas by version. This is a failed contract/grounding
+smoke, not semantic acceptance. Raw output and message identifiers remain private.
 
-Next: separately approve a revision-bound provider check after reconciliation. Preserve
+Follow-up: explicitly instruct empty references for non-start outcomes; derive the
+later executor capability catalog from the BC-006 contract and qualify replica
+fields by version. Targeted context test failed before the change and now passes;
+regressions preserve rejection of non-start results referencing even a real user
+message, with no retry or execution. Model settings, profile, validation and
+budgets remain unchanged. Real-model effectiveness of the instruction is untested.
+
+Next: separately approve a revision-bound provider check. Preserve
 quarantine for uncertain completion. Reconcile current provider state before any
 recovery; new real calls require revision/profile-bound approval. No retry or
 marker removal was performed in this diagnostic update. Raw station logs and

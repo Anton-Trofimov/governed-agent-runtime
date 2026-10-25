@@ -492,6 +492,18 @@ no queue of additional messages and no automatic resend or model retry.
 
 `schemas/bc012-dialogue.schema.json` defines the separate model result. The model
 returns a bounded reply and user-message references only for start_remediation.
+The model instruction explicitly requires `goal_message_ids: []` for answer,
+clarify and unsupported; references are mandatory only for start_remediation.
+The dialogue context projects tool names, categories, preconditions and confirmation
+requirements from `specs/core/bounded-remediation.yaml` as descriptive capabilities
+of the later executor, not callable dialogue tools. STOP may be proposed by that
+executor. Do not promise resume rollout, candidate scaling, partial traffic shifts
+or arbitrary deployments. Desired/healthy counts describe the stable version;
+candidate_count does not establish candidate health. State-changing actions need
+explicit confirmations; read-only observations do not. These prompt clarifications
+do not replace validation or establish semantic accuracy; invalid output is neither
+repaired nor retried automatically.
+
 The server requires existing user references including the latest message, checks
 schema, ownership, phase, deadline and budget, and retains all exact user text plus
 clarification context in private dialogue evidence. The runtime goal preserves all exact

@@ -186,6 +186,9 @@ class LocalOllamaModel:
         from governed_agent_runtime.live_dialogue import SYSTEM as DIALOGUE_SYSTEM
         schema = json.loads((Path(__file__).resolve().parents[2] /
                              'schemas/bc012-dialogue.schema.json').read_text())
+        # Ollama's grammar converter rejects the unanchored non-whitespace regex.
+        # Runtime still validates every result against the complete source schema.
+        del schema['properties']['reply']['pattern']
         payload = {'model': self.adapter.model_identity,
                    'messages': [{'role': 'system', 'content': DIALOGUE_SYSTEM},
                                 {'role': 'user', 'content': canonical(context)}],

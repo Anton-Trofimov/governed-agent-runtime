@@ -92,6 +92,8 @@ def test_clarification_start_preserves_user_text_and_exact_confirmations(setup):
 
 
 @pytest.mark.parametrize('bad', [
+    {'outcome':'answer','reply':' \n\t','goal_message_ids':[]},
+    {'outcome':'answer','reply':'','goal_message_ids':[]},
     {'outcome':'start_remediation','reply':'ok','goal_message_ids':['foreign']},
     {'outcome':'answer','reply':'ok','goal_message_ids':[], 'tool':'scale_stable'},
     {'outcome':'start_remediation','reply':'ok','goal_message_ids':[]},
@@ -302,3 +304,26 @@ def test_local_ollama_dialogue_uses_separate_schema_and_evidence_without_network
     assert payload['format']['properties']['outcome']['enum'] == ['answer','clarify','unsupported','start_remediation']
     assert 'tool_name' not in payload['format']['properties']
     assert payload['model'] == provider.adapter.model_identity
+
+
+def test_dialogue_provider_projection_preserves_authoritative_validation(tmp_path, monkeypatch):
+    import json
+    from copy import deepcopy
+
+    from jsonschema import Draft202012Validator
+
+    from governed_agent_runtime.live_ollama import LocalOllamaModel, load_profile
+
+    authoritative = json.loads((ROOT / 'schemas/bc012-dialogue.schema.json').read_text())
+    expected = deepcopy(authoritative)
+    del expected['properties']['reply']['pattern']
+    provider = LocalOllamaModel(ROOT, tmp_path, load_profile(ROOT))
+    captured = []
+    monkeypatch.setattr(provider, '_operation', lambda *args: captured.append(args) or {'done': True})
+    provider.converse({}, evidence_dir=tmp_path / 'dialogue')
+    assert captured[0][1]['format'] == expected
+    assert json.loads((ROOT / 'schemas/bc012-dialogue.schema.json').read_text()) == authoritative
+    validator = Draft202012Validator(authoritative)
+    for text in ('', ' ', '\n\t', '\u00a0'):
+        assert not validator.is_valid({'outcome': 'answer', 'reply': text, 'goal_message_ids': []})
+    assert validator.is_valid({'outcome': 'answer', 'reply': 'Первая строка.\nВторая строка.', 'goal_message_ids': []})

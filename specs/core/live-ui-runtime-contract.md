@@ -526,3 +526,13 @@ Diagnostic extraction must not replace the original failure or authorize retries
 An HTTP error alone does not establish provider completion: existing quarantine
 and explicit reconciliation remain unchanged. No model/schema/profile change is
 implied by these diagnostics.
+
+### Dialogue provider format compatibility
+
+The full BC-012 dialogue schema remains authoritative for server validation.
+For Ollama structured output only, omit `reply.pattern`: the pinned provider
+rejected its unanchored non-whitespace expression during grammar conversion.
+All other schema fields remain unchanged. The provider format is a generation
+aid, not admission authority; whitespace-only replies must still fail runtime
+validation without creating a remediation run. Do not alter prompts, model
+settings, retry budgets or quarantine as part of this compatibility fix.

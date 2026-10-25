@@ -11,7 +11,7 @@ implemented on a separate development branch after owner approval, including the
 Only a valid start proposal can enter the existing executor; exact operator text,
 action confirmations and provider quarantine are preserved.
 
-Local verification: 359 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
+Local verification: 362 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
 recorded-data export and diff checks PASS. The new HTTP test first failed because
 initial dialogue was unsupported, then passed after implementation. Tests use
 fake providers; no real model was called and no semantic-quality claim is made.
@@ -35,20 +35,29 @@ This is an owner-observed smoke, not a completed model-quality evaluation.
 
 The adapter retained only `PROVIDER_OPERATION_FAILED`, losing HTTP error details.
 Runtime retained the outstanding-operation marker and disabled new admission for
-both browser sessions. A schema/format incompatibility is a hypothesis, not an
-established cause. The historical idle log does not establish current provider
+both browser sessions. A subsequent owner-approved diagnostic on `1b22205`
+returned HTTP 400 in 2.34 s: JSON schema conversion rejected an unanchored pattern.
+The BC-012 `reply.pattern` is unanchored; this establishes a request-format defect,
+not a semantic refusal by the model. The historical idle log does not establish current provider
 state or authorize deleting the marker.
 
 Private provider failure diagnostics are implemented: exception class, fixed API
 path, HTTP code and at most 4096 bytes of untrusted error body; no headers or error
 URLs. Offline regressions verify bounded private output, diagnostic-read failure
 and unchanged quarantine/no retry. The original HTTP failure body was not captured
-and cannot be reconstructed from the summary. No schema/profile change is made.
+and cannot be reconstructed from the summary; the later diagnostic identified
+the converter rejection without publishing raw station evidence.
 One existing mobile-scroll UI assertion failed on the first suite run; targeted
 and full reruns passed without changing UI code. The test synchronizes on input
 appearance before asserting an effect, so timing remains a known test limitation.
 
-Next: inspect request-format compatibility using newly captured diagnostics. Preserve
+Compatibility fix: omit only `reply.pattern` from the schema sent to Ollama; keep
+the full authoritative server schema unchanged. Offline tests check the exact
+projection, whitespace rejection and no execution on invalid replies. This removes
+the observed incompatible constraint; actual provider acceptance still requires
+a new approved station smoke. Model settings and profile remain unchanged.
+
+Next: separately approve a revision-bound provider check after reconciliation. Preserve
 quarantine for uncertain completion. Reconcile current provider state before any
 recovery; new real calls require revision/profile-bound approval. No retry or
 marker removal was performed in this diagnostic update. Raw station logs and

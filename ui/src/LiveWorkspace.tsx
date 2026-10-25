@@ -238,6 +238,7 @@ function LastCallNotice({identity,eligible,onDismiss}:{identity:string;eligible:
   return <dialog ref={dialog} className="about-dialog last-call-dialog" aria-labelledby="last-call-title" aria-describedby="last-call-description" onCancel={e=>{e.preventDefault();dismiss();}}>
     <h2 id="last-call-title"><span className="warning-symbol" aria-hidden="true">!</span> Осталось одно обращение</h2>
     <p id="last-call-description">Можно задать последний вопрос или запросить восстановление сервиса. Если выбрать вопрос, после ответа начальный диалог завершится.</p>
+    <p>Предлагаем запросить восстановление сервиса, чтобы пройти сценарий до конца.</p>
     <button type="button" className="action" autoFocus onClick={dismiss}>Понятно</button>
   </dialog>;
 }

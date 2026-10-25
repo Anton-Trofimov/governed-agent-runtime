@@ -249,3 +249,58 @@ def test_consumed_approval_is_explained_before_preflight(tmp_path, monkeypatch, 
     assert 'Approval already used' in capsys.readouterr().err
     assert marker.read_text() == '{}'
     preflight.assert_not_called()
+
+
+def test_http_failure_keeps_bounded_private_diagnostics_and_quarantine(tmp_path):
+    from io import BytesIO
+    from urllib.error import HTTPError
+
+    from governed_agent_runtime.live_service import LiveService
+
+    provider = model(tmp_path)
+    provider._verify = Mock(return_value=True)
+    body = BytesIO(b'{"error":"invalid format"}' + b' ' * 5000)
+    provider.opener.open = Mock(side_effect=HTTPError(
+        'http://example.invalid/private', 400, 'private reason',
+        {'Authorization': 'private-header'}, body))
+    service = LiveService(ROOT, tmp_path / 'service', provider=provider,
+                          reconciliation_seconds=0.01)
+    try:
+        with pytest.raises(TimeoutError):
+            service._provider_call(lambda: provider.converse(
+                {'messages': []}, evidence_dir=tmp_path / 'dialogue'), 1)
+        assert service.quarantined and service.marker.exists()
+        record_path = next((tmp_path / 'dialogue').glob('provider-*.json'))
+        record = json.loads(record_path.read_text())
+        diagnostic = record['failure']
+        assert diagnostic['exception_type'] == 'HTTPError'
+        assert diagnostic['http_status'] == 400
+        assert diagnostic['api_path'] == '/api/chat'
+        assert diagnostic['body_truncated'] is True
+        assert len(diagnostic['body_excerpt'].encode()) <= 4096
+        assert 'invalid format' in diagnostic['body_excerpt']
+        assert 'private-header' not in record_path.read_text()
+        assert 'example.invalid' not in record_path.read_text()
+        assert record_path.stat().st_mode & 0o077 == 0
+        assert 'failure' not in service.status()
+        assert provider.opener.open.call_count == 1
+    finally:
+        service.close()
+
+
+def test_http_error_body_read_failure_preserves_original_exception(tmp_path):
+    from urllib.error import HTTPError
+
+    provider = model(tmp_path)
+    provider._verify = Mock(return_value=True)
+    body = Mock()
+    body.read.side_effect = OSError('private path')
+    error = HTTPError('http://example.invalid', 500, 'failure', {}, body)
+    provider.opener.open = Mock(side_effect=error)
+    with pytest.raises(HTTPError) as caught:
+        provider.converse({}, evidence_dir=tmp_path / 'dialogue')
+    assert caught.value is error
+    record = json.loads(next((tmp_path / 'dialogue').glob('provider-*.json')).read_text())
+    assert record['failure']['body_read_failed'] is True
+    assert record['failure']['body_excerpt'] == ''
+    assert 'private path' not in json.dumps(record)

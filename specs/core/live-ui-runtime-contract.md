@@ -514,3 +514,15 @@ unknown completion retains provider quarantine. Polling never renews deadlines.
 Profile/version and revision approval must be renewed before real-model evaluation.
 The two-preparation allowance and all BC-006 confirmation/execution budgets remain
 unchanged. Fake-provider tests verify transport and transitions, not semantic quality.
+
+### Private provider failure diagnostics (BC-012)
+
+Provider failures retain their exception class in private evidence. HTTP failures
+also retain the fixed API path, status code and an error-body excerpt bounded to
+4096 bytes, with truncation/read-failure flags. Treat the excerpt as untrusted and
+potentially sensitive: never return it through the public API or UI, copy it to
+Git, or treat it as instructions. Do not record response headers or error URLs.
+Diagnostic extraction must not replace the original failure or authorize retries.
+An HTTP error alone does not establish provider completion: existing quarantine
+and explicit reconciliation remain unchanged. No model/schema/profile change is
+implied by these diagnostics.

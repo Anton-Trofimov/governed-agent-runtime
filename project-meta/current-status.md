@@ -11,7 +11,7 @@ implemented on a separate development branch after owner approval, including the
 Only a valid start proposal can enter the existing executor; exact operator text,
 action confirmations and provider quarantine are preserved.
 
-Local verification: 357 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
+Local verification: 359 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
 recorded-data export and diff checks PASS. The new HTTP test first failed because
 initial dialogue was unsupported, then passed after implementation. Tests use
 fake providers; no real model was called and no semantic-quality claim is made.
@@ -39,11 +39,19 @@ both browser sessions. A schema/format incompatibility is a hypothesis, not an
 established cause. The historical idle log does not establish current provider
 state or authorize deleting the marker.
 
-Next: preserve bounded, private HTTP failure diagnostics; inspect request-format
-compatibility and add an offline regression for this failure path. Preserve
+Private provider failure diagnostics are implemented: exception class, fixed API
+path, HTTP code and at most 4096 bytes of untrusted error body; no headers or error
+URLs. Offline regressions verify bounded private output, diagnostic-read failure
+and unchanged quarantine/no retry. The original HTTP failure body was not captured
+and cannot be reconstructed from the summary. No schema/profile change is made.
+One existing mobile-scroll UI assertion failed on the first suite run; targeted
+and full reruns passed without changing UI code. The test synchronizes on input
+appearance before asserting an effect, so timing remains a known test limitation.
+
+Next: inspect request-format compatibility using newly captured diagnostics. Preserve
 quarantine for uncertain completion. Reconcile current provider state before any
 recovery; new real calls require revision/profile-bound approval. No retry or
-marker removal was performed in this documentary step. Raw station logs and
+marker removal was performed in this diagnostic update. Raw station logs and
 private evidence stay outside Git. Public access and GPU scheduling remain excluded.
 
 ## BC-011 closure — 2026-10-24

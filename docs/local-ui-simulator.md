@@ -1,8 +1,8 @@
 # Local UI/runtime simulator
 
-BC-011 implementation check, not real LLM inference or experimental model evidence.
-Linux/WSL, one backend process, one active modeled run. The provider follows a
-fixed nominal recovery path regardless of the entered goal. Runtime policies,
+BC-011/012 local integration check, not real LLM inference or experimental model evidence.
+Linux/WSL, one backend process, one active modeled run. The provider uses scripted
+initial-dialogue replies and a fixed nominal recovery path after a supported explicit goal. Runtime policies,
 explicit confirmations and modeled operations are real application code.
 
 From the repository with its virtual environment activated:
@@ -54,7 +54,8 @@ New admission clears chat, journal and goal; a busy rejection preserves the old
 result. Confirmation controls appear in the runtime request card. The accepted
 choice remains in a separate operator card. The disabled composer explains
 progress without offering additional conversation. “К началу” is always above
-the workspace; it releases an unused reservation but does not stop an active run.
+the workspace; it preserves preparation, dialogue and active execution. Returning
+does not request another preparation or renew deadlines; use explicit stop to end work.
 
 Before goal submission, the countdown uses server time. After 300 seconds in
 ready state without a goal, the reservation expires and the slot is released;
@@ -136,5 +137,7 @@ Up to five dialogue calls share the reservation, with a 300-second user wait and
 a 600-second absolute window after model readiness. Reload restores the owned
 transcript without resending a call. During execution only existing exact-action
 decisions are accepted. The local profile is now BC012-local-ollama-v1; earlier
-revision/profile approvals cannot authorize this version. Real-model semantic
-checks have not been performed for BC-012.
+revision/profile approvals cannot authorize this version. Bounded owner-run
+real-model smokes are recorded in the
+[BC-012 disposition](../reports/decisions/bc-012-initial-dialogue-disposition.md);
+they are not a general semantic-quality guarantee.

@@ -44,10 +44,22 @@ this checks integration, not LLM behavior or public deployment readiness.
 The owner exercised real local Ollama inference and accepted the desktop/mobile
 UI. Successful recovery, refusal and confirmation expiry were observed; this is
 bounded integration feedback, not a model-quality benchmark. The pinned profile
-requires explicit local startup approval. Arbitrary initial questions are not yet
-separated from recovery goals. No public access is enabled.
+requires explicit local startup approval. BC-012 adds the initial dialogue described
+below. No public access is enabled.
 [BC-011 results and limitations](reports/decisions/bc-011-live-ui-runtime-disposition.md).
 [Start locally and review limits](docs/local-ui-simulator.md).
+
+## Initial dialogue and goal admission — BC-012
+
+A bounded initial conversation now separates questions from requests to recover
+payment-api. The model can explain or clarify before proposing a goal; runtime
+validates the proposal and retains the operator's original messages. Execution
+still uses the existing checks and explicit confirmations for each changing action.
+
+Owner station smokes observed questions without execution, explicit recovery to
+completion and non-action/hypothetical requests staying in dialogue. This is a
+bounded local result, not deterministic intent understanding or public readiness.
+[BC-012 results and limitations](reports/decisions/bc-012-initial-dialogue-disposition.md).
 
 ## Latest checkpoint: BC-008 accepted
 

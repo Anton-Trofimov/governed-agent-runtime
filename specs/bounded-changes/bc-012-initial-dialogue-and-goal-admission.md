@@ -1,16 +1,11 @@
 # BC-012 — Initial dialogue and goal admission
 
-Status: design and resource bounds approved by the owner; pre-execution call limit amended to 5.
-Local implementation and fake-provider verification are complete; owner desktop
-interaction review is accepted, with mobile review pending. Station smokes exposed a provider schema-conversion defect, then an invalid
-non-start reply after that defect was corrected. Runtime rejected the reply without
-starting remediation. A later owner-observed nominal question-to-recovery run
-completed. Follow-up owner smokes observed concise handoff, no execution for
-hypothetical/non-action questions, and five unrelated questions ending at the limit.
-Explanatory inaccuracies remain; this is bounded smoke evidence, not general
-semantic reliability. Navigation preservation and grounded explanations are the
-current narrow follow-up. See [current status](../../project-meta/current-status.md). BC-011 remains the
-accepted local baseline, merged via PR #12 at 668a50eb2dcacc665cc96e2ac35f508f1b1d2df7.
+Status: ACCEPTED by the owner for bounded local use; documentary closure prepared
+for PR. Five pre-execution calls remain the approved limit. Automated verification
+and owner station smokes are recorded in the
+[disposition](../../reports/decisions/bc-012-initial-dialogue-disposition.md), including
+semantic limitations and deferred mobile review. BC-011 dependency baseline:
+`668a50eb2dcacc665cc96e2ac35f508f1b1d2df7` (PR #12).
 
 ## Problem and outcome
 
@@ -34,16 +29,16 @@ operator confirmations. This is not a general-purpose chat assistant.
 - [Operator UI](../core/operator-ui-design.md): shared dialogue, state panel,
   model identity, status and journal conventions.
 
-This document describes the intended extension. It does not silently change
-the implemented live.v1 schema or the BC-011 startup/model approval.
+The live.v1 schema extension and BC012-local-ollama-v1 profile explicitly define
+this implementation; an earlier revision/profile approval cannot authorize it.
 
 ## Bounded design
 
 1. Selecting live mode still reserves one slot and prepares the pinned model.
    Show the initial modeled state before the visitor sends a message.
 2. A separate pre-execution model contract can propose one of four outcomes:
-   answer, clarify, unsupported, or start remediation. The names are conceptual;
-   define wire enums and payloads during contract implementation.
+   answer, clarify, unsupported, or start remediation. Wire enums and payloads are defined in
+   `schemas/bc012-dialogue.schema.json`.
 3. Its context contains the permitted scenario description, current supplied
    observation and bounded conversation. It has no execution tools, credentials,
    arbitrary source access or authority to change environment state.
@@ -121,6 +116,5 @@ No public deployment, public authentication, GPU sharing/scheduler, telemetry,
 accessibility audit, framework migration or general-purpose conversational tools.
 No new mandatory review artifact or reusable SDD Model change.
 
-Next: verify owner navigation during preparation/dialogue on the station and review
-the narrowly enriched context in a separately approved revision/profile-bound smoke.
-Do not expand scope into exhaustive wording fixes or public deployment.
+Next: PR verification and owner merge decision. Further semantic evaluation or
+public access requires a separately agreed scope; exhaustive wording fixes are deferred.

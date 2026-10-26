@@ -3,101 +3,26 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
-## BC-012 local implementation — 2026-10-26
+## BC-012 closure preparation — 2026-10-26
 
-[Initial dialogue and goal admission](../specs/bounded-changes/bc-012-initial-dialogue-and-goal-admission.md)
-implemented on a separate development branch after owner approval, including the
-5-call limit. Dialogue answers/clarifications do not create remediation runs.
-Only a valid start proposal can enter the existing executor; exact operator text,
-action confirmations and provider quarantine are preserved.
+**Accepted for bounded local use; documentary closure prepared for PR.**
+Owner reviewed `8941d67a45d80b193e3ffd92c8b7ad09a62cc206` and approved closure.
+[Disposition and concise results](../reports/decisions/bc-012-initial-dialogue-disposition.md)
+record automated checks separately from owner-observed station smokes and limits.
 
-Local verification: 366 Python tests, 71 UI tests, Ruff, TypeScript/Vite build,
-recorded-data export and diff checks PASS. The new HTTP test first failed because
-initial dialogue was unsupported, then passed after implementation. Tests use
-fake providers; no real model was called and no semantic-quality claim is made.
-Owner confirmed dialogue history survives refresh. The follow-up composer changes
-compact suggestions/input, hide answered preset questions and warn before the fifth
-call without changing the budget. Owner accepted the desktop baseline and observed
-five questions ending without execution. The final-call warning now has a one-time
-dismissible modal and inline emphasis; refresh and server expiry are covered by UI
-tests. Owner accepted the desktop warning refinement; mobile review remains pending.
-Public-profile candidate: three initial calls plus separate station-wide budgets;
-implementation and exposure require a separate decision. Local limit stays five.
+Initial dialogue supports five calls without automatic remediation; goal admission
+preserves original operator text and existing action-bound confirmations. Navigation
+preserves preparation/dialogue without another admission or renewed deadlines.
+Final owner checks observed nominal completion and explicit non-action/hypothetical
+questions without execution. Two-preparation limits were visible across browsers.
+Offline checks: 366 Python tests, 71 UI tests, Ruff, build, recorded export and diff
+PASS. No model call or station-marker removal performed during closure.
 
-Owner station smoke on `dd47436f0fd3ed63c75b9570d58cb0890f2b55d7`, profile
-`BC012-local-ollama-v1`: two preparations were approved, but the first attempt
-stopped at an integration failure. Owner-provided private-evidence summary shows
-one successful preload (88.8 s), followed by one dialogue operation failing after
-2.0 s with no captured response. The provider journal reports HTTP 400 from
-`/api/chat`, task cancellation and all slots idle at that time. No accepted agent
-answer or remediation run was observed; semantic acceptance remains unassessed.
-This is an owner-observed smoke, not a completed model-quality evaluation.
-
-The adapter retained only `PROVIDER_OPERATION_FAILED`, losing HTTP error details.
-Runtime retained the outstanding-operation marker and disabled new admission for
-both browser sessions. A subsequent owner-approved diagnostic on `1b22205`
-returned HTTP 400 in 2.34 s: JSON schema conversion rejected an unanchored pattern.
-The BC-012 `reply.pattern` is unanchored; this establishes a request-format defect,
-not a semantic refusal by the model. The historical idle log does not establish current provider
-state or authorize deleting the marker.
-
-Private provider failure diagnostics are implemented: exception class, fixed API
-path, HTTP code and at most 4096 bytes of untrusted error body; no headers or error
-URLs. Offline regressions verify bounded private output, diagnostic-read failure
-and unchanged quarantine/no retry. The original HTTP failure body was not captured
-and cannot be reconstructed from the summary; the later diagnostic identified
-the converter rejection without publishing raw station evidence.
-One existing mobile-scroll UI assertion failed on the first suite run; targeted
-and full reruns passed without changing UI code. The test synchronizes on input
-appearance before asserting an effect, so timing remains a known test limitation.
-
-Compatibility fix: omit only `reply.pattern` from the schema sent to Ollama; keep
-the full authoritative server schema unchanged. Offline tests check the exact
-projection, whitespace rejection and no execution on invalid replies. This removes
-the observed incompatible constraint. Owner smoke on `a382ab3` then completed one
-provider dialogue call in 9.17 s (`done=true`, `done_reason=stop`). Runtime rejected
-an `answer` carrying a nonempty goal_message_ids array with DIALOGUE_INVALID_OUTPUT;
-no remediation was admitted. The answer also overstated available operations and
-did not qualify healthy replicas by version. This is a failed contract/grounding
-smoke, not semantic acceptance. Raw output and message identifiers remain private.
-
-Follow-up: explicitly instruct empty references for non-start outcomes; derive the
-later executor capability catalog from the BC-006 contract and qualify replica
-fields by version. Targeted context test failed before the change and now passes;
-regressions preserve rejection of non-start results referencing even a real user
-message, with no retry or execution. Model settings, profile, validation and
-budgets remain unchanged.
-
-Owner-provided transcript/screenshots for the `98b6278` station smoke show an
-accepted capability answer without execution, then an explicit recovery request,
-five action proposals, three operator confirmations and COMPLETED rollback with
-recovery PASS. This confirms the nominal path in one observed run, not general
-semantic reliability. The initial dialogue's handoff reply incorrectly proposed
-traffic shift before scaling, omitted the 90% N-1 threshold and asked for a redundant
-confirmation. The subsequent BC-006 executor correctly scaled to eight, observed
-readiness, shifted traffic, verified recovery and finalized rollback. The preliminary
-reply was not an executed plan. Different context/instructions are a plausible
-contributor; this run does not isolate language or establish causality.
-
-Owner smokes on `b3410eb` observed a concise goal handoff followed by the unchanged
-five-proposal, three-confirmation recovery path and verified COMPLETED. A separate
-five-call trajectory respected non-action/hypothetical questions until explicit
-recovery; five unrelated questions ended at DIALOGUE_LIMIT without execution.
-Owner accepted the overall experience, not exhaustive semantic reliability.
-Explanations still confused PAUSED with root cause and omitted the capacity margin.
-
-Narrow follow-up: project the exact BC006-capacity rule into dialogue context and
-instruct separation of facts, hypotheses and unknowns. No executor, schema, budget,
-reply rewriting or retry changes. The effect on real-model wording is not yet tested.
-Navigation previously released an unused reservation, including preparation.
-Home/demo/history now preserve ownership, phase and the earlier idle/absolute
-countdown; returning does not prepare again. Explicit stop and expiry remain intact.
-Focused tests reproduced the missing context and navigation release before fixes.
-
-Next: owner station check of preparation/dialogue navigation and the enriched context,
-with separate revision/profile-bound inference approval. No provider calls or marker
-removal in this update. Raw station evidence remains private. Public access and GPU
-scheduling remain excluded.
+Residual prose inaccuracies, new-composer mobile review and status-text contrast
+remain deferred. Semantic classification is model-dependent; raw station evidence
+stays private. No public access, GPU scheduler or deployment is included.
+Next: PR verification and owner merge decision; choose any next bounded scope
+separately. BC-011 remains the merged baseline until BC-012 integration.
 
 ## BC-011 closure — 2026-10-24
 

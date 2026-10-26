@@ -331,3 +331,18 @@ BC-009 delivery: PR #10; BC-010 delivery: PR #11. Plan a separate local live UI/
 start, event delivery, action-bound confirmation, rejection/expiry and new runs.
 Public station access/security and hosting require separate decisions. No new
 measured experiment or reusable SDD process expansion is authorized here.
+
+## Initial dialogue and goal admission — BC-012
+
+**Accepted for bounded local use.** Questions and clarifications can precede
+recovery; valid goal admission preserves original operator messages and the existing
+execution/confirmation boundary. Owner smokes observed nominal recovery, respect
+for non-execution/hypothetical requests, and dialogue-limit termination without
+execution. Offline verification: 366 Python and 71 UI tests plus build/checks PASS.
+
+The material finding is that dialogue grounding and execution authority need
+separate treatment. Capability and capacity context can improve explanations;
+structural validation does not prove correct intent classification or factual prose.
+These local observations are not a controlled benchmark or a public safety claim.
+Keep minor wording/UI refinement deferred; public resource/access controls remain
+a separate boundary. [Decision, provenance and limits](reports/decisions/bc-012-initial-dialogue-disposition.md).

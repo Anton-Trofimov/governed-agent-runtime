@@ -66,7 +66,24 @@ later executor capability catalog from the BC-006 contract and qualify replica
 fields by version. Targeted context test failed before the change and now passes;
 regressions preserve rejection of non-start results referencing even a real user
 message, with no retry or execution. Model settings, profile, validation and
-budgets remain unchanged. Real-model effectiveness of the instruction is untested.
+budgets remain unchanged.
+
+Owner-provided transcript/screenshots for the `98b6278` station smoke show an
+accepted capability answer without execution, then an explicit recovery request,
+five action proposals, three operator confirmations and COMPLETED rollback with
+recovery PASS. This confirms the nominal path in one observed run, not general
+semantic reliability. The initial dialogue's handoff reply incorrectly proposed
+traffic shift before scaling, omitted the 90% N-1 threshold and asked for a redundant
+confirmation. The subsequent BC-006 executor correctly scaled to eight, observed
+readiness, shifted traffic, verified recovery and finalized rollback. The preliminary
+reply was not an executed plan. Different context/instructions are a plausible
+contributor; this run does not isolate language or establish causality.
+
+Approved narrow follow-up: instruct start_remediation to acknowledge the goal in
+1–2 sentences without planning or asking for action confirmation. Informational
+answers and the BC-006 executor stay unchanged; no reply rewriting or semantic
+validation is added. Offline regression passes; real-model handoff quality still
+requires a separately approved check.
 
 Next: separately approve a revision-bound provider check. Preserve
 quarantine for uncertain completion. Reconcile current provider state before any

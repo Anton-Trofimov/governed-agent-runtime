@@ -494,6 +494,14 @@ no queue of additional messages and no automatic resend or model retry.
 returns a bounded reply and user-message references only for start_remediation.
 The model instruction explicitly requires `goal_message_ids: []` for answer,
 clarify and unsupported; references are mandatory only for start_remediation.
+For start_remediation, instruct the model to return a brief goal-handoff reply
+(1–2 sentences), with no operational plan, capacity calculation, proposed first
+action or request to confirm an action. It may explain that subsequent changes
+require explicit operator confirmation. This is model-authored text, not a fixed
+runtime notice or an executable plan. Informational answers remain substantive.
+The dialogue capability summary is not the executor's complete planning context;
+BC-006 still assembles and checks each concrete action. This instruction adds no
+semantic validator, automatic rewrite or retry of reply text.
 The dialogue context projects tool names, categories, preconditions and confirmation
 requirements from `specs/core/bounded-remediation.yaml` as descriptive capabilities
 of the later executor, not callable dialogue tools. STOP may be proposed by that

@@ -41,6 +41,11 @@ require operator confirmation, not read-only observations. A recovery request is
 not approval of later actions. Do not promise that every requested action is allowed.
 Use observation_scope to qualify replica counts by version. Stable healthy counts
 do not establish candidate health or overall service recovery.
+Use capacity_rule when explaining capacity: healthy replicas, normal and N-1
+utilization must satisfy the stated threshold; desired replicas are not evidence
+of healthy capacity. Separate observed facts from hypotheses and unknowns.
+PAUSED is a rollout state, not an established root cause. An operation outside the
+catalog is unavailable here, not proven ineffective. Never invent tool results.
 Do not invent tools, execute actions, change targets or claim successful recovery.
 Reply concisely, preferably in the user's language. You have no tools here.
 """
@@ -73,6 +78,8 @@ class DialogueService(LiveService):
         self.dialogue_validator = Draft202012Validator(json.loads(
             (Path(root) / 'schemas/bc012-dialogue.schema.json').read_text()))
         contract = yaml.safe_load((Path(root) / 'specs/core/bounded-remediation.yaml').read_text())
+        self.capacity_rule = next(rule for rule in contract['rules']
+                                  if rule['constraint_id'] == 'BC006-capacity')
         fields = ('tool_name', 'category', 'preconditions', 'confirmation_required')
         self.remediation_capabilities = [
             {key: tool[key] for key in fields} for tool in contract['tools']]
@@ -198,6 +205,7 @@ class DialogueService(LiveService):
                            'capabilities': ['explain supplied state', 'clarify recovery intent',
                                             'request bounded remediation with explicit action confirmations'],
                            'remediation_capabilities': deepcopy(self.remediation_capabilities),
+                           'capacity_rule': deepcopy(self.capacity_rule),
                            'observation_scope': {
                                'desired': 'stable_version_id', 'healthy': 'stable_version_id',
                                'candidate_count': 'candidate_version_id; health not established'},

@@ -1,5 +1,5 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { App } from './App';
 import success from '../public/runs/success.json';
 const time='2026-10-22T12:00:00Z';
@@ -8,7 +8,7 @@ const run={kind:'snapshot',version:'live.v1',run_id:'r1',phase:'awaiting_confirm
 const session={kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'s1',server_time:time,reservation:null,current_run_id:'r1',model_status:'ready',preparation_error:null};
 beforeEach(()=>{window.history.replaceState({garScreen:'home'},'','#home');localStorage.clear();});
 afterEach(()=>vi.unstubAllGlobals());
-function mockBackend({visitor=false,terminal=false,reservation=false,busyOnPrepare=false}={}){
+function mockBackend({visitor=false,terminal=false,reservation=false,busyOnPrepare=false,reservationPhase='ready',absoluteExpiry=null as string|null}={}){
  let reserved=reservation;let admitted=false;
  const fetcher=vi.fn(async(path:string,options?:RequestInit)=>({ok:!(busyOnPrepare&&path==='/api/sessions'),json:async()=>{
   if(busyOnPrepare&&path==='/api/sessions')return {code:'LIVE_BUSY'};
@@ -16,7 +16,7 @@ function mockBackend({visitor=false,terminal=false,reservation=false,busyOnPrepa
   if(path==='/api/status')return {kind:'status',version:'live.v1',availability:terminal?'available':'busy',model_status:'ready',server_time:time};
   if(path==='/api/sessions'){admitted=true;reserved=true;return {};}
   if(path==='/api/session/release'){reserved=false;return {};}
-  if(path==='/api/session')return {...session,current_run_id:visitor||reservation||admitted?null:'r1',reservation:reserved?{reservation_id:'res1',phase:'ready',expires_at:confirmation.expires_at,service_view:success.replay.events.find(e=>e.observation)!.observation}:null};
+  if(path==='/api/session')return {...session,dialogue:reserved?{reservation_id:'res1',state:reservationPhase==='dialogue'?'thinking':reservationPhase,calls:0,reason:null,absolute_expires_at:absoluteExpiry,run_id:null,messages:[]}:null,current_run_id:visitor||reservation||admitted?null:'r1',reservation:reserved?{reservation_id:'res1',phase:reservationPhase,expires_at:reservationPhase==='preparing'?null:confirmation.expires_at,service_view:success.replay.events.find(e=>e.observation)!.observation}:null};
   if(path.includes('/events?'))return {kind:'events',version:'live.v1',run_id:'r1',events:[],next_cursor:0,has_more:false};
   if(path==='/api/runs/r1')return terminal?{...run,phase:'terminal',pending_confirmation:null,terminal:{origin:'platform',reason_code:'CONFIRMATION_EXPIRED',explanation:'Время истекло',runtime_outcome:null}}:run;
   throw new Error(`Unexpected ${options?.method} ${path}`);
@@ -54,14 +54,23 @@ it('opens a terminal result read-only and history transitions never start a run'
  await screen.findByText('Время истекло',{selector:'.outcome > p'});
  expect(mutations(fetcher)).toEqual([]);
 });
-it('releases an unused reservation on browser history exit, without admitting another run',async()=>{
+it.each(['preparing','ready','dialogue'])('preserves a %s reservation across home, demo and history without another admission',async(reservationPhase)=>{
  window.history.replaceState({garScreen:'live'},'','#live');
- const fetcher=mockBackend({reservation:true});render(<App/>);
- await screen.findByRole('textbox',{name:'Запрос агенту'});
+ const fetcher=mockBackend({reservation:true,reservationPhase});render(<App/>);
+ if(reservationPhase==='dialogue')await screen.findByText('Агент отвечает');
+ else await screen.findByRole('textbox',{name:'Запрос агенту'});
  window.history.replaceState({garScreen:'home'},'','#home');fireEvent.popState(window);
  await screen.findByRole('button',{name:'Посмотреть пример'});
- await waitFor(()=>expect(mutations(fetcher)).toHaveLength(1));
- expect(mutations(fetcher)[0][0]).toBe('/api/session/release');
+ expect(mutations(fetcher)).toHaveLength(0);
+ expect(screen.getByRole('button',{name:'Вернуться к запуску'})).toBeVisible();
+ expect(screen.queryByText('Живой режим занят. Пока можно посмотреть демонстрационный пример.')).toBeNull();
+ if(reservationPhase==='preparing')expect(screen.getByLabelText('Ваш запуск')).toHaveTextContent('Подготовка модели');
+ if(reservationPhase==='dialogue')expect(screen.getByLabelText('Ваш запуск')).toHaveTextContent('Агент обрабатывает запрос');
+ if(reservationPhase==='ready')expect(screen.getByLabelText('Ваш запуск')).toHaveTextContent('На обращение: 300 сек.');
+ fireEvent.click(screen.getByRole('button',{name:'Посмотреть пример'}));
+ fireEvent.click(screen.getByRole('button',{name:'Вернуться к запуску'}));
+ await screen.findByRole('region',{name:'Интерактивный диалог'});
+ expect(mutations(fetcher)).toHaveLength(0);
 });
 
 it('starts again directly from the central chooser after a terminal run',async()=>{
@@ -96,5 +105,15 @@ it.each([[390,false],[390,true],[1280,false],[1280,true]])('keeps owner access b
  expect(document.querySelector('.chat .owner-access')).toBeNull();
  fireEvent.click(button);
  await screen.findByRole('region',{name:'Интерактивный диалог'});
+ expect(mutations(fetcher)).toHaveLength(0);
+});
+
+it('shows the earlier absolute dialogue deadline without renewing it on navigation',async()=>{
+ const fetcher=mockBackend({reservation:true,absoluteExpiry:'2026-10-22T12:01:00Z'});render(<App/>);
+ expect(await screen.findByLabelText('Ваш запуск')).toHaveTextContent('На обращение: 60 сек.');
+ fireEvent.click(screen.getByRole('button',{name:'Вернуться к запуску'}));
+ await screen.findByRole('textbox',{name:'Запрос агенту'});
+ fireEvent.click(screen.getByRole('button',{name:'К началу'}));
+ expect(await screen.findByLabelText('Ваш запуск')).toHaveTextContent('На обращение: 60 сек.');
  expect(mutations(fetcher)).toHaveLength(0);
 });

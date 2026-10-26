@@ -176,7 +176,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact}:Props){
       {notice&&<p role="alert" className="admission-notice">{notice}</p>}
       {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}
       {pending.current&&!busy&&<button className="action" onClick={()=>void send(pending.current!)}>Проверить / повторить ту же команду</button>}
-      {active&&<small>К началу — экран выбора режима. Вы сможете вернуться к запуску.</small>}
+      {(active||session?.reservation)&&<small>К началу — экран выбора режима. Вы сможете вернуться к запуску.</small>}
     </nav></div>
     <div className="workspace replaying live-workspace">
       {serviceView?renderState(serviceView,unknown):<section className="state"><h2>Состояние системы</h2><p>{session?.preparation_error?.code==='READY_EXPIRED'?'Резерв сценария завершён. Начните заново, чтобы получить новое состояние.':'Получаем исходное состояние сценария…'}</p></section>}

@@ -5,8 +5,11 @@ Local implementation and fake-provider verification are complete; owner desktop
 interaction review is accepted, with mobile review pending. Station smokes exposed a provider schema-conversion defect, then an invalid
 non-start reply after that defect was corrected. Runtime rejected the reply without
 starting remediation. A later owner-observed nominal question-to-recovery run
-completed; its preliminary handoff reply still contained planning errors. Full
-semantic acceptance remains pending. See [current status](../../project-meta/current-status.md). BC-011 remains the
+completed. Follow-up owner smokes observed concise handoff, no execution for
+hypothetical/non-action questions, and five unrelated questions ending at the limit.
+Explanatory inaccuracies remain; this is bounded smoke evidence, not general
+semantic reliability. Navigation preservation and grounded explanations are the
+current narrow follow-up. See [current status](../../project-meta/current-status.md). BC-011 remains the
 accepted local baseline, merged via PR #12 at 668a50eb2dcacc665cc96e2ac35f508f1b1d2df7.
 
 ## Problem and outcome
@@ -118,6 +121,6 @@ No public deployment, public authentication, GPU sharing/scheduler, telemetry,
 accessibility audit, framework migration or general-purpose conversational tools.
 No new mandatory review artifact or reusable SDD Model change.
 
-Next: diagnose the observed provider HTTP failure with bounded private diagnostics
-and offline regression checks, then separately approve a new revision/profile-bound
-semantic smoke. Do not infer semantic quality from the failed integration attempt.
+Next: verify owner navigation during preparation/dialogue on the station and review
+the narrowly enriched context in a separately approved revision/profile-bound smoke.
+Do not expand scope into exhaustive wording fixes or public deployment.

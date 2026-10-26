@@ -388,7 +388,8 @@ action, choice and time. Confirmation is not execution. During work, a compact
 disabled composer explains current state in muted italic text; no additional
 model conversation is enabled. Recorded/live modes share actor styling and labels.
 Navigation and admission errors stay outside message scrolling. Returning home
-releases an unused reservation; navigation alone does not stop an active run.
+preserves the owned reservation/dialogue under BC-012; navigation alone does not
+stop preparation, dialogue or an active run. Explicit release remains available.
 Terminal explanations distinguish recovered service from incomplete rollback,
 using the last accepted observation and preserving unknown-effect warnings.
 
@@ -412,8 +413,8 @@ mobile text sizes or enable any additional conversation.
 ### Owner navigation and stable workspace refinement
 
 Home, recorded demo and live workspace are browser-history screens. Logo/home and
-Back/Forward use the same navigation boundary: leaving an unused reservation
-releases it; leaving an active run does not stop it or reset deadlines. History
+Back/Forward use the same navigation boundary: leaving a reservation, dialogue or
+active run preserves it and never resets deadlines (BC-012 refinement). History
 navigation, refresh and viewing a terminal result never request new admission.
 The owner sees return-to-run (or view-result after termination) on home and demo,
 not another visitor's busy warning. Confirmation countdown uses server time and
@@ -489,6 +490,13 @@ This history is separate from remediation events, retained after completion and
 reconnect, and replaced only by an explicitly admitted new scenario. No cross-session
 transcript access is allowed. A single message may wait for preparation; there is
 no queue of additional messages and no automatic resend or model retry.
+Home/demo/history navigation preserves the same owned reservation during preparation,
+ready and thinking phases; returning does not request another preparation. The owner
+sees return access and phase-appropriate status/countdown outside the live screen.
+Ready countdown uses the earlier idle/absolute deadline; thinking exposes status
+rather than a user-decision countdown. Polling does not renew either deadline.
+Explicit stop/release and expiry still terminate dialogue; other sessions remain
+excluded while the slot is owned, including during in-flight cancellation.
 
 `schemas/bc012-dialogue.schema.json` defines the separate model result. The model
 returns a bounded reply and user-message references only for start_remediation.
@@ -503,11 +511,15 @@ The dialogue capability summary is not the executor's complete planning context;
 BC-006 still assembles and checks each concrete action. This instruction adds no
 semantic validator, automatic rewrite or retry of reply text.
 The dialogue context projects tool names, categories, preconditions and confirmation
-requirements from `specs/core/bounded-remediation.yaml` as descriptive capabilities
+requirements, plus the exact BC006-capacity rule, from
+`specs/core/bounded-remediation.yaml` as descriptive capabilities
 of the later executor, not callable dialogue tools. STOP may be proposed by that
 executor. Do not promise resume rollout, candidate scaling, partial traffic shifts
 or arbitrary deployments. Desired/healthy counts describe the stable version;
-candidate_count does not establish candidate health. State-changing actions need
+candidate_count does not establish candidate health. Explanations distinguish
+observed facts, hypotheses and unknowns: PAUSED is an operational state, not proof
+of root cause; unsupported operations do not imply known ineffectiveness. Do not
+invent tool responses when their preconditions are unmet. State-changing actions need
 explicit confirmations; read-only observations do not. These prompt clarifications
 do not replace validation or establish semantic accuracy; invalid output is neither
 repaired nor retried automatically.

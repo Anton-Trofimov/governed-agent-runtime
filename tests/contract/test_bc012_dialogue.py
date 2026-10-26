@@ -340,6 +340,7 @@ def test_dialogue_context_exposes_only_contracted_execution_capabilities(setup):
     fields = ('tool_name', 'category', 'preconditions', 'confirmation_required')
     assert context['remediation_capabilities'] == [
         {key: tool[key] for key in fields} for tool in contract['tools']]
+    assert context['capacity_rule'] == next(r for r in contract['rules'] if r['constraint_id'] == 'BC006-capacity')
     assert context['observation_scope']['healthy'] == 'stable_version_id'
     assert context['observation_scope']['desired'] == 'stable_version_id'
     assert context['observation_scope']['candidate_count'] == 'candidate_version_id; health not established'

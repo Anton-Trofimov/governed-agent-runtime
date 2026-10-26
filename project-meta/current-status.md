@@ -3,7 +3,7 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
-## BC-012 local implementation — 2026-10-25
+## BC-012 local implementation — 2026-10-26
 
 [Initial dialogue and goal admission](../specs/bounded-changes/bc-012-initial-dialogue-and-goal-admission.md)
 implemented on a separate development branch after owner approval, including the
@@ -11,7 +11,7 @@ implemented on a separate development branch after owner approval, including the
 Only a valid start proposal can enter the existing executor; exact operator text,
 action confirmations and provider quarantine are preserved.
 
-Local verification: 366 Python tests, 68 UI tests, Ruff, TypeScript/Vite build,
+Local verification: 366 Python tests, 71 UI tests, Ruff, TypeScript/Vite build,
 recorded-data export and diff checks PASS. The new HTTP test first failed because
 initial dialogue was unsupported, then passed after implementation. Tests use
 fake providers; no real model was called and no semantic-quality claim is made.
@@ -79,17 +79,25 @@ readiness, shifted traffic, verified recovery and finalized rollback. The prelim
 reply was not an executed plan. Different context/instructions are a plausible
 contributor; this run does not isolate language or establish causality.
 
-Approved narrow follow-up: instruct start_remediation to acknowledge the goal in
-1–2 sentences without planning or asking for action confirmation. Informational
-answers and the BC-006 executor stay unchanged; no reply rewriting or semantic
-validation is added. Offline regression passes; real-model handoff quality still
-requires a separately approved check.
+Owner smokes on `b3410eb` observed a concise goal handoff followed by the unchanged
+five-proposal, three-confirmation recovery path and verified COMPLETED. A separate
+five-call trajectory respected non-action/hypothetical questions until explicit
+recovery; five unrelated questions ended at DIALOGUE_LIMIT without execution.
+Owner accepted the overall experience, not exhaustive semantic reliability.
+Explanations still confused PAUSED with root cause and omitted the capacity margin.
 
-Next: separately approve a revision-bound provider check. Preserve
-quarantine for uncertain completion. Reconcile current provider state before any
-recovery; new real calls require revision/profile-bound approval. No retry or
-marker removal was performed in this diagnostic update. Raw station logs and
-private evidence stay outside Git. Public access and GPU scheduling remain excluded.
+Narrow follow-up: project the exact BC006-capacity rule into dialogue context and
+instruct separation of facts, hypotheses and unknowns. No executor, schema, budget,
+reply rewriting or retry changes. The effect on real-model wording is not yet tested.
+Navigation previously released an unused reservation, including preparation.
+Home/demo/history now preserve ownership, phase and the earlier idle/absolute
+countdown; returning does not prepare again. Explicit stop and expiry remain intact.
+Focused tests reproduced the missing context and navigation release before fixes.
+
+Next: owner station check of preparation/dialogue navigation and the enriched context,
+with separate revision/profile-bound inference approval. No provider calls or marker
+removal in this update. Raw station evidence remains private. Public access and GPU
+scheduling remain excluded.
 
 ## BC-011 closure — 2026-10-24
 

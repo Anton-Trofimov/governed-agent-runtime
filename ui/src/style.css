@@ -588,3 +588,26 @@ body{background:#f7f9fa}
  #operator-workspace .live-workspace .preparing-model .agent-controls{margin-left:0}
  #operator-workspace .live-workspace .agent-controls{margin-top:0;min-width:0;max-width:100%}
 }
+
+/* BC-012: compact initial dialogue composer; preserve message typography. */
+#operator-workspace .composer-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px}
+#operator-workspace .composer-heading label{margin:0;white-space:nowrap}
+#operator-workspace .composer-heading .live-suggestions{margin:0;gap:4px;justify-content:flex-end}
+#operator-workspace .composer-heading .action{min-height:30px;padding:3px 7px;font-size:11px}
+#operator-workspace .live-input:not(.inactive-composer){padding-top:7px;padding-bottom:7px}
+#operator-workspace .live-input:not(.inactive-composer) textarea{min-height:52px;padding:6px 9px;margin-bottom:5px;resize:none;overflow-y:auto}
+#operator-workspace .compose-actions{flex-wrap:wrap;gap:4px 10px}
+#operator-workspace .live-input .dialogue-guidance{font-style:italic;color:#526d7c;margin-top:5px}
+@media(max-width:620px){
+ #operator-workspace .composer-heading .live-suggestions{justify-content:flex-start;flex-wrap:wrap}
+ #operator-workspace .composer-heading .action{min-height:36px;font-size:11px}
+}
+
+
+/* Final initial-dialogue call: visible notice, no change to runtime deadlines. */
+#operator-workspace .live-input .compose-actions .dialogue-guidance{margin:0;color:#92594d}
+#operator-workspace .live-input .compose-actions .last-call-warning{color:#984b43;font-style:normal;font-weight:600}
+.warning-symbol{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;border:1.5px solid currentColor;border-radius:50%;font-style:normal;font-weight:700;line-height:1;flex-shrink:0}
+#operator-workspace .last-call-dialog{width:min(460px,calc(100% - 32px));margin:auto;border-radius:16px}
+#operator-workspace .last-call-dialog h2{color:#984b43;font-size:1.15rem}
+.last-call-dialog p{line-height:1.5}

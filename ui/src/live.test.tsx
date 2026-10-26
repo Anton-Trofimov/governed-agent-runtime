@@ -236,7 +236,7 @@ it('scrolls mobile live entry to chat once, without scrolling on session polls',
   try{
     render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
     await screen.findByRole('textbox',{name:'Запрос агенту'});
-    expect(scroll).toHaveBeenCalledTimes(1);
+    await waitFor(()=>expect(scroll).toHaveBeenCalledTimes(1));
     const before=polls;
     await waitFor(()=>expect(polls).toBeGreaterThan(before),{timeout:2500});
     expect(scroll).toHaveBeenCalledTimes(1);

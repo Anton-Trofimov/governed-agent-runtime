@@ -7,6 +7,7 @@ import time
 from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 from uuid import uuid4
 
@@ -16,6 +17,7 @@ from governed_agent_runtime.ollama_model_adapter import OllamaChatModel
 PROFILE = 'specs/core/live-model-profile.json'
 ENDPOINT = 'http://127.0.0.1:11434'
 MAX_RESPONSE = 2 * 1024 * 1024
+MAX_ERROR_BODY = 4096
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -35,7 +37,8 @@ def private_json(path, value):
 
 def load_profile(root):
     profile = json.loads((Path(root) / PROFILE).read_text())
-    if (profile['profile_id'] != 'BC011-local-ollama-v1'
+    if (profile['profile_id'] != 'BC012-local-ollama-v1'
+            or profile.get('dialogue') != {'max_calls': 5, 'idle_seconds': 300, 'absolute_seconds': 600}
             or profile['fixture'] != 'fixtures/scenarios/bc-006/s12.json'
             or profile['max_preparations'] != 2
             or any(profile[k] != 300 for k in ('preparation_seconds', 'inference_seconds',
@@ -86,8 +89,27 @@ class LocalOllamaModel:
                           data=None if payload is None else canonical(payload).encode(),
                           headers={'Content-Type': 'application/json'},
                           method='GET' if payload is None else 'POST')
-        with self.opener.open(request, timeout=timeout) as response:
-            raw = response.read(MAX_RESPONSE + 1)
+        try:
+            with self.opener.open(request, timeout=timeout) as response:
+                raw = response.read(MAX_RESPONSE + 1)
+        except HTTPError as error:
+            # Private, untrusted diagnostic only; never evidence of GPU completion.
+            diagnostic = {'exception_type': type(error).__name__, 'api_path': path,
+                          'http_status': error.code, 'body_excerpt': '',
+                          'body_truncated': False, 'body_read_failed': False}
+            try:
+                body = error.read(MAX_ERROR_BODY + 1)
+                diagnostic['body_truncated'] = len(body) > MAX_ERROR_BODY
+                diagnostic['body_excerpt'] = body[:MAX_ERROR_BODY].decode('utf-8', errors='ignore')
+            except Exception:  # noqa: BLE001 - diagnostics must preserve original failure
+                diagnostic['body_read_failed'] = True
+            finally:
+                try:
+                    error.close()
+                except Exception:  # noqa: BLE001 - preserve original HTTP failure
+                    diagnostic['body_close_failed'] = True
+            error.gar_diagnostic = diagnostic
+            raise
         if len(raw) > MAX_RESPONSE:
             raise ValueError('Provider response limit exceeded')
         return json.loads(raw)
@@ -132,8 +154,10 @@ class LocalOllamaModel:
             if not isinstance(content, str):
                 return {'done': True, 'error': 'INVALID_PROVIDER_CONTENT'}
             return {'done': True, 'raw_proposal': content}
-        except Exception:
+        except Exception as error:
             record['error'] = 'PROVIDER_OPERATION_FAILED'
+            record['failure'] = getattr(error, 'gar_diagnostic', {
+                'exception_type': type(error).__name__})
             raise
         finally:
             record['duration_seconds'] = time.monotonic() - started
@@ -152,6 +176,24 @@ class LocalOllamaModel:
                                 {'role': 'user', 'content': canonical(context)}],
                    'stream': False, 'think': self.adapter.invocation_parameters['think'],
                    'format': self.adapter.model_schema,
+                   'keep_alive': self.adapter.invocation_parameters['keep_alive'],
+                   'options': self.adapter._request_options()}
+        return self._operation('/api/chat', payload, evidence_dir,
+                               self.profile['inference_seconds'])
+
+
+    def converse(self, context, *, evidence_dir):
+        from governed_agent_runtime.live_dialogue import SYSTEM as DIALOGUE_SYSTEM
+        schema = json.loads((Path(__file__).resolve().parents[2] /
+                             'schemas/bc012-dialogue.schema.json').read_text())
+        # Ollama's grammar converter rejects the unanchored non-whitespace regex.
+        # Runtime still validates every result against the complete source schema.
+        del schema['properties']['reply']['pattern']
+        payload = {'model': self.adapter.model_identity,
+                   'messages': [{'role': 'system', 'content': DIALOGUE_SYSTEM},
+                                {'role': 'user', 'content': canonical(context)}],
+                   'stream': False, 'think': self.adapter.invocation_parameters['think'],
+                   'format': schema,
                    'keep_alive': self.adapter.invocation_parameters['keep_alive'],
                    'options': self.adapter._request_options()}
         return self._operation('/api/chat', payload, evidence_dir,

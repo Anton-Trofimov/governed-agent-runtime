@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from uuid import uuid4
 
+from governed_agent_runtime.live_dialogue import DialogueService
 from governed_agent_runtime.live_http import create_app
 from governed_agent_runtime.live_ollama import (
     LocalOllamaModel,
@@ -14,7 +15,6 @@ from governed_agent_runtime.live_ollama import (
     profile_hash,
     validate_approval,
 )
-from governed_agent_runtime.live_service import LiveService
 
 
 def revision(root, *, clean=False):
@@ -27,7 +27,7 @@ def revision(root, *, clean=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='BC-011 local Ollama smoke; explicit approval')
+    parser = argparse.ArgumentParser(description='BC-012 local Ollama smoke; explicit approval')
     parser.add_argument('--evidence-dir', type=Path, required=True)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--write-approval-template', type=Path)
@@ -62,7 +62,7 @@ def main():
         raise ValueError('Revision changed during preflight')
     # Stable per-local-account state; changing evidence directories cannot bypass quarantine.
     provider = LocalOllamaModel(root, evidence, profile)
-    service = LiveService(root, evidence, provider=provider, operation_dir=state,
+    service = DialogueService(root, evidence, provider=provider, operation_dir=state,
                           max_preparations=profile['max_preparations'],
                           startup_metadata={'revision': approved_revision,
                                             'profile_sha256': profile_hash(profile),

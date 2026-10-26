@@ -42,6 +42,9 @@
     },
     {
       "$ref": "#/$defs/events"
+    },
+    {
+      "$ref": "#/$defs/dialogue"
     }
   ],
   "$defs": {
@@ -759,7 +762,8 @@
                   "enum": [
                     "preparing",
                     "ready",
-                    "stopping"
+                    "stopping",
+                    "dialogue"
                   ]
                 },
                 "expires_at": {
@@ -842,6 +846,118 @@
         },
         "provider": {
           "$ref": "#/$defs/provider"
+        },
+        "dialogue": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "reservation_id",
+                "state",
+                "messages",
+                "calls",
+                "reason",
+                "absolute_expires_at",
+                "run_id",
+                "service_view"
+              ],
+              "properties": {
+                "reservation_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "state": {
+                  "enum": [
+                    "preparing",
+                    "ready",
+                    "thinking",
+                    "admitted",
+                    "terminal"
+                  ]
+                },
+                "messages": {
+                  "type": "array",
+                  "maxItems": 10,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "actor",
+                      "text",
+                      "occurred_at",
+                      "outcome"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "^[A-Za-z0-9_-]+$"
+                      },
+                      "actor": {
+                        "enum": [
+                          "operator",
+                          "agent"
+                        ]
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4000,
+                        "pattern": "\\S"
+                      },
+                      "occurred_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "outcome": {
+                        "enum": [
+                          null,
+                          "answer",
+                          "clarify",
+                          "unsupported",
+                          "start_remediation"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "calls": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 5
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "absolute_expires_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "run_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "service_view": {
+                  "$ref": "#/$defs/service_view"
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -1741,6 +1857,39 @@
             "null"
           ],
           "maxLength": 120
+        }
+      }
+    },
+    "dialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "command_id",
+        "reservation_id",
+        "text"
+      ],
+      "properties": {
+        "command": {
+          "const": "dialogue"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "reservation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "\\S"
         }
       }
     }

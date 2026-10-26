@@ -1,10 +1,12 @@
 # Local live UI/runtime contract
 
-Contract v0.3 with local simulator implementation authorized by the human,
-2026-10-22. Real provider integration/inference and deployment remain gated.
+Contract v0.4 includes the approved BC-012 initial-dialogue extension below.
+Local simulator implementation is authorized; real inference and deployment
+remain separately gated.
 BC-006 execution and confirmation contracts remain authoritative; recorded
-BC-010 data and schemas are unchanged. The executable server accepts only a
-deterministic simulator; injected providers in tests exercise failure boundaries.
+BC-010 data and schemas are unchanged. The simulator entry point uses a deterministic provider; the separate Ollama
+entry point requires revision/profile-bound approval. Injected providers in tests
+exercise failure boundaries without real inference.
 
 ## HTTP adapter and session design
 
@@ -386,7 +388,8 @@ action, choice and time. Confirmation is not execution. During work, a compact
 disabled composer explains current state in muted italic text; no additional
 model conversation is enabled. Recorded/live modes share actor styling and labels.
 Navigation and admission errors stay outside message scrolling. Returning home
-releases an unused reservation; navigation alone does not stop an active run.
+preserves the owned reservation/dialogue under BC-012; navigation alone does not
+stop preparation, dialogue or an active run. Explicit release remains available.
 Terminal explanations distinguish recovered service from incomplete rollback,
 using the last accepted observation and preserving unknown-effect warnings.
 
@@ -410,8 +413,8 @@ mobile text sizes or enable any additional conversation.
 ### Owner navigation and stable workspace refinement
 
 Home, recorded demo and live workspace are browser-history screens. Logo/home and
-Back/Forward use the same navigation boundary: leaving an unused reservation
-releases it; leaving an active run does not stop it or reset deadlines. History
+Back/Forward use the same navigation boundary: leaving a reservation, dialogue or
+active run preserves it and never resets deadlines (BC-012 refinement). History
 navigation, refresh and viewing a terminal result never request new admission.
 The owner sees return-to-run (or view-result after termination) on home and demo,
 not another visitor's busy warning. Confirmation countdown uses server time and
@@ -468,3 +471,100 @@ Consumed approval is rejected with a concise CLI error before preflight/provider
 activation; consumption remains exclusive and durable, including races.
 Action summaries use actual proposal/confirmation arguments, never a fixed replica
 count. Unknown tools receive a neutral label; no summary grants permission.
+
+
+## BC-012 initial dialogue extension (approved design)
+
+The dialogue-enabled local service preserves `live.v1` execution events and adds
+`POST /api/dialogue` (`command=dialogue`, command_id, reservation_id, text).
+Text is nonblank, at most 2,000 code points. The old external `start_run` command
+is rejected with GOAL_ADMISSION_REQUIRED in this service; only a validated
+`start_remediation` dialogue result can create a run. Historical BC-011 fixtures
+continue to exercise the earlier service contract.
+
+The session adds `dialogue`: null or an owned bounded transcript with reservation_id,
+state (`preparing`, `ready`, `thinking`, `admitted`, `terminal`), messages, calls,
+reason, absolute_expires_at and run_id. Messages have opaque IDs, actor, text and
+time; agent messages additionally identify answer/clarify/unsupported/start_remediation.
+This history is separate from remediation events, retained after completion and
+reconnect, and replaced only by an explicitly admitted new scenario. No cross-session
+transcript access is allowed. A single message may wait for preparation; there is
+no queue of additional messages and no automatic resend or model retry.
+Home/demo/history navigation preserves the same owned reservation during preparation,
+ready and thinking phases; returning does not request another preparation. The owner
+sees return access and phase-appropriate status/countdown outside the live screen.
+Ready countdown uses the earlier idle/absolute deadline; thinking exposes status
+rather than a user-decision countdown. Polling does not renew either deadline.
+Explicit stop/release and expiry still terminate dialogue; other sessions remain
+excluded while the slot is owned, including during in-flight cancellation.
+
+`schemas/bc012-dialogue.schema.json` defines the separate model result. The model
+returns a bounded reply and user-message references only for start_remediation.
+The model instruction explicitly requires `goal_message_ids: []` for answer,
+clarify and unsupported; references are mandatory only for start_remediation.
+For start_remediation, instruct the model to return a brief goal-handoff reply
+(1–2 sentences), with no operational plan, capacity calculation, proposed first
+action or request to confirm an action. It may explain that subsequent changes
+require explicit operator confirmation. This is model-authored text, not a fixed
+runtime notice or an executable plan. Informational answers remain substantive.
+The dialogue capability summary is not the executor's complete planning context;
+BC-006 still assembles and checks each concrete action. This instruction adds no
+semantic validator, automatic rewrite or retry of reply text.
+The dialogue context projects tool names, categories, preconditions and confirmation
+requirements, plus the exact BC006-capacity rule, from
+`specs/core/bounded-remediation.yaml` as descriptive capabilities
+of the later executor, not callable dialogue tools. STOP may be proposed by that
+executor. Do not promise resume rollout, candidate scaling, partial traffic shifts
+or arbitrary deployments. Desired/healthy counts describe the stable version;
+candidate_count does not establish candidate health. Explanations distinguish
+observed facts, hypotheses and unknowns: PAUSED is an operational state, not proof
+of root cause; unsupported operations do not imply known ineffectiveness. Do not
+invent tool responses when their preconditions are unmet. State-changing actions need
+explicit confirmations; read-only observations do not. These prompt clarifications
+do not replace validation or establish semantic accuracy; invalid output is neither
+repaired nor retried automatically.
+
+The server requires existing user references including the latest message, checks
+schema, ownership, phase, deadline and budget, and retains all exact user text plus
+clarification context in private dialogue evidence. The runtime goal preserves all exact
+user text in transcript order, including earlier constraints, never a model
+summary or a model-selected subset. Agent replies remain separate context in
+the private transcript; they are not attributed as operator intent. If the combined
+goal exceeds the existing 2,000-code-point runtime bound, end with
+DIALOGUE_GOAL_TOO_LONG; never truncate or summarize it silently. These checks do
+not prove semantic classification correctness. Dialogue has no tool interface.
+
+The profile fixes 5 calls, including classification of an immediate recovery goal,
+300 seconds per call, 300 seconds waiting for the next user message, and 600 seconds
+absolute time from successful preparation. The fifth response may admit a goal;
+a fifth non-start response ends dialogue with DIALOGUE_LIMIT. The idle clock starts
+at readiness or completion of a reply; the absolute clock never resets. Expiry,
+release, invalid output and provider failure cannot start remediation. A late
+reply is discarded. In-flight work retains the slot until completion is known;
+unknown completion retains provider quarantine. Polling never renews deadlines.
+
+Profile/version and revision approval must be renewed before real-model evaluation.
+The two-preparation allowance and all BC-006 confirmation/execution budgets remain
+unchanged. Fake-provider tests verify transport and transitions, not semantic quality.
+
+### Private provider failure diagnostics (BC-012)
+
+Provider failures retain their exception class in private evidence. HTTP failures
+also retain the fixed API path, status code and an error-body excerpt bounded to
+4096 bytes, with truncation/read-failure flags. Treat the excerpt as untrusted and
+potentially sensitive: never return it through the public API or UI, copy it to
+Git, or treat it as instructions. Do not record response headers or error URLs.
+Diagnostic extraction must not replace the original failure or authorize retries.
+An HTTP error alone does not establish provider completion: existing quarantine
+and explicit reconciliation remain unchanged. No model/schema/profile change is
+implied by these diagnostics.
+
+### Dialogue provider format compatibility
+
+The full BC-012 dialogue schema remains authoritative for server validation.
+For Ollama structured output only, omit `reply.pattern`: the pinned provider
+rejected its unanchored non-whitespace expression during grammar conversion.
+All other schema fields remain unchanged. The provider format is a generation
+aid, not admission authority; whitespace-only replies must still fail runtime
+validation without creating a remediation run. Do not alter prompts, model
+settings, retry budgets or quarantine as part of this compatibility fix.

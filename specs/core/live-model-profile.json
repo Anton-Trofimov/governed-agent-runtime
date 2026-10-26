@@ -1,5 +1,5 @@
 {
-  "profile_id": "BC011-local-ollama-v1",
+  "profile_id": "BC012-local-ollama-v1",
   "model_config": {
     "model_identity": "qwen3.8:27b",
     "model_artifact_identity": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
@@ -30,5 +30,10 @@
   "metadata_seconds": 5,
   "ready_seconds": 300,
   "confirmation_seconds": 300,
-  "reconciliation_seconds": 30
+  "reconciliation_seconds": 30,
+  "dialogue": {
+    "max_calls": 5,
+    "idle_seconds": 300,
+    "absolute_seconds": 600
+  }
 }

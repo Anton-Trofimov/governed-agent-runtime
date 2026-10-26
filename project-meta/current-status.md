@@ -3,6 +3,27 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-012 closure preparation — 2026-10-26
+
+**Accepted for bounded local use; documentary closure prepared for PR.**
+Owner reviewed `8941d67a45d80b193e3ffd92c8b7ad09a62cc206` and approved closure.
+[Disposition and concise results](../reports/decisions/bc-012-initial-dialogue-disposition.md)
+record automated checks separately from owner-observed station smokes and limits.
+
+Initial dialogue supports five calls without automatic remediation; goal admission
+preserves original operator text and existing action-bound confirmations. Navigation
+preserves preparation/dialogue without another admission or renewed deadlines.
+Final owner checks observed nominal completion and explicit non-action/hypothetical
+questions without execution. Two-preparation limits were visible across browsers.
+Offline checks: 366 Python tests, 71 UI tests, Ruff, build, recorded export and diff
+PASS. No model call or station-marker removal performed during closure.
+
+Residual prose inaccuracies, new-composer mobile review and status-text contrast
+remain deferred. Semantic classification is model-dependent; raw station evidence
+stays private. No public access, GPU scheduler or deployment is included.
+Next: PR verification and owner merge decision; choose any next bounded scope
+separately. BC-011 remains the merged baseline until BC-012 integration.
+
 ## BC-011 closure — 2026-10-24
 
 **Accepted as a bounded local integration with recorded limitations.**
@@ -28,8 +49,11 @@ GPU arbitration with unrelated Ollama clients. Public exposure is not authorized
 [Startup and limits](../docs/local-ui-simulator.md).
 Integration status and CI are recorded in [PR #12](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/12).
 
-Next: return to the separately drafted BC-012 initial-dialogue design after
-integration. No BC-012 code, new inference or accessibility audit is included.
+BC-011 merged through PR #12 at `668a50e`.
+Next: [BC-012 initial dialogue](../specs/bounded-changes/bc-012-initial-dialogue-and-goal-admission.md).
+The owner approved its design and resource bounds with a limit of 5 pre-execution
+model calls. Local fake-provider implementation is recorded above.
+Real inference requires separate revision-bound approval.
 
 ## Accepted operator presentation — 2026-10-21
 

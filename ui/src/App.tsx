@@ -31,9 +31,7 @@ export function App({loader=loadRun}:{loader?:Loader}) {
       if(live&&screen!=='live'){
         const session=await request('/api/session').then(value=>sessionSchema.parse(value)).catch(error=>{if(error instanceof ApiError&&error.code==='SESSION_REQUIRED')return null;throw error;});
         if(session?.reservation){
-          const release=command('/api/session/release','release',{reservation_id:session.reservation.reservation_id});
-          await request(release.path,release.body);
-          setOwnsRun(false);setOwner(undefined);
+          setOwner({session,received:Date.now()});setOwnsRun(true);setOwnerConnected(true);
         }else if(session?.current_run_id){
           const run=snapshotSchema.parse(await request(`/api/runs/${session.current_run_id}`));
           setOwner({session,run,received:Date.now()});setOwnsRun(true);setOwnerConnected(true);
@@ -110,12 +108,20 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   },[live,started,id]);
   const terminalOwner=owner?.run?.phase==='terminal';
   const activeOwner=ownsRun&&!terminalOwner;
-  const ownerStatus=ownsRun&&owner?<span>{!ownerConnected?'Уточняем состояние вашего запуска…':owner.run?.phase==='terminal'?'Запуск завершён':'Вы можете вернуться к запуску'}{ownerConnected&&owner.run?.phase==='awaiting_confirmation'&&owner.run.pending_confirmation?` · На решение: ${Math.max(0,Math.ceil((Date.parse(owner.run.pending_confirmation.expires_at)-Date.parse(owner.run.server_time)-Math.max(0,clock-owner.received))/1000))} сек.`:ownerConnected&&owner.run?.phase==='running'?' · Агент обрабатывает запрос':ownerConnected&&owner.run?.phase==='preparing'?' · Подготовка модели':ownerConnected&&owner.run?.phase==='stopping'?' · Выполнение останавливается':''}</span>:null;
+  const reservation=owner?.session.reservation;
+  const confirmationDeadline=owner?.run?.phase==='awaiting_confirmation'?owner.run.pending_confirmation?.expires_at:null;
+  const dialogueDeadlines=reservation?.phase==='ready'?[reservation.expires_at,owner?.session.dialogue?.absolute_expires_at].filter((value):value is string=>!!value):[];
+  const deadline=confirmationDeadline?Date.parse(confirmationDeadline):dialogueDeadlines.length?Math.min(...dialogueDeadlines.map(Date.parse)):null;
+  const remaining=ownerConnected&&owner&&deadline!==null?Math.max(0,Math.ceil((deadline-Date.parse(confirmationDeadline?owner.run!.server_time:owner.session.server_time)-Math.max(0,clock-owner.received))/1000)):null;
+  const ownerPhase=remaining!==null?` · ${confirmationDeadline?'На решение':'На обращение'}: ${remaining} сек.`:
+    owner?.run?.phase==='running'||reservation?.phase==='dialogue'?' · Агент обрабатывает запрос':
+    owner?.run?.phase==='preparing'||reservation?.phase==='preparing'?' · Подготовка модели':
+    owner?.run?.phase==='stopping'||reservation?.phase==='stopping'?' · Выполнение останавливается':'';
+  const ownerStatus=ownsRun&&owner?<span>{!ownerConnected?'Уточняем состояние вашего запуска…':terminalOwner?'Запуск завершён':'Вы можете вернуться к запуску'}{ownerConnected?ownerPhase:''}</span>:null;
   const returnButton=<button className="action" onClick={()=>void navigate('live')}>{terminalOwner?'Посмотреть результат':'Вернуться к запуску'}</button>;
   const liveControls=<>{activeOwner?returnButton:<button className="action" disabled={liveBusy||(!startCommand.current&&availability!=='available')} onClick={()=>void enterLive(!!terminalOwner)}>{liveBusy?'Подготовка…':startCommand.current?'Повторить запрос старта':terminalOwner?'Начать заново':'Начать живой сценарий'}</button>}</>;
   const resultLink=terminalOwner?<button className="text-link" onClick={()=>void navigate('live')}>Посмотреть результат</button>:null;
   const ownerAccess=ownsRun&&!mobile?<aside className="owner-access" aria-label="Ваш запуск">{ownerStatus}<button className="action" onClick={()=>void navigate('live')}>{terminalOwner?'Результат запуска':'Вернуться к запуску'}</button></aside>:null;
-  const remaining=ownerConnected&&owner?.run?.phase==='awaiting_confirmation'&&owner.run.pending_confirmation?Math.max(0,Math.ceil((Date.parse(owner.run.pending_confirmation.expires_at)-Date.parse(owner.run.server_time)-Math.max(0,clock-owner.received))/1000)):null;
   const mobileReturn=mobile&&ownsRun?<button className="action mobile-owner-access" onClick={()=>void navigate('live')}>{terminalOwner?'Результат живого запуска':'Вернуться к запуску'}{remaining!==null?` · ${Math.floor(remaining/60)}:${String(remaining%60).padStart(2,'0')}`:''}{!ownerConnected?' · связь уточняется':''}</button>:null;
   return <div id="operator-workspace" className={live||started?'working-mode':''}>
     <header className="brandbar"><div className="brand-identity"><a href="#home" className="brand" onClick={e=>{e.preventDefault();void navigate('home');}}>Governed Agent</a><small>Антон Трофимов · <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a></small></div><div className="platform-concept"><strong>Агентная платформа с разделением ответственности</strong></div><button className="help-trigger" ref={helpButton} onClick={()=>help.current?.showModal()} aria-haspopup="dialog">ⓘ Как это работает</button></header>

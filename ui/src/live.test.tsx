@@ -244,3 +244,22 @@ it('scrolls mobile live entry to chat once, without scrolling on session polls',
     expect(scroll).toHaveBeenCalledTimes(2);
   }finally{HTMLElement.prototype.scrollIntoView=original;}
 });
+
+it('keeps anonymous busy feedback across polls without reporting a broken connection',async()=>{
+  let availability='busy';
+  vi.stubGlobal('fetch',vi.fn(async(path:string)=>path==='/api/session'
+    ?{ok:false,json:async()=>({code:'SESSION_REQUIRED'})}
+    :{ok:true,json:async()=>({kind:'status',version:'live.v1',availability,model_status:'ready',provider:{kind:'simulator',model_name:null},server_time:snapshot.server_time})}));
+  render(<LiveWorkspace initialState={<p>Исходное состояние моделируемого сервиса</p>} onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  await waitFor(()=>expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeDisabled());
+  expect(screen.getByRole('alert')).toHaveTextContent('Живой режим занят');
+  expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toHaveValue('Живой режим занят. Пока можно посмотреть демонстрационный пример.');
+  expect(screen.getByText('Исходное состояние моделируемого сервиса')).toBeVisible();
+  await new Promise(resolve=>setTimeout(resolve,1100));
+  expect(screen.getByRole('alert')).toHaveTextContent('Живой режим занят');
+  expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeDisabled();
+  availability='available';
+  await waitFor(()=>expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeEnabled(),{timeout:2200});
+  expect(screen.queryByRole('alert')).toBeNull();
+  expect(vi.mocked(fetch).mock.calls.every(([path])=>path==='/api/session'||path==='/api/status')).toBe(true);
+});

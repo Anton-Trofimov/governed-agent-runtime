@@ -3,6 +3,15 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Preset dialogue refinement — 2026-10-27
+
+Preset-only uses four calls, including recovery; local-free-text retains five.
+Answered informational choices are omitted in server session metadata, which also
+exposes the call budget. Shortened fixed prompts preserve non-execution intent.
+Operator stop labels and preset button spacing are clarified. Four choices remain;
+no additional adverse request or model run was introduced. Verification: 375 Python
+tests, 73 UI tests, Ruff and UI build pass.
+
 ## Preset entry feedback — 2026-10-27
 
 Anonymous live visitors poll availability without creating a session or reservation.

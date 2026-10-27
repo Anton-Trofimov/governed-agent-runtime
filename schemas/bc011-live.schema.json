@@ -958,6 +958,41 @@
               }
             }
           ]
+        },
+        "input_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "choices"
+          ],
+          "properties": {
+            "profile": {
+              "enum": [
+                "preset-only",
+                "local-free-text"
+              ]
+            },
+            "choices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "label"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1890,6 +1925,41 @@
           "minLength": 1,
           "maxLength": 2000,
           "pattern": "\\S"
+        }
+      }
+    },
+    "preset_dialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "command_id",
+        "reservation_id",
+        "choice_id"
+      ],
+      "properties": {
+        "command": {
+          "const": "dialogue"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "reservation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "choice_id": {
+          "enum": [
+            "capabilities",
+            "state",
+            "capacity",
+            "recover"
+          ]
         }
       }
     }

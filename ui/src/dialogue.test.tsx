@@ -118,3 +118,17 @@ it('renders server preset commands without a textbox and sends only the choice I
   expect(screen.queryByRole('textbox')).toBeNull();
   expect(screen.queryByRole('button',{name:'Отправить'})).toBeNull();
 });
+
+for(const kind of ['simulator','ollama'] as const){
+  it(`does not interrupt preset recovery with a last-call modal (${kind})`,async()=>{
+    const current=session();
+    current.provider={kind,model_name:kind==='ollama'?'test-model':null};
+    current.input_policy={profile:'preset-only',max_calls:4,choices:[{id:'recover',label:'Восстанови работу сервиса'}]};
+    current.dialogue!.calls=3;
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>current})));
+    render(<LiveWorkspace {...props}/>);
+    expect(await screen.findByRole('button',{name:'Восстанови работу сервиса'})).toBeEnabled();
+    expect(screen.getByText('Обращения: 3/4')).toBeVisible();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+}

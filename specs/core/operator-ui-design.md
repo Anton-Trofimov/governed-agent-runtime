@@ -401,3 +401,14 @@ warning with a circled exclamation mark. Close the modal if the dialogue expires
 The ordinary explanation and warning wrap on narrow screens. The fifth call may be a question or a recovery request;
 there is no extra sixth call and no automatic recovery on budget exhaustion.
 Simulator-specific explanation remains conditional on the provider kind.
+
+### Preset entry feedback
+
+A visitor without a session reads availability without creating a reservation.
+SESSION_REQUIRED is not a connection failure: busy feedback persists across polls,
+start is disabled while busy, and the recorded initial scenario state remains
+visible and labelled as initial. Availability recovery enables a new explicit start.
+Simulator guidance explicitly states that replies are predefined and no real LLM
+is called; live-model guidance must not be shown for the simulator. The capacity
+choice names stable replicas and full traffic. This refinement does not change
+choice count, dialogue budgets or command submission semantics.

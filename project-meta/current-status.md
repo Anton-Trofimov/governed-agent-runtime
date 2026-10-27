@@ -3,6 +3,15 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Preset entry feedback — 2026-10-27
+
+Anonymous live visitors poll availability without creating a session or reservation.
+Busy feedback persists, disables admission, and clears when capacity becomes available;
+SESSION_REQUIRED no longer appears as transport loss. Recorded initial state remains
+labelled as initial. Capacity-choice wording and simulator/model guidance are distinct.
+Choice count, budgets and submission semantics are unchanged. Verification: 374 Python
+tests, 73 UI tests, Ruff and UI build pass; no station inference performed.
+
 ## Server-selected input profile — 2026-10-27
 
 Implemented `preset-only` as the service/CLI default, with explicit

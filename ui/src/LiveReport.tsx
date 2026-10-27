@@ -28,7 +28,7 @@ export function LiveReport({snapshot,events}:{snapshot:Snapshot;events:LiveEvent
 export function TerminalCodes({terminal}:{terminal:NonNullable<Snapshot['terminal']>}){
   const state=terminal.runtime_outcome?.task_state;
   const states:Record<string,string>={COMPLETED:'Завершена',SAFE_FALLBACK:'Безопасное завершение',FAILED:'Завершена с ошибкой'};
-  const reasons:Record<string,string>={COMPLETED:'Выполнение завершено',CONFIRMATION_REJECTED:'Оператор отклонил действие',CONFIRMATION_EXPIRED:'Срок подтверждения оператором истёк',MODEL_REQUESTED_STOP:'Агент запросил остановку',UNKNOWN_WRITE_OUTCOME:'Исход изменения неизвестен'};
+  const reasons:Record<string,string>={COMPLETED:'Выполнение завершено',CONFIRMATION_REJECTED:'Оператор отклонил действие',CONFIRMATION_EXPIRED:'Срок подтверждения оператором истёк',MODEL_REQUESTED_STOP:'Агент запросил остановку',OPERATOR_REQUESTED_STOP:'Остановлено оператором',UNKNOWN_WRITE_OUTCOME:'Исход изменения неизвестен'};
   return <div className="terminal-codes">
     {state&&<p>Состояние задачи: {states[state]??'Код runtime'} (<code>{state}</code>).</p>}
     <p>Причина завершения: {reasons[terminal.reason_code]??'Код платформы'} (<code>{terminal.reason_code}</code>).</p>

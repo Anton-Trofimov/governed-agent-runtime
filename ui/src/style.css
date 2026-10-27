@@ -614,3 +614,5 @@ body{background:#f7f9fa}
 
 #operator-workspace .preset-choices .action{min-height:36px;padding:4px 9px}
 @media(max-width:620px){#operator-workspace .preset-choices .action{min-height:44px}}
+#operator-workspace .owner-admissions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 20px;background:#edf3f5;border-bottom:1px solid #cad5da;font-size:12px}
+#operator-workspace .owner-admissions small{color:#536e7a}

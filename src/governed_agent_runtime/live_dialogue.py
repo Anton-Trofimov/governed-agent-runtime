@@ -93,8 +93,9 @@ class DialogueService(LiveService):
             raise ValueError('Unknown input profile')
         self._input_profile = input_profile
         wire = json.loads((Path(root) / 'schemas/bc011-live.schema.json').read_text())
-        self.input_validator = Draft202012Validator(wire['$defs'][
-            'preset_dialogue' if input_profile == 'preset-only' else 'dialogue'])
+        self.input_validators = {profile: Draft202012Validator(wire['$defs'][name])
+                                 for profile, name in (('preset-only', 'preset_dialogue'),
+                                                       ('local-free-text', 'dialogue'))}
         self.dialogue_validator = Draft202012Validator(json.loads(
             (Path(root) / 'schemas/bc012-dialogue.schema.json').read_text()))
         contract = yaml.safe_load((Path(root) / 'specs/core/bounded-remediation.yaml').read_text())
@@ -109,19 +110,22 @@ class DialogueService(LiveService):
     def input_profile(self):
         return self._input_profile
 
-    @property
-    def max_calls(self):
-        return 4 if self.input_profile == 'preset-only' else 5
+    def profile_for(self, session):
+        # Only a server-owned entrypoint may bind this field at bootstrap.
+        return session.get('_input_profile', self.input_profile)
+
+    def max_calls_for(self, session):
+        return 4 if self.profile_for(session) == 'preset-only' else 5
 
     def session_view(self, session):
         messages = (session.get('dialogue') or {}).get('messages', [])
         answered = {m['text'] for i, m in enumerate(messages[:-1])
                     if m['actor'] == 'operator' and messages[i + 1]['actor'] == 'agent'}
         return {**super().session_view(session),
-                'input_policy': {'profile': self.input_profile, 'max_calls': self.max_calls, 'choices': [
+                'input_policy': {'profile': self.profile_for(session), 'max_calls': self.max_calls_for(session), 'choices': [
                     {'id': key, 'label': PRESET_LABELS[key]} for key in PRESET_COMMANDS
                     if key == 'recover' or PRESET_COMMANDS[key] not in answered]
-                    if self.input_profile == 'preset-only' else []}, 'dialogue': deepcopy(session.get('dialogue'))}
+                    if self.profile_for(session) == 'preset-only' else []}, 'dialogue': deepcopy(session.get('dialogue'))}
 
     def _save_dialogue(self, slot):
         private_json(self.evidence / 'dialogues' / slot['id'] / f'{uuid4().hex}.json',
@@ -154,7 +158,7 @@ class DialogueService(LiveService):
 
     def command(self, session, path, body):
         if ((path == '/api/dialogue' or body.get('command') == 'dialogue')
-                and (path != '/api/dialogue' or not self.input_validator.is_valid(body))):
+                and (path != '/api/dialogue' or not self.input_validators[self.profile_for(session)].is_valid(body))):
             raise LiveError('INVALID_REQUEST', 400)
         # Existing command identity is session-wide, including terminal dialogue.
         old = session['commands'].get(body['command_id'])
@@ -190,11 +194,11 @@ class DialogueService(LiveService):
         dialogue = session['dialogue']
         if slot['run_id'] or slot['cancel'] or slot.get('dialogue_active') or slot.get('queued_message'):
             raise LiveError('DIALOGUE_NOT_READY')
-        if dialogue['calls'] >= self.max_calls or len(session['commands']) >= 480:
+        if dialogue['calls'] >= self.max_calls_for(slot['session']) or len(session['commands']) >= 480:
             raise LiveError('SESSION_LIMIT')
         message_text = (PRESET_COMMANDS[body['choice_id']]
-                        if self.input_profile == 'preset-only' else body['text'])
-        slot['recovery_requested'] = self.input_profile != 'preset-only' or body['choice_id'] == 'recover'
+                        if self.profile_for(session) == 'preset-only' else body['text'])
+        slot['recovery_requested'] = self.profile_for(session) != 'preset-only' or body['choice_id'] == 'recover'
         dialogue['messages'].append({'id': identifier(), 'actor': 'operator', 'text': message_text,
                                      'occurred_at': now(), 'outcome': None})
         slot['queued_message'] = True
@@ -287,7 +291,7 @@ class DialogueService(LiveService):
                 self._save_dialogue(slot)
                 if proposal['outcome'] == 'start_remediation':
                     # Preserve earlier operator constraints even if the classifier omits their IDs.
-                    goal = (PRESET_COMMANDS['recover'] if self.input_profile == 'preset-only'
+                    goal = (PRESET_COMMANDS['recover'] if self.profile_for(slot['session']) == 'preset-only'
                             else '\n\n'.join(m['text'] for m in user_messages))
                     if len(goal) > 2000:
                         self._end_dialogue(slot, 'DIALOGUE_GOAL_TOO_LONG')
@@ -303,7 +307,7 @@ class DialogueService(LiveService):
                         'reservation_id': slot['id'], 'goal': goal})
                     dialogue['state'], dialogue['run_id'] = 'admitted', ack['run_id']
                     self._save_dialogue(slot)
-                elif dialogue['calls'] >= self.max_calls:
+                elif dialogue['calls'] >= self.max_calls_for(slot['session']):
                     self._end_dialogue(slot, 'DIALOGUE_LIMIT')
                 else:
                     dialogue['state'], slot['phase'] = 'ready', 'ready'

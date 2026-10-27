@@ -20,6 +20,7 @@ COOKIE = "gar_local_session"
 
 
 def create_app(service, origin="http://127.0.0.1:8000"):
+    cookie_name = getattr(service, "cookie_name", COOKIE)
     parsed = urlsplit(origin)
     if parsed.scheme != "http" or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise ValueError("Only a loopback HTTP origin is supported")
@@ -75,7 +76,7 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                 if not isinstance(body, dict):
                     raise LiveError("INVALID_REQUEST", 400)
             path = request.url.path
-            token = request.cookies.get(COOKIE)
+            token = request.cookies.get(cookie_name)
             with service.condition:
                 if path == "/api/status" and request.method == "GET":
                     return response(service.status())
@@ -86,8 +87,13 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                         "command_id": body["command_id"], "disposition": "completed",
                         "session_id": session["id"], "reservation_id": None, "run_id": None,
                         "server_time": now()})
-                    result.set_cookie(COOKIE, token, httponly=True, samesite="strict", path="/api")
+                    result.set_cookie(cookie_name, token, httponly=True, samesite="strict", path="/api")
                     return result
+                if path == "/api/admin/admissions" and getattr(service, "owner_control", False):
+                    if request.method == "POST":
+                        validate("admission_control", body)
+                        service.set_public_admissions(body["enabled"])
+                    return response({"public_admissions_enabled": service.public_enabled})
                 session = service.authenticate(token)
                 if path == "/api/session" and request.method == "GET":
                     return response(service.session_view(session))
@@ -128,6 +134,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
         ("/api/dialogue", ["POST"]), ("/api/sessions", ["POST"]), ("/api/runs", ["POST"]),
         ("/api/runs/{run_id}", ["GET"]), ("/api/runs/{run_id}/events", ["GET"]),
         ("/api/runs/{run_id}/decisions", ["POST"]), ("/api/runs/{run_id}/stop", ["POST"])]]
+    if getattr(service, "owner_control", False):
+        routes.append(Route("/api/admin/admissions", endpoint, methods=["GET", "POST"]))
     if (service.root / "ui/dist/index.html").exists():
         routes.append(Mount("/", app=StaticFiles(directory=service.root / "ui/dist", html=True)))
 

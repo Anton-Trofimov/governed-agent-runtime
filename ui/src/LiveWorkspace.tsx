@@ -90,7 +90,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
             const status=statusSchema.parse(await request('/api/status'));
             if(!active)return;
             setAvailability(status.availability);
-            setAvailabilityNotice(status.availability==='available'?'':explainError(new ApiError(status.unavailability_reason==='SMOKE_LIMIT'?'SMOKE_LIMIT':status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE')));
+            setAvailabilityNotice(status.availability==='available'?'':explainError(new ApiError(status.unavailability_reason==='PUBLIC_PAUSED'?'PUBLIC_PAUSED':status.unavailability_reason==='SMOKE_LIMIT'?'SMOKE_LIMIT':status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE')));
             setConnected(true);setConnectionError('');failedAt=undefined;
             if(status.availability==='available')setError('');
           }catch{
@@ -138,7 +138,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
     setBusy(true);setError('');
     try{
       const status=statusSchema.parse(await request('/api/status'));
-      if(status.availability!=='available')throw new ApiError(status.unavailability_reason==='SMOKE_LIMIT'?'SMOKE_LIMIT':status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE');
+      if(status.availability!=='available')throw new ApiError(status.unavailability_reason==='PUBLIC_PAUSED'?'PUBLIC_PAUSED':status.unavailability_reason==='SMOKE_LIMIT'?'SMOKE_LIMIT':status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE');
       setSession(await ensureSession());
       await send(command('/api/sessions','prepare'));
     }catch(err){setError(explainError(err));}finally{setBusy(false);}

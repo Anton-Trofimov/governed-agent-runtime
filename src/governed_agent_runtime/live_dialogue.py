@@ -20,8 +20,8 @@ from governed_agent_runtime.live_service import (
 
 PRESET_COMMANDS = {
     'capabilities': 'Что ты умеешь?',
-    'state': 'Только объясни текущее состояние сервиса. Не выполняй восстановление.',
-    'capacity': 'Хватит ли текущих стабильных реплик для переноса всего трафика? Объясни с учётом N−1. Не выполняй восстановление.',
+    'state': 'Объясни состояние сервиса. Не выполняй восстановление.',
+    'capacity': 'Хватит ли текущих стабильных реплик для переноса всего трафика? Не выполняй восстановление.',
     'recover': 'Восстанови работу сервиса',
 }
 
@@ -109,10 +109,18 @@ class DialogueService(LiveService):
     def input_profile(self):
         return self._input_profile
 
+    @property
+    def max_calls(self):
+        return 4 if self.input_profile == 'preset-only' else 5
+
     def session_view(self, session):
+        messages = (session.get('dialogue') or {}).get('messages', [])
+        answered = {m['text'] for i, m in enumerate(messages[:-1])
+                    if m['actor'] == 'operator' and messages[i + 1]['actor'] == 'agent'}
         return {**super().session_view(session),
-                'input_policy': {'profile': self.input_profile, 'choices': [
-                    {'id': key, 'label': PRESET_LABELS[key]} for key in PRESET_COMMANDS]
+                'input_policy': {'profile': self.input_profile, 'max_calls': self.max_calls, 'choices': [
+                    {'id': key, 'label': PRESET_LABELS[key]} for key in PRESET_COMMANDS
+                    if key == 'recover' or PRESET_COMMANDS[key] not in answered]
                     if self.input_profile == 'preset-only' else []}, 'dialogue': deepcopy(session.get('dialogue'))}
 
     def _save_dialogue(self, slot):
@@ -128,7 +136,7 @@ class DialogueService(LiveService):
             slot['session']['preparation_error'] = {'code': reason, 'message': {
                 'DIALOGUE_LIMIT': 'Лимит начального диалога исчерпан. Выполнение не начато.',
                 'DIALOGUE_EXPIRED': 'Время начального диалога истекло. Выполнение не начато.',
-                'DIALOGUE_RELEASED': 'Начальный диалог завершён. Выполнение не начато.',
+                'DIALOGUE_RELEASED': 'Диалог остановлен оператором. Выполнение не начато.',
                 'DIALOGUE_GOAL_TOO_LONG': 'Цель с уточнениями превышает 2 000 символов. Начните заново с более короткой формулировкой.',
             }.get(reason, 'Не удалось обработать запрос. Выполнение не начато.')}
             self._save_dialogue(slot)
@@ -182,7 +190,7 @@ class DialogueService(LiveService):
         dialogue = session['dialogue']
         if slot['run_id'] or slot['cancel'] or slot.get('dialogue_active') or slot.get('queued_message'):
             raise LiveError('DIALOGUE_NOT_READY')
-        if dialogue['calls'] >= 5 or len(session['commands']) >= 480:
+        if dialogue['calls'] >= self.max_calls or len(session['commands']) >= 480:
             raise LiveError('SESSION_LIMIT')
         message_text = (PRESET_COMMANDS[body['choice_id']]
                         if self.input_profile == 'preset-only' else body['text'])
@@ -295,7 +303,7 @@ class DialogueService(LiveService):
                         'reservation_id': slot['id'], 'goal': goal})
                     dialogue['state'], dialogue['run_id'] = 'admitted', ack['run_id']
                     self._save_dialogue(slot)
-                elif dialogue['calls'] >= 5:
+                elif dialogue['calls'] >= self.max_calls:
                     self._end_dialogue(slot, 'DIALOGUE_LIMIT')
                 else:
                     dialogue['state'], slot['phase'] = 'ready', 'ready'

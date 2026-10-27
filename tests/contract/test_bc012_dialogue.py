@@ -387,7 +387,7 @@ def test_preset_resolves_on_server_and_does_not_admit_information_request(setup)
     result = settled(client)
     assert result['dialogue']['state'] == 'terminal'
     assert service.runs == {}
-    assert service.provider.contexts[0]['messages'][0]['text'] == 'Только объясни текущее состояние сервиса. Не выполняй восстановление.'
+    assert service.provider.contexts[0]['messages'][0]['text'] == 'Объясни состояние сервиса. Не выполняй восстановление.'
 
 
 def test_preset_recovery_keeps_confirmation_boundary_and_idempotency(setup):
@@ -426,10 +426,28 @@ def test_preset_ownership_legacy_route_and_profile_override(setup):
 
 
 def test_preset_question_then_recovery_uses_only_fixed_goal(setup):
-    service, client, reservation = setup(Scripted(('answer', 'start_remediation')), input_profile='preset-only')
-    post(client, '/api/dialogue', 'dialogue', reservation_id=reservation, choice_id='state')
-    settled(client)
+    service, client, reservation = setup(Scripted(('answer',) * 3 + ('start_remediation',)), input_profile='preset-only')
+    for index, choice in enumerate(('capabilities', 'state', 'capacity')):
+        post(client, '/api/dialogue', 'dialogue', reservation_id=reservation, choice_id=choice)
+        wait_for(lambda: client.get('/api/session').json(), lambda s, i=index:
+                 s['dialogue']['calls'] == i + 1 and s['dialogue']['state'] == 'ready')
+    assert [c['id'] for c in client.get('/api/session').json()['input_policy']['choices']] == ['recover']
     post(client, '/api/dialogue', 'dialogue', reservation_id=reservation, choice_id='recover')
     state = wait_for(lambda: client.get('/api/session').json(), lambda s: s['current_run_id'])
     assert pending(client, state['current_run_id'])['goal'] == 'Восстанови работу сервиса'
-    assert len(service.provider.contexts) == 2
+    assert len(service.provider.contexts) == 4
+
+
+def test_preset_four_call_budget_and_completed_choices_survive_refresh(setup):
+    service, client, reservation = setup(Scripted(('answer',) * 4), input_profile='preset-only')
+    assert client.get('/api/session').json()['input_policy']['max_calls'] == 4
+    for i in range(4):
+        assert post(client, '/api/dialogue', 'dialogue', reservation_id=reservation,
+                    choice_id='state').status_code == 202
+        wait_for(lambda: client.get('/api/session').json(), lambda s, index=i:
+                 s['dialogue']['calls'] == index + 1 and s['dialogue']['state'] != 'thinking')
+        assert 'state' not in [c['id'] for c in client.get('/api/session').json()['input_policy']['choices']]
+    assert settled(client)['dialogue']['reason'] == 'DIALOGUE_LIMIT'
+    assert post(client, '/api/dialogue', 'dialogue', reservation_id=reservation,
+                choice_id='recover').status_code != 202
+    assert len(service.provider.contexts) == 4

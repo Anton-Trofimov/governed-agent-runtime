@@ -30,7 +30,7 @@ const dialogueSchema=z.object({reservation_id:text,state:z.enum(['preparing','re
   service_view:observation.optional(),calls:count.max(5),reason:text.nullable(),absolute_expires_at:text.nullable(),run_id:text.nullable(),
   messages:z.array(z.object({id:text,actor:z.enum(['operator','agent']),text:text,occurred_at:text,
     outcome:z.enum(['answer','clarify','unsupported','start_remediation']).nullable()})).max(10)});
-export const sessionSchema = z.object({kind:z.literal('session'),version,provider:providerSchema.optional(),session_id:text,server_time:text,input_policy:z.object({profile:z.enum(['preset-only','local-free-text']),choices:z.array(z.object({id:text,label:text}))}).optional(),dialogue:dialogueSchema.nullable().optional(),
+export const sessionSchema = z.object({kind:z.literal('session'),version,provider:providerSchema.optional(),session_id:text,server_time:text,input_policy:z.object({profile:z.enum(['preset-only','local-free-text']),max_calls:z.number().int().min(4).max(5).optional(),choices:z.array(z.object({id:text,label:text}))}).optional(),dialogue:dialogueSchema.nullable().optional(),
   reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','dialogue','stopping']),expires_at:text.nullable(),service_view:observation}).nullable(),
   current_run_id:text.nullable(),model_status:model,
   preparation_error:z.object({code:text,message:text}).nullable()});

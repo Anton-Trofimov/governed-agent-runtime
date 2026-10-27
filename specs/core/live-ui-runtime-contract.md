@@ -601,3 +601,32 @@ gate; direct repeated valid choices remain subject to the same call budget.
 State and capacity prompts retain explicit non-execution intent; the capacity
 question no longer explicitly requests an N-1 explanation. Recovery admission
 and execution constraints remain unchanged.
+
+## Paired loopback entrypoints (simulator integration)
+
+One process owns one DialogueService, provider, execution slot, lock, budgets and
+quarantine state. Two separately bound loopback listeners expose server-selected
+profiles: public-facing preset-only (4 calls) and owner local-free-text (5 calls).
+This slice is local-only; neither listener supports proxy headers or external
+binding. The existing real-model approval/launcher remains unchanged.
+
+Sessions are bound at bootstrap to their entrypoint and input profile. Distinct
+cookie names prevent port-sharing browsers from overwriting each other; cookie
+names alone are not authorization. Authentication rejects a token from the other
+entrypoint, even when copied under the expected cookie name. Snapshots, traces,
+confirmations and stop commands retain session ownership checks. Client body,
+query, Host and Origin cannot select or upgrade the entrypoint/profile.
+
+Both entrypoints contend atomically for the same slot. Opening pages, polling or
+bootstrapping sessions never reserves capacity or calls the provider. Neither
+entrypoint preempts a preparation, initial dialogue or execution owned by another.
+
+The owner listener alone exposes a same-origin control to enable/disable new
+public admissions. Disabled state is enforced before prepare, under the shared
+lock; accepted command replays remain idempotent. Existing public admissions may
+continue, confirm, stop and view results. Private admissions remain eligible when
+the shared slot is free. No control route or control metadata is exposed through
+the public listener. The setting is process-local and defaults disabled at paired
+startup; the owner explicitly enables it. Shutdown of either listener shuts down
+both and closes the service once. No actual model loading or public deployment is
+part of this slice.

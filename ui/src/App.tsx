@@ -1,3 +1,4 @@
+import { OwnerAdmissions } from './OwnerAdmissions';
 import { AgentStatus } from './AgentStatus';
 import { ReportDialog, revealEvent } from './presentation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -67,13 +68,14 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const [availability,setAvailability]=useState<string>();
   const [availabilityReason,setAvailabilityReason]=useState<string|null>();
   const [provider,setProvider]=useState<Provider>();
+  const [publicAdmissions,setPublicAdmissions]=useState<boolean>();
   useEffect(()=>{
     if(loader!==loadRun)return;
     let active=true;
     const inspect=async()=>{
       try{
         const status=statusSchema.parse(await request('/api/status'));
-        if(active){setAvailability(status.availability);setAvailabilityReason(status.unavailability_reason);setProvider(status.provider);}
+        if(active){setAvailability(status.availability);setAvailabilityReason(status.unavailability_reason);setProvider(status.provider);setPublicAdmissions(status.public_admissions_enabled);}
         const session=await request('/api/session').then(value=>sessionSchema.parse(value)).catch(error=>{if(error instanceof ApiError&&error.code==='SESSION_REQUIRED')return null;throw error;});
         const run=session?.current_run_id?snapshotSchema.parse(await request(`/api/runs/${session.current_run_id}`)):undefined;
         if(active){setOwnsRun(!!session?.reservation||!!run);setOwner(session?{session,run,received:Date.now()}:undefined);setOwnerConnected(true);}
@@ -126,11 +128,11 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   return <div id="operator-workspace" className={live||started?'working-mode':''}>
     <header className="brandbar"><div className="brand-identity"><a href="#home" className="brand" onClick={e=>{e.preventDefault();void navigate('home');}}>Governed Agent</a><small>Антон Трофимов · <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a></small></div><div className="platform-concept"><strong>Агентная платформа с разделением ответственности</strong></div><button className="help-trigger" ref={helpButton} onClick={()=>help.current?.showModal()} aria-haspopup="dialog">ⓘ Как это работает</button></header>
     <AboutDialog provider={provider} dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
-    <main id="main">{!live&&<div className={started?"task-toolbar demo-toolbar":"context"}><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
+    <main id="main">{publicAdmissions!==undefined&&<OwnerAdmissions enabled={publicAdmissions} connected={ownerConnected} onChange={setPublicAdmissions}/>}{!live&&<div className={started?"task-toolbar demo-toolbar":"context"}><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
       {started&&!live&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}{started&&<nav className="demo-navigation" aria-label="Навигация примера"><button className="action home-button" onClick={()=>void navigate('home')}>К началу</button>{mobileReturn}{ownerAccess}<button className="action chat-jump" onClick={()=>document.getElementById('replay-chat')?.scrollIntoView?.({block:'start'})}>К чату ↓</button></nav>}</div>}
 
       {live&&liveError&&<p role="alert" className="admission-notice">{liveError}</p>}
-      {live?<LiveWorkspace initialState={current?.run?<StatePanel o={current.run.replay.events.find(e=>e.observation)!.observation!} initial/>:undefined} onExit={()=>void navigate('home')} renderState={(s,unknown)=><StatePanel o={s} live unknown={unknown}/>} renderCompact={(s,unknown)=><CompactState o={s} unknown={unknown}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={value=>void navigate(value?'demo':'home')} liveControls={liveControls} ownerStatus={ownerStatus} resultLink={resultLink} availability={availability} liveError={liveError||(availabilityReason==='SMOKE_LIMIT'?explainError(new ApiError('SMOKE_LIMIT')):'')} ownsRun={ownsRun}/>}
+      {live?<LiveWorkspace initialState={current?.run?<StatePanel o={current.run.replay.events.find(e=>e.observation)!.observation!} initial/>:undefined} onExit={()=>void navigate('home')} renderState={(s,unknown)=><StatePanel o={s} live unknown={unknown}/>} renderCompact={(s,unknown)=><CompactState o={s} unknown={unknown}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={value=>void navigate(value?'demo':'home')} liveControls={liveControls} ownerStatus={ownerStatus} resultLink={resultLink} availability={availability} liveError={liveError||(availabilityReason==='PUBLIC_PAUSED'?explainError(new ApiError('PUBLIC_PAUSED')):availabilityReason==='SMOKE_LIMIT'?explainError(new ApiError('SMOKE_LIMIT')):'')} ownsRun={ownsRun}/>}
     </main>
     <footer className="page-notes"><p>{providerNotice(provider)}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p className="project-credit">Проект Антона Трофимова · Исходный код и спецификации — <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a><br/>Разработано с участием AI-агентов по SDD Operating Model.</p></footer>
   </div>;

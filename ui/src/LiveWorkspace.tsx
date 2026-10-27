@@ -144,6 +144,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
     }catch(err){setError(explainError(err));}finally{setBusy(false);}
   }
   const dialogue=session?.dialogue;
+  const maxCalls=session?.input_policy?.max_calls??(session?.input_policy?.profile==='preset-only'?4:5);
   const thinking=dialogue?.state==='thinking';
   const queued=dialogue?.state==='preparing'&&dialogue.messages.at(-1)?.actor==='operator';
   const phase=snapshot?.phase??(thinking?'running':session?.reservation?.phase??(dialogue?.state==='terminal'?'terminal':''));
@@ -221,12 +222,12 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
         </div>
         {session?.reservation&&!active&&!thinking&&!queued&&dialogue?.state!=='terminal'&&session.input_policy?.profile==='preset-only'?<div className="live-input">
           <div className="composer-heading"><span>Запрос агенту</span></div>
-          <div className="live-suggestions">{session.input_policy.choices.map(choice=><button type="button" className="action" key={choice.id} disabled={!canSubmit} onClick={()=>void send(command('/api/dialogue','dialogue',{reservation_id:session.reservation!.reservation_id,choice_id:choice.id}))}>{choice.label}</button>)}</div>
+          <div className="live-suggestions preset-choices">{session.input_policy.choices.map(choice=><button type="button" className="action" key={choice.id} disabled={!canSubmit} onClick={()=>void send(command('/api/dialogue','dialogue',{reservation_id:session.reservation!.reservation_id,choice_id:choice.id}))}>{choice.label}</button>)}</div>
           <small>{session.provider?.kind==='simulator'?<strong>Тестовый режим: ответы имитатора заранее заданы. Реальная LLM не вызывается.</strong>:'Готовые запросы для безопасной демонстрации. Ответы и предложения формирует реальная LLM во время запуска.'}</small>
-          <div className="compose-actions">{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<small>Обращения: {dialogue.calls}/5</small>}</div>
+          <div className="compose-actions">{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<small>Обращения: {dialogue.calls}/{maxCalls}</small>}</div>
         </div>:session?.reservation&&!active&&!thinking&&!queued&&dialogue?.state!=='terminal'?<form className="live-input" onSubmit={e=>{e.preventDefault();if(canSubmit&&goal.trim())void send(dialogue?command('/api/dialogue','dialogue',{reservation_id:session.reservation!.reservation_id,text:goal}):command('/api/runs','start_run',{reservation_id:session.reservation!.reservation_id,goal}));}}>
           <div className="composer-heading"><label htmlFor="live-goal">Запрос агенту</label><div className="live-suggestions">{(dialogue?suggestions:[{label:'Восстанови работу сервиса',text:'Восстанови работу сервиса'},{label:'После обновления сервис работает нестабильно. Восстанови его работу безопасным способом',text:'После обновления сервис работает нестабильно. Восстанови его работу безопасным способом'}]).map(suggestion=><button type="button" className="action" key={suggestion.text} disabled={!canSubmit} onClick={()=>setGoal(suggestion.text)}>{suggestion.label}</button>)}</div></div>
-          <textarea ref={input} rows={2} id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<><small>Обращения: {dialogue.calls}/5</small><small className={"dialogue-guidance"+(dialogue.calls===4?" last-call-warning":"")}>{dialogue.calls===4?<><span className="warning-symbol" aria-hidden="true">!</span> Осталось одно обращение</>:"Восстановление начнётся только по вашему запросу."}</small></>}</div>
+          <textarea ref={input} rows={2} id="live-goal" value={goal} maxLength={2000} disabled={!canSubmit} onChange={e=>setGoal(e.target.value)}/><div className="compose-actions"><button className="action primary" disabled={!canSubmit||!goal.trim()}>Отправить</button>{seconds!==undefined&&<small>На отправку: {seconds} сек.</small>}{dialogue&&<><small>Обращения: {dialogue.calls}/{maxCalls}</small><small className={"dialogue-guidance"+(dialogue.calls===maxCalls-1?" last-call-warning":"")}>{dialogue.calls===maxCalls-1?<><span className="warning-symbol" aria-hidden="true">!</span> Осталось одно обращение</>:"Восстановление начнётся только по вашему запросу."}</small></>}</div>
           {dialogue&&session.provider?.kind==='simulator'&&<small>Имитатор отвечает по фиксированным примерам; понимание произвольного текста здесь не проверяется.</small>}
           {session.provider?.kind==='ollama'&&<small>Можно изменить подсказку: формулировка запроса может повлиять на результат. Ответ модели может быть на английском.</small>}
           {session.reservation.phase==='preparing'&&<small>Подготовка. Можно отправить запрос сейчас — он дождётся готовности.</small>}
@@ -235,7 +236,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
       </section>
       <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e} simulator={session?.provider?.kind==='simulator'}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>
     </div>
-    {dialogue&&<LastCallNotice key={dialogue.reservation_id} identity={dialogue.reservation_id} eligible={dialogue.calls===4&&dialogue.state==='ready'&&!!session?.reservation} onDismiss={()=>input.current?.focus()}/>}
+    {dialogue&&<LastCallNotice key={dialogue.reservation_id} identity={dialogue.reservation_id} eligible={dialogue.calls===maxCalls-1&&dialogue.state==='ready'&&!!session?.reservation} onDismiss={()=>input.current?.focus()}/>}
   </>;
 }
 

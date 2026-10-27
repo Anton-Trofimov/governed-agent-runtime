@@ -417,3 +417,6 @@ Preset informational choices disappear after their replies and return on a new
 admission. Buttons use modestly reduced vertical padding; mobile touch targets
 remain at least 44px. Operator release of initial dialogue is labelled explicitly
 as operator stop without execution; OPERATOR_REQUESTED_STOP has a readable label.
+
+The last-call modal is restricted to free-text input. Preset-only retains the
+call counter without a modal, regardless of simulator or real-model provider.

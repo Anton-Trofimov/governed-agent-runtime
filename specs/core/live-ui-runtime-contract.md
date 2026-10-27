@@ -534,10 +534,10 @@ goal exceeds the existing 2,000-code-point runtime bound, end with
 DIALOGUE_GOAL_TOO_LONG; never truncate or summarize it silently. These checks do
 not prove semantic classification correctness. Dialogue has no tool interface.
 
-The profile fixes 5 calls, including classification of an immediate recovery goal,
+The local-free-text profile fixes 5 calls (preset-only fixes 4), including classification of an immediate recovery goal,
 300 seconds per call, 300 seconds waiting for the next user message, and 600 seconds
-absolute time from successful preparation. The fifth response may admit a goal;
-a fifth non-start response ends dialogue with DIALOGUE_LIMIT. The idle clock starts
+absolute time from successful preparation. The final permitted response may admit a goal;
+a final non-start response ends dialogue with DIALOGUE_LIMIT. The idle clock starts
 at readiness or completion of a reply; the absolute clock never resets. Expiry,
 release, invalid output and provider failure cannot start remediation. A late
 reply is discarded. In-flight work retains the slot until completion is known;
@@ -591,3 +591,13 @@ Preset recovery uses only the fixed recovery goal; prior informational choices
 remain transcript context, not accumulated operator constraints. Local free-text
 goal assembly continues to preserve all operator messages. Real-model smoke
 approval must also match the server input profile.
+
+Preset-only refinement: four initial-dialogue calls per admission, including the
+recovery request; local-free-text retains five. Session input_policy exposes
+max_calls. After an informational choice receives an agent reply, it is omitted
+from choices for that admission, including read-only reconnect. A new admission
+restores the catalogue. This presentation filtering is not a new authorization
+gate; direct repeated valid choices remain subject to the same call budget.
+State and capacity prompts retain explicit non-execution intent; the capacity
+question no longer explicitly requests an N-1 explanation. Recovery admission
+and execution constraints remain unchanged.

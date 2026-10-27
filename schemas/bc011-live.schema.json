@@ -991,6 +991,13 @@
                   }
                 }
               }
+            },
+            "max_calls": {
+              "type": "integer",
+              "enum": [
+                4,
+                5
+              ]
             }
           }
         }

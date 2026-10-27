@@ -111,7 +111,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                     command = "decide" if path.endswith("/decisions") else "stop"
                 if request.method != "POST" or command is None:
                     raise LiveError("NOT_FOUND", 404)
-                validate(command, body)
+                validate('preset_dialogue' if command == 'dialogue' and
+                         getattr(service, 'input_profile', None) == 'preset-only' else command, body)
                 return response(service.command(session, path, body), 202)
         except LiveError as error:
             command_id = body.get("command_id") if isinstance(body, dict) else None
@@ -165,6 +166,8 @@ def main():
     parser = argparse.ArgumentParser(description="BC-012 local dialogue simulator; no LLM calls")
     parser.add_argument("--evidence-dir", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument('--input-profile', choices=['preset-only', 'local-free-text'],
+                        default='preset-only')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     import sys
@@ -172,7 +175,7 @@ def main():
                     [sys.executable, "-m", "pytest", "-q"], ["git", "diff", "--check"]):
         subprocess.run(command, cwd=root, check=True)
     from governed_agent_runtime.live_dialogue import DialogueService
-    service = DialogueService(root, args.evidence_dir)
+    service = DialogueService(root, args.evidence_dir, input_profile=args.input_profile)
     app = create_app(service, f"http://127.0.0.1:{args.port}")
     uvicorn.run(app, host="127.0.0.1", port=args.port, workers=1, proxy_headers=False,
                 access_log=False)

@@ -94,3 +94,21 @@ it('closes the notice when the server expires the dialogue without sending a com
   expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
   expect(fetcher.mock.calls.filter(c=>(c as unknown as [string,RequestInit])[1]?.method==='POST')).toHaveLength(0);
 });
+
+it('renders server preset commands without a textbox and sends only the choice ID',async()=>{
+  const current=session();
+  current.input_policy={profile:'preset-only',choices:[{id:'state',label:'Объясни состояние'}]};
+  const fetcher=vi.fn(async(_path:string,init?:RequestInit)=>{
+    if(init?.method==='POST'){
+      const body=JSON.parse(String(init.body));
+      expect(body).toEqual({command:'dialogue',command_id:expect.any(String),reservation_id:'reservation',choice_id:'state'});
+    }
+    return {ok:true,json:async()=>current};
+  });
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace {...props}/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Объясни состояние'}));
+  await waitFor(()=>expect(fetcher.mock.calls.some(c=>c[1]?.method==='POST')).toBe(true));
+  expect(screen.queryByRole('textbox')).toBeNull();
+  expect(screen.queryByRole('button',{name:'Отправить'})).toBeNull();
+});

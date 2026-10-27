@@ -32,6 +32,8 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--write-approval-template', type=Path)
     group.add_argument('--approval-file', type=Path)
+    parser.add_argument('--input-profile', choices=['preset-only', 'local-free-text'],
+                        default='preset-only')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     evidence = args.evidence_dir.resolve()
@@ -41,7 +43,7 @@ def main():
     profile = load_profile(root)
     if args.write_approval_template:
         private_json(approval_path, {
-            'approved': False, 'reviewer': '', 'approval_id': uuid4().hex,
+            'input_profile': args.input_profile, 'approved': False, 'reviewer': '', 'approval_id': uuid4().hex,
             'revision': revision(root), 'profile_sha256': profile_hash(profile),
             'evidence_dir': str(evidence), 'exclusive_provider': False,
             'no_outstanding_work': False})
@@ -54,6 +56,8 @@ def main():
     consumption = state / f"approval-{approval['approval_id']}.json"
     if consumption.exists():
         parser.error('Approval already used. Preserve evidence and create a new explicitly approved test package.')
+    if approval.get('input_profile') != args.input_profile:
+        parser.error('Approval must match the server input profile')
     for command in ([sys.executable, '-m', 'ruff', 'check', '.'],
                     [sys.executable, '-m', 'pytest', '-q'], ['git', 'diff', '--check'],
                     ['npm', '--prefix', 'ui', 'test'], ['npm', '--prefix', 'ui', 'run', 'build']):
@@ -63,6 +67,7 @@ def main():
     # Stable per-local-account state; changing evidence directories cannot bypass quarantine.
     provider = LocalOllamaModel(root, evidence, profile)
     service = DialogueService(root, evidence, provider=provider, operation_dir=state,
+                          input_profile=args.input_profile,
                           max_preparations=profile['max_preparations'],
                           startup_metadata={'revision': approved_revision,
                                             'profile_sha256': profile_hash(profile),

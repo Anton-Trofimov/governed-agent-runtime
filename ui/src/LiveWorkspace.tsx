@@ -236,7 +236,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
       </section>
       <aside className="journal"><h2>Журнал runtime</h2><p className="subtle">Проверки и выполнение · предложения агента — в чате</p><ol ref={journal} onScroll={()=>{const el=journal.current;if(el)followJournal.current=el.scrollHeight-el.clientHeight-el.scrollTop<32;}}>{currentEvents.filter(e=>e.actor==='runtime').map(e=><li key={e.sequence} data-live-event={e.sequence} data-highlight={highlight?.side==='journal'&&highlight.sequence===e.sequence}><EventText event={e} simulator={session?.provider?.kind==='simulator'}/><LiveDetails event={e} events={events} onReveal={reveal}/></li>)}</ol></aside>
     </div>
-    {dialogue&&<LastCallNotice key={dialogue.reservation_id} identity={dialogue.reservation_id} eligible={dialogue.calls===maxCalls-1&&dialogue.state==='ready'&&!!session?.reservation} onDismiss={()=>input.current?.focus()}/>}
+    {dialogue&&session?.input_policy?.profile!=='preset-only'&&<LastCallNotice key={dialogue.reservation_id} identity={dialogue.reservation_id} eligible={dialogue.calls===maxCalls-1&&dialogue.state==='ready'&&!!session?.reservation} onDismiss={()=>input.current?.focus()}/>}
   </>;
 }
 

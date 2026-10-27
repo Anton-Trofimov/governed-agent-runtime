@@ -3,6 +3,19 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Paired loopback simulator entries — 2026-10-28
+
+One simulator process now serves preset-only visitor and local-free-text owner
+entries, with separate session ownership and a shared execution slot. The owner
+can pause new visitor admissions without preempting admitted work; startup is
+paused. The control is available on the owner start screen without preparation.
+See [local startup](../docs/local-ui-simulator.md#paired-local-entries--simulator-only)
+and [transport contract](../specs/core/live-ui-runtime-contract.md).
+Offline verification: 380 Python tests, 77 UI tests, Ruff and UI build pass.
+Two actual loopback listeners, admission switching and orderly shared shutdown
+were checked without model calls. Station/browser acceptance remains pending.
+The real-model launcher and public networking are outside this bounded change.
+
 ## Preset dialogue refinement — 2026-10-27
 
 Preset-only uses four calls, including recovery; local-free-text retains five.

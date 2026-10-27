@@ -67,6 +67,37 @@ Before goal submission, the countdown uses server time. After 300 seconds in
 ready state without a goal, the reservation expires and the slot is released;
 use “Начать заново” explicitly. A free slot does not extend an expired reservation.
 
+## Paired local entries — simulator only
+
+Stop any server using these ports, build the UI, then run from the activated
+virtual environment:
+
+```sh
+python -m governed_agent_runtime.live_dual_http \
+  --evidence-dir "$HOME/.local/state/gar-ui-simulator/paired-$(date -u +%Y%m%dT%H%M%SZ)"
+```
+
+The visitor entry is `http://127.0.0.1:8000` (four preset calls); the owner entry
+is `http://127.0.0.1:8001` (five free-text calls). Both bind loopback only. One
+process owns their shared execution slot. Separate cookies and server-bound
+profiles keep ownership distinct even in the same browser. Ports may be changed
+with `--public-port` and `--owner-port`; use the matching exact origins.
+
+New visitor admissions start disabled. Enable them from the owner start screen;
+this control does not reserve the slot. Starting either scenario makes the other
+entry busy. Disabling new visitor admissions preserves an already admitted run;
+the owner may start after that run releases the slot. No preemption is provided.
+The switch resets to disabled after process restart. Ctrl+C closes both listeners
+and the shared service. The existing quarantine behavior remains in force.
+
+Check: enable visitor admissions; start a visitor scenario; observe owner busy;
+disable new admissions and finish the visitor scenario; start owner free-text;
+verify visitor cannot start; stop owner; verify visitor remains paused until
+enabled again. Check both completion and explicit rejection/stop.
+
+This launcher is simulator-only and is not a public deployment or a paired
+Ollama launcher. Do not expose either port through a tunnel or proxy.
+
 ## Local Ollama connection — revision-bound station smoke
 
 The simulator command above remains inference-free. The separate entry point

@@ -611,3 +611,6 @@ body{background:#f7f9fa}
 #operator-workspace .last-call-dialog{width:min(460px,calc(100% - 32px));margin:auto;border-radius:16px}
 #operator-workspace .last-call-dialog h2{color:#984b43;font-size:1.15rem}
 .last-call-dialog p{line-height:1.5}
+
+#operator-workspace .preset-choices .action{min-height:36px;padding:4px 9px}
+@media(max-width:620px){#operator-workspace .preset-choices .action{min-height:44px}}

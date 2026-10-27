@@ -412,3 +412,8 @@ Simulator guidance explicitly states that replies are predefined and no real LLM
 is called; live-model guidance must not be shown for the simulator. The capacity
 choice names stable replicas and full traffic. This refinement does not change
 choice count, dialogue budgets or command submission semantics.
+
+Preset informational choices disappear after their replies and return on a new
+admission. Buttons use modestly reduced vertical padding; mobile touch targets
+remain at least 44px. Operator release of initial dialogue is labelled explicitly
+as operator stop without execution; OPERATOR_REQUESTED_STOP has a readable label.

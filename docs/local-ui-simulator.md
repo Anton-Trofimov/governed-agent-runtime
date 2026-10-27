@@ -14,6 +14,12 @@ npm --prefix ui run build
 python -m governed_agent_runtime.live_http --evidence-dir "$HOME/.local/state/gar-ui-simulator"
 ```
 
+Both CLI entry points default to `--input-profile preset-only`: the UI offers
+fixed commands and the server rejects free text. For local free-text checks,
+explicitly pass `--input-profile local-free-text`. Ollama approval templates and
+startup must use the same profile; old templates without this field are rejected.
+Changing this input profile does not enable public networking or alter smoke budgets.
+
 Open `http://127.0.0.1:8000` in a browser supporting Web Locks. Use that exact
 origin. The entry point runs Python verification before serving; it binds only
 loopback and has no real-provider switch. A static Python file server still

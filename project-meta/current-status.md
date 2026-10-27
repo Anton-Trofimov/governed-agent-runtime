@@ -3,6 +3,17 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Server-selected input profile — 2026-10-27
+
+Implemented `preset-only` as the service/CLI default, with explicit
+`local-free-text` opt-in. Fixed command IDs resolve on the server; invalid input
+is rejected before model invocation. Informational choices cannot admit recovery.
+UI follows server metadata; model smoke approval must match the input profile.
+See [transport contract](../specs/core/live-ui-runtime-contract.md#server-selected-input-profiles)
+and [local startup](../docs/local-ui-simulator.md).
+Loopback transport, private evidence and existing smoke budgets remain unchanged;
+this change does not establish deployment readiness. No station inference performed.
+
 ## BC-012 closure preparation — 2026-10-26
 
 **Accepted for bounded local use; documentary closure prepared for PR.**

@@ -568,3 +568,26 @@ All other schema fields remain unchanged. The provider format is a generation
 aid, not admission authority; whitespace-only replies must still fail runtime
 validation without creating a remediation run. Do not alter prompts, model
 settings, retry budgets or quarantine as part of this compatibility fix.
+
+## Server-selected input profiles
+
+The dialogue service supports `preset-only` and `local-free-text`. CLI startup
+defaults to `preset-only`; free text requires an explicit server startup argument.
+Unknown profiles fail startup. Profiles cannot be changed through HTTP, cookies,
+query parameters or model output. Session metadata exposes the selected profile
+and the fixed command catalog for presentation only.
+
+In `preset-only`, `/api/dialogue` accepts `choice_id` instead of `text`, with a
+closed schema. The server resolves capabilities/state/capacity/recover choices to
+fixed scenario text. Extra fields, arbitrary text and unknown choices fail before
+command bookkeeping, expiry processing or provider invocation. The legacy start
+route remains blocked. Only the recover choice may admit remediation, even if a
+model misclassifies an informational choice. Ownership, deadlines, idempotency,
+confirmation and provider budgets remain unchanged. Local free-text behavior is
+retained explicitly. This input boundary alone does not enable public transport;
+loopback restrictions and private smoke evidence remain in force.
+
+Preset recovery uses only the fixed recovery goal; prior informational choices
+remain transcript context, not accumulated operator constraints. Local free-text
+goal assembly continues to preserve all operator messages. Real-model smoke
+approval must also match the server input profile.

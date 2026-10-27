@@ -304,3 +304,30 @@ def test_http_error_body_read_failure_preserves_original_exception(tmp_path):
     assert record['failure']['body_read_failed'] is True
     assert record['failure']['body_excerpt'] == ''
     assert 'private path' not in json.dumps(record)
+
+
+@pytest.mark.parametrize('approved_profile', [None, 'local-free-text'])
+def test_input_profile_mismatch_stops_before_preflight(tmp_path, monkeypatch, capsys, approved_profile):
+    from governed_agent_runtime import live_ollama_http
+    from governed_agent_runtime.live_ollama import profile_hash
+
+    evidence = tmp_path / 'runs'
+    approval = tmp_path / 'approval.json'
+    revision = 'a' * 40
+    approval.write_text(json.dumps({
+        'approved': True, 'reviewer': 'Test operator', 'approval_id': 'c' * 32,
+        'revision': revision, 'profile_sha256': profile_hash(load_profile(ROOT)),
+        'evidence_dir': str(evidence), 'exclusive_provider': True,
+        'no_outstanding_work': True, 'input_profile': approved_profile}))
+    monkeypatch.setattr(Path, 'home', lambda: tmp_path)
+    monkeypatch.setattr(live_ollama_http, 'revision', lambda *a, **kw: revision)
+    preflight = Mock(side_effect=AssertionError('Preflight must not run'))
+    monkeypatch.setattr(live_ollama_http.subprocess, 'run', preflight)
+    monkeypatch.setattr('sys.argv', ['local-smoke', '--evidence-dir', str(evidence),
+                                   '--approval-file', str(approval)])
+    with pytest.raises(SystemExit) as error:
+        live_ollama_http.main()
+    assert error.value.code == 2
+    assert 'Approval must match the server input profile' in capsys.readouterr().err
+    preflight.assert_not_called()
+    assert not evidence.exists()

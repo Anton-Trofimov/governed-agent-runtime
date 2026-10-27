@@ -97,18 +97,24 @@ it('closes the notice when the server expires the dialogue without sending a com
 
 it('renders server preset commands without a textbox and sends only the choice ID',async()=>{
   const current=session();
-  current.input_policy={profile:'preset-only',choices:[{id:'state',label:'Объясни состояние'}]};
+  current.input_policy={profile:'preset-only',max_calls:4,choices:[{id:'state',label:'Объясни состояние'}]};
   const fetcher=vi.fn(async(_path:string,init?:RequestInit)=>{
     if(init?.method==='POST'){
       const body=JSON.parse(String(init.body));
       expect(body).toEqual({command:'dialogue',command_id:expect.any(String),reservation_id:'reservation',choice_id:'state'});
+      current.input_policy!.choices=[];
+      current.dialogue!.calls=1;
     }
     return {ok:true,json:async()=>current};
   });
   vi.stubGlobal('fetch',fetcher);
   render(<LiveWorkspace {...props}/>);
-  fireEvent.click(await screen.findByRole('button',{name:'Объясни состояние'}));
+  const choice=await screen.findByRole('button',{name:'Объясни состояние'});
+  expect(screen.getByText('Обращения: 0/4')).toBeVisible();
+  fireEvent.click(choice);
   await waitFor(()=>expect(fetcher.mock.calls.some(c=>c[1]?.method==='POST')).toBe(true));
+  await waitFor(()=>expect(screen.queryByRole('button',{name:'Объясни состояние'})).toBeNull());
+  expect(screen.getByText('Обращения: 1/4')).toBeVisible();
   expect(screen.queryByRole('textbox')).toBeNull();
   expect(screen.queryByRole('button',{name:'Отправить'})).toBeNull();
 });

@@ -113,7 +113,7 @@ def paired_apps(service, public_origin, owner_origin, settings_path=None):
             create_app(EntryPoint(service, True, control), owner_origin))
 
 
-async def serve_pair(service, public_port, owner_port, settings_path=None):
+async def serve_pair(service, public_port, owner_port, settings_path=None, *, close_service=True):
     import uvicorn
 
     class PairedServer(uvicorn.Server):
@@ -126,7 +126,8 @@ async def serve_pair(service, public_port, owner_port, settings_path=None):
         apps = paired_apps(service, f'http://127.0.0.1:{public_port}',
                            f'http://127.0.0.1:{owner_port}', settings_path=settings_path)
     except Exception:
-        service.close()
+        if close_service:
+            service.close()
         raise
     servers = [PairedServer(uvicorn.Config(app, host='127.0.0.1', port=port,
                 workers=1, proxy_headers=False, access_log=False))
@@ -146,7 +147,8 @@ async def serve_pair(service, public_port, owner_port, settings_path=None):
             server.should_exit = True
         await asyncio.gather(*tasks, return_exceptions=True)
         try:
-            service.close()
+            if close_service:
+                service.close()
         finally:
             for sig, handler in previous.items():
                 signal.signal(sig, handler)

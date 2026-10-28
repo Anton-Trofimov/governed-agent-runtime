@@ -3,6 +3,17 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Public operation modes — agreed design, 2026-10-29
+
+PR #14 merged as `b1f1f94`. The next owner-approved design is recorded in
+[public operation modes](../reports/decisions/public-operation-modes-design.md):
+live, pause and reversible demonstration-only mode; independent private owner
+access; separate persistent emergency public shutoff. Normal live operation may
+be paused when the owner needs GPU resources. Provider queueing is not a guarantee
+against application timeouts; shared-provider validation remains pending.
+This branch records design only. Hosting, authentication, limits and transition
+contracts must be specified before implementation/public exposure.
+
 ## Preset and paired local closure preparation — 2026-10-28
 
 Owner requested branch review and PR preparation; merge is not authorized yet.

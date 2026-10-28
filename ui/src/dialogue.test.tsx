@@ -57,12 +57,12 @@ it('retains terminal dialogue without a remediation result and permits a new adm
   const current=session();current.reservation=null;current.dialogue!.state='terminal';current.dialogue!.reason='DIALOGUE_LIMIT';
   current.preparation_error={code:'DIALOGUE_LIMIT',message:'Лимит начального диалога исчерпан.'};
   current.dialogue!.messages=[{id:'a1',actor:'agent',text:'Ответ сохранён.',occurred_at:current.server_time,outcome:'answer'}];
-  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>current})));
+  vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>path==='/api/status'?{kind:'status',version:'live.v1',availability:'available',model_status:'ready',server_time:current.server_time}:current})));
   render(<LiveWorkspace {...props}/>);
   await screen.findByText('Ответ сохранён.');
   expect(screen.queryByRole('button',{name:'Открыть итоговый отчёт'})).toBeNull();
   expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
-  expect(screen.getByRole('button',{name:/Начать/})).toBeEnabled();
+  await waitFor(()=>expect(screen.getByRole('button',{name:/Начать/})).toBeEnabled());
 });
 
 it('warns before the fifth call and suggestions only populate editable text',async()=>{
@@ -94,3 +94,41 @@ it('closes the notice when the server expires the dialogue without sending a com
   expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
   expect(fetcher.mock.calls.filter(c=>(c as unknown as [string,RequestInit])[1]?.method==='POST')).toHaveLength(0);
 });
+
+it('renders server preset commands without a textbox and sends only the choice ID',async()=>{
+  const current=session();
+  current.input_policy={profile:'preset-only',max_calls:4,choices:[{id:'state',label:'Объясни состояние'}]};
+  const fetcher=vi.fn(async(_path:string,init?:RequestInit)=>{
+    if(init?.method==='POST'){
+      const body=JSON.parse(String(init.body));
+      expect(body).toEqual({command:'dialogue',command_id:expect.any(String),reservation_id:'reservation',choice_id:'state'});
+      current.input_policy!.choices=[];
+      current.dialogue!.calls=1;
+    }
+    return {ok:true,json:async()=>current};
+  });
+  vi.stubGlobal('fetch',fetcher);
+  render(<LiveWorkspace {...props}/>);
+  const choice=await screen.findByRole('button',{name:'Объясни состояние'});
+  expect(screen.getByText('Обращения: 0/4')).toBeVisible();
+  fireEvent.click(choice);
+  await waitFor(()=>expect(fetcher.mock.calls.some(c=>c[1]?.method==='POST')).toBe(true));
+  await waitFor(()=>expect(screen.queryByRole('button',{name:'Объясни состояние'})).toBeNull());
+  expect(screen.getByText('Обращения: 1/4')).toBeVisible();
+  expect(screen.queryByRole('textbox')).toBeNull();
+  expect(screen.queryByRole('button',{name:'Отправить'})).toBeNull();
+});
+
+for(const kind of ['simulator','ollama'] as const){
+  it(`does not interrupt preset recovery with a last-call modal (${kind})`,async()=>{
+    const current=session();
+    current.provider={kind,model_name:kind==='ollama'?'test-model':null};
+    current.input_policy={profile:'preset-only',max_calls:4,choices:[{id:'recover',label:'Восстанови работу сервиса'}]};
+    current.dialogue!.calls=3;
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>current})));
+    render(<LiveWorkspace {...props}/>);
+    expect(await screen.findByRole('button',{name:'Восстанови работу сервиса'})).toBeEnabled();
+    expect(screen.getByText('Обращения: 3/4')).toBeVisible();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+}

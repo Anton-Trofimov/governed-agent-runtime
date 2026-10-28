@@ -14,6 +14,12 @@ npm --prefix ui run build
 python -m governed_agent_runtime.live_http --evidence-dir "$HOME/.local/state/gar-ui-simulator"
 ```
 
+Both CLI entry points default to `--input-profile preset-only`: the UI offers
+fixed commands and the server rejects free text. For local free-text checks,
+explicitly pass `--input-profile local-free-text`. Ollama approval templates and
+startup must use the same profile; old templates without this field are rejected.
+Changing this input profile does not enable public networking or alter smoke budgets.
+
 Open `http://127.0.0.1:8000` in a browser supporting Web Locks. Use that exact
 origin. The entry point runs Python verification before serving; it binds only
 loopback and has no real-provider switch. A static Python file server still
@@ -60,6 +66,41 @@ does not request another preparation or renew deadlines; use explicit stop to en
 Before goal submission, the countdown uses server time. After 300 seconds in
 ready state without a goal, the reservation expires and the slot is released;
 use “Начать заново” explicitly. A free slot does not extend an expired reservation.
+
+## Paired local entries — simulator only
+
+Stop any server using these ports, build the UI, then run from the activated
+virtual environment:
+
+```sh
+python -m governed_agent_runtime.live_dual_http \
+  --evidence-dir "$HOME/.local/state/gar-ui-simulator/paired-$(date -u +%Y%m%dT%H%M%SZ)"
+```
+
+The visitor entry is `http://127.0.0.1:8000` (four preset calls); the owner entry
+is `http://127.0.0.1:8001` (five free-text calls). Both bind loopback only. One
+process owns their shared execution slot. Separate cookies and server-bound
+profiles keep ownership distinct even in the same browser. Ports may be changed
+with `--public-port` and `--owner-port`; use the matching exact origins.
+
+New visitor admissions are enabled on first startup. The owner start screen
+can toggle them without reserving the slot. Starting either scenario makes the other
+entry busy. Disabling new visitor admissions preserves an already admitted run;
+the owner may start after that run releases the slot. No preemption is provided.
+The switch is saved outside per-run evidence and restored after process restart.
+By default it uses `$HOME/.local/state/gar-ui-simulator/admissions.json`;
+`--settings-file` can select another private path. Keep that path stable across
+restarts. Invalid/unreadable settings stop startup rather than silently enabling
+admissions; a failed save leaves the current switch unchanged. Ctrl+C closes both listeners
+and the shared service. The existing quarantine behavior remains in force.
+
+Check: enable visitor admissions; start a visitor scenario; observe owner busy;
+disable new admissions and finish the visitor scenario; start owner free-text;
+verify visitor cannot start; stop owner; verify visitor remains paused until
+enabled again. Check both completion and explicit rejection/stop.
+
+This launcher is simulator-only and is not a public deployment or a paired
+Ollama launcher. Do not expose either port through a tunnel or proxy.
 
 ## Local Ollama connection — revision-bound station smoke
 
@@ -141,3 +182,17 @@ revision/profile approvals cannot authorize this version. Bounded owner-run
 real-model smokes are recorded in the
 [BC-012 disposition](../reports/decisions/bc-012-initial-dialogue-disposition.md);
 they are not a general semantic-quality guarantee.
+
+## Paired Ollama smoke
+
+Use `live_ollama_http --paired` both when generating the approval template and
+when starting the approved package. The template explicitly binds preset-only
+port 8000 and local-free-text port 8001. Single-entry approvals cannot be reused.
+Existing revision, model/profile, evidence, exclusivity and quarantine checks
+remain mandatory. Two preparation attempts are shared across both listeners.
+The private switch persists at
+`$HOME/.local/state/governed-agent-runtime/public-admissions.json`, independently
+of simulator settings. Both listeners remain loopback-only. Review and approve
+the template manually before startup; no model calls occur during template creation.
+Suggested smoke: one visitor recovery with three confirmations, then one owner
+free-text dialogue/recovery with explicit refusal. Other clients must see busy.

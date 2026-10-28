@@ -20,6 +20,7 @@ COOKIE = "gar_local_session"
 
 
 def create_app(service, origin="http://127.0.0.1:8000"):
+    cookie_name = getattr(service, "cookie_name", COOKIE)
     parsed = urlsplit(origin)
     if parsed.scheme != "http" or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise ValueError("Only a loopback HTTP origin is supported")
@@ -75,7 +76,7 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                 if not isinstance(body, dict):
                     raise LiveError("INVALID_REQUEST", 400)
             path = request.url.path
-            token = request.cookies.get(COOKIE)
+            token = request.cookies.get(cookie_name)
             with service.condition:
                 if path == "/api/status" and request.method == "GET":
                     return response(service.status())
@@ -86,8 +87,13 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                         "command_id": body["command_id"], "disposition": "completed",
                         "session_id": session["id"], "reservation_id": None, "run_id": None,
                         "server_time": now()})
-                    result.set_cookie(COOKIE, token, httponly=True, samesite="strict", path="/api")
+                    result.set_cookie(cookie_name, token, httponly=True, samesite="strict", path="/api")
                     return result
+                if path == "/api/admin/admissions" and getattr(service, "owner_control", False):
+                    if request.method == "POST":
+                        validate("admission_control", body)
+                        service.set_public_admissions(body["enabled"])
+                    return response({"public_admissions_enabled": service.public_enabled})
                 session = service.authenticate(token)
                 if path == "/api/session" and request.method == "GET":
                     return response(service.session_view(session))
@@ -111,7 +117,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                     command = "decide" if path.endswith("/decisions") else "stop"
                 if request.method != "POST" or command is None:
                     raise LiveError("NOT_FOUND", 404)
-                validate(command, body)
+                validate('preset_dialogue' if command == 'dialogue' and
+                         getattr(service, 'input_profile', None) == 'preset-only' else command, body)
                 return response(service.command(session, path, body), 202)
         except LiveError as error:
             command_id = body.get("command_id") if isinstance(body, dict) else None
@@ -127,6 +134,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
         ("/api/dialogue", ["POST"]), ("/api/sessions", ["POST"]), ("/api/runs", ["POST"]),
         ("/api/runs/{run_id}", ["GET"]), ("/api/runs/{run_id}/events", ["GET"]),
         ("/api/runs/{run_id}/decisions", ["POST"]), ("/api/runs/{run_id}/stop", ["POST"])]]
+    if getattr(service, "owner_control", False):
+        routes.append(Route("/api/admin/admissions", endpoint, methods=["GET", "POST"]))
     if (service.root / "ui/dist/index.html").exists():
         routes.append(Mount("/", app=StaticFiles(directory=service.root / "ui/dist", html=True)))
 
@@ -165,6 +174,8 @@ def main():
     parser = argparse.ArgumentParser(description="BC-012 local dialogue simulator; no LLM calls")
     parser.add_argument("--evidence-dir", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument('--input-profile', choices=['preset-only', 'local-free-text'],
+                        default='preset-only')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     import sys
@@ -172,7 +183,7 @@ def main():
                     [sys.executable, "-m", "pytest", "-q"], ["git", "diff", "--check"]):
         subprocess.run(command, cwd=root, check=True)
     from governed_agent_runtime.live_dialogue import DialogueService
-    service = DialogueService(root, args.evidence_dir)
+    service = DialogueService(root, args.evidence_dir, input_profile=args.input_profile)
     app = create_app(service, f"http://127.0.0.1:{args.port}")
     uvicorn.run(app, host="127.0.0.1", port=args.port, workers=1, proxy_headers=False,
                 access_log=False)

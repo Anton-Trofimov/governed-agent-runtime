@@ -3,6 +3,71 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Preset and paired local closure preparation — 2026-10-28
+
+Owner requested branch review and PR preparation; merge is not authorized yet.
+[Closure record](../reports/decisions/preset-paired-local-disposition.md) captures
+implemented boundaries, automated verification and owner-observed Ollama runs.
+Local checks: 386 Python tests, 78 UI tests, Ruff, UI build and export check PASS.
+Visitor recovery has a supplied COMPLETED report; owner rejection ended safely.
+Shared two-preparation exhaustion was observed on both entries. Free-form model
+explanations still contain arithmetic and current/projected-load errors; runtime
+does not certify prose. Manual admission switching with Ollama remains unverified.
+The paired launcher now supports explicitly approved local Ollama; older entries
+below describe their historical scope. Public deployment remains outside scope.
+
+## Admission persistence and reload feedback — 2026-10-28
+
+Owner requested automatic initial visitor access with remembered manual pauses.
+Paired simulator now defaults enabled on first startup and atomically persists the
+switch separately from per-run evidence. Corrupt settings block startup; failed
+writes preserve the current state. Idle/terminal live screens restore availability
+from the server on reload, disable new starts until availability is known and
+retain access to completed results. Verification: 383 Python tests, 78 UI tests,
+Ruff and UI build pass. No real model calls or public networking.
+
+## Paired loopback simulator entries — 2026-10-28
+
+One simulator process now serves preset-only visitor and local-free-text owner
+entries, with separate session ownership and a shared execution slot. The owner
+can pause new visitor admissions without preempting admitted work; startup is
+paused. The control is available on the owner start screen without preparation.
+See [local startup](../docs/local-ui-simulator.md#paired-local-entries--simulator-only)
+and [transport contract](../specs/core/live-ui-runtime-contract.md).
+Offline verification: 380 Python tests, 77 UI tests, Ruff and UI build pass.
+Two actual loopback listeners, admission switching and orderly shared shutdown
+were checked without model calls. Station/browser acceptance remains pending.
+The real-model launcher and public networking are outside this bounded change.
+
+## Preset dialogue refinement — 2026-10-27
+
+Preset-only uses four calls, including recovery; local-free-text retains five.
+Answered informational choices are omitted in server session metadata, which also
+exposes the call budget. Shortened fixed prompts preserve non-execution intent.
+Operator stop labels and preset button spacing are clarified. Four choices remain;
+no additional adverse request or model run was introduced. Verification: 375 Python
+tests, 73 UI tests, Ruff and UI build pass.
+
+## Preset entry feedback — 2026-10-27
+
+Anonymous live visitors poll availability without creating a session or reservation.
+Busy feedback persists, disables admission, and clears when capacity becomes available;
+SESSION_REQUIRED no longer appears as transport loss. Recorded initial state remains
+labelled as initial. Capacity-choice wording and simulator/model guidance are distinct.
+Choice count, budgets and submission semantics are unchanged. Verification: 374 Python
+tests, 73 UI tests, Ruff and UI build pass; no station inference performed.
+
+## Server-selected input profile — 2026-10-27
+
+Implemented `preset-only` as the service/CLI default, with explicit
+`local-free-text` opt-in. Fixed command IDs resolve on the server; invalid input
+is rejected before model invocation. Informational choices cannot admit recovery.
+UI follows server metadata; model smoke approval must match the input profile.
+See [transport contract](../specs/core/live-ui-runtime-contract.md#server-selected-input-profiles)
+and [local startup](../docs/local-ui-simulator.md).
+Loopback transport, private evidence and existing smoke budgets remain unchanged;
+this change does not establish deployment readiness. No station inference performed.
+
 ## BC-012 closure preparation — 2026-10-26
 
 **Accepted for bounded local use; documentary closure prepared for PR.**

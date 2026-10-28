@@ -534,10 +534,10 @@ goal exceeds the existing 2,000-code-point runtime bound, end with
 DIALOGUE_GOAL_TOO_LONG; never truncate or summarize it silently. These checks do
 not prove semantic classification correctness. Dialogue has no tool interface.
 
-The profile fixes 5 calls, including classification of an immediate recovery goal,
+The local-free-text profile fixes 5 calls (preset-only fixes 4), including classification of an immediate recovery goal,
 300 seconds per call, 300 seconds waiting for the next user message, and 600 seconds
-absolute time from successful preparation. The fifth response may admit a goal;
-a fifth non-start response ends dialogue with DIALOGUE_LIMIT. The idle clock starts
+absolute time from successful preparation. The final permitted response may admit a goal;
+a final non-start response ends dialogue with DIALOGUE_LIMIT. The idle clock starts
 at readiness or completion of a reply; the absolute clock never resets. Expiry,
 release, invalid output and provider failure cannot start remediation. A late
 reply is discarded. In-flight work retains the slot until completion is known;
@@ -568,3 +568,86 @@ All other schema fields remain unchanged. The provider format is a generation
 aid, not admission authority; whitespace-only replies must still fail runtime
 validation without creating a remediation run. Do not alter prompts, model
 settings, retry budgets or quarantine as part of this compatibility fix.
+
+## Server-selected input profiles
+
+The dialogue service supports `preset-only` and `local-free-text`. CLI startup
+defaults to `preset-only`; free text requires an explicit server startup argument.
+Unknown profiles fail startup. Profiles cannot be changed through HTTP, cookies,
+query parameters or model output. Session metadata exposes the selected profile
+and the fixed command catalog for presentation only.
+
+In `preset-only`, `/api/dialogue` accepts `choice_id` instead of `text`, with a
+closed schema. The server resolves capabilities/state/capacity/recover choices to
+fixed scenario text. Extra fields, arbitrary text and unknown choices fail before
+command bookkeeping, expiry processing or provider invocation. The legacy start
+route remains blocked. Only the recover choice may admit remediation, even if a
+model misclassifies an informational choice. Ownership, deadlines, idempotency,
+confirmation and provider budgets remain unchanged. Local free-text behavior is
+retained explicitly. This input boundary alone does not enable public transport;
+loopback restrictions and private smoke evidence remain in force.
+
+Preset recovery uses only the fixed recovery goal; prior informational choices
+remain transcript context, not accumulated operator constraints. Local free-text
+goal assembly continues to preserve all operator messages. Real-model smoke
+approval must also match the server input profile.
+
+Preset-only refinement: four initial-dialogue calls per admission, including the
+recovery request; local-free-text retains five. Session input_policy exposes
+max_calls. After an informational choice receives an agent reply, it is omitted
+from choices for that admission, including read-only reconnect. A new admission
+restores the catalogue. This presentation filtering is not a new authorization
+gate; direct repeated valid choices remain subject to the same call budget.
+State and capacity prompts retain explicit non-execution intent; the capacity
+question no longer explicitly requests an N-1 explanation. Recovery admission
+and execution constraints remain unchanged.
+
+## Paired loopback entrypoints (simulator integration)
+
+One process owns one DialogueService, provider, execution slot, lock, budgets and
+quarantine state. Two separately bound loopback listeners expose server-selected
+profiles: public-facing preset-only (4 calls) and owner local-free-text (5 calls).
+This slice is local-only; neither listener supports proxy headers or external
+binding. The existing real-model approval/launcher remains unchanged.
+
+Sessions are bound at bootstrap to their entrypoint and input profile. Distinct
+cookie names prevent port-sharing browsers from overwriting each other; cookie
+names alone are not authorization. Authentication rejects a token from the other
+entrypoint, even when copied under the expected cookie name. Snapshots, traces,
+confirmations and stop commands retain session ownership checks. Client body,
+query, Host and Origin cannot select or upgrade the entrypoint/profile.
+
+Both entrypoints contend atomically for the same slot. Opening pages, polling or
+bootstrapping sessions never reserves capacity or calls the provider. Neither
+entrypoint preempts a preparation, initial dialogue or execution owned by another.
+
+The owner listener alone exposes a same-origin control to enable/disable new
+public admissions. Disabled state is enforced before prepare, under the shared
+lock; accepted command replays remain idempotent. Existing public admissions may
+continue, confirm, stop and view results. Private admissions remain eligible when
+the shared slot is free. No control route or control metadata is exposed through
+the public listener. The setting is persisted atomically in a private server-side settings file,
+independent of per-run evidence directories. First startup defaults enabled;
+subsequent startups restore the last saved boolean. Invalid or unreadable saved
+settings prevent startup; failed writes leave the in-memory setting unchanged.
+The owner can explicitly disable new admissions. Readiness, quarantine and slot
+checks still apply even when admissions are enabled. Terminal/idle UI views poll
+server availability after reload and disable new starts until it is known to be
+available, without hiding completed results. Shutdown of either listener shuts down
+both and closes the service once. No actual model loading or public deployment is
+part of this slice.
+
+## Paired local model smoke
+
+The separately approved Ollama launcher may select paired loopback entrypoints
+with an explicit CLI flag. Its approval must bind both listener profiles (visitor
+preset-only on port 8000, owner local-free-text on port 8001); a single-entry
+approval cannot authorize this topology. Both listeners share the same provider,
+coordinator lock, quarantine and total two-preparation smoke budget. No additional
+model, sampling configuration, prompt or runtime authorization change is included.
+Template creation remains offline and unapproved. Startup verification and
+revision/profile/evidence binding remain mandatory. Neither opening a page nor
+reading/toggling admissions invokes the model. The owner admission switch uses a
+stable private file separate from simulator settings and run evidence. Either
+listener shutdown closes the shared service once. Both ports remain loopback-only;
+this smoke does not authorize public networking.

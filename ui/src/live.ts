@@ -24,13 +24,13 @@ export type Provider=z.infer<typeof providerSchema>;
 export function providerLabel(provider?:Provider){return provider?.kind==='ollama'?`Локальная LLM · ${provider.model_name}`:provider?.kind==='simulator'?'Локальная проверка · имитатор модели':'Тип модели уточняется';}
 export function providerNotice(provider?:Provider){return provider?.kind==='ollama'?'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.':provider?.kind==='simulator'?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'Сохранённые примеры доступны без вызова модели. Тип живого подключения уточняется.';}
 
-export const statusSchema = z.object({kind:z.literal('status'),version,
-  unavailability_reason:z.enum(['SMOKE_LIMIT','PROVIDER_UNAVAILABLE','SERVER_CLOSED']).nullable().optional(),provider:providerSchema.optional(),availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
+export const statusSchema = z.object({kind:z.literal('status'),version,public_admissions_enabled:z.boolean().optional(),
+  unavailability_reason:z.enum(['SMOKE_LIMIT','PROVIDER_UNAVAILABLE','SERVER_CLOSED','PUBLIC_PAUSED']).nullable().optional(),provider:providerSchema.optional(),availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});
 const dialogueSchema=z.object({reservation_id:text,state:z.enum(['preparing','ready','thinking','admitted','terminal']),
   service_view:observation.optional(),calls:count.max(5),reason:text.nullable(),absolute_expires_at:text.nullable(),run_id:text.nullable(),
   messages:z.array(z.object({id:text,actor:z.enum(['operator','agent']),text:text,occurred_at:text,
     outcome:z.enum(['answer','clarify','unsupported','start_remediation']).nullable()})).max(10)});
-export const sessionSchema = z.object({kind:z.literal('session'),version,provider:providerSchema.optional(),session_id:text,server_time:text,dialogue:dialogueSchema.nullable().optional(),
+export const sessionSchema = z.object({kind:z.literal('session'),version,public_admissions_enabled:z.boolean().optional(),provider:providerSchema.optional(),session_id:text,server_time:text,input_policy:z.object({profile:z.enum(['preset-only','local-free-text']),max_calls:z.number().int().min(4).max(5).optional(),choices:z.array(z.object({id:text,label:text}))}).optional(),dialogue:dialogueSchema.nullable().optional(),
   reservation:z.object({reservation_id:text,phase:z.enum(['preparing','ready','dialogue','stopping']),expires_at:text.nullable(),service_view:observation}).nullable(),
   current_run_id:text.nullable(),model_status:model,
   preparation_error:z.object({code:text,message:text}).nullable()});
@@ -120,10 +120,11 @@ export async function loadEvents(runId:string, previous:LiveEvent[]) {
 export function explainError(error:unknown){
   const code=error instanceof ApiError?error.code:'';
   return ({LIVE_BUSY:'Живой режим занят. Пока можно посмотреть демонстрационный пример.',
-    LIVE_UNAVAILABLE:'Живой режим временно недоступен.',SMOKE_LIMIT:'Лимит запусков локальной проверки исчерпан. Результаты доступны для просмотра.',SESSION_REQUIRED:'Сессия завершена. Начните заново.',
+    PUBLIC_PAUSED:'Живой режим временно недоступен. Попробуйте позже или посмотрите пример.',LIVE_UNAVAILABLE:'Живой режим временно недоступен.',SMOKE_LIMIT:'Лимит запусков локальной проверки исчерпан. Результаты доступны для просмотра.',SESSION_REQUIRED:'Сессия завершена. Начните заново.',
     BROWSER_LOCK_UNAVAILABLE:'В этом браузере доступен только демонстрационный пример.',
     CONFIRMATION_EXPIRED:'Срок подтверждения оператором истёк.',ACTION_NOT_PENDING:'Это действие уже не ожидает решения.',
     SESSION_LIMIT:'Достигнут лимит локальной тестовой сессии.',
+    INVALID_REQUEST:'Запрос не разрешён. Обновите страницу и выберите доступную команду.',
     DIALOGUE_NOT_READY:'Ответ обрабатывается. Дождитесь завершения текущего шага.',
     GOAL_ADMISSION_REQUIRED:'Сначала задайте цель в начальном диалоге.',
   } as Record<string,string>)[code]??'Связь прервалась. Состояние команды пока неизвестно; не отправляйте её заново.';

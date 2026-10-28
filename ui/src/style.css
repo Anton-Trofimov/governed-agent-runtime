@@ -611,3 +611,8 @@ body{background:#f7f9fa}
 #operator-workspace .last-call-dialog{width:min(460px,calc(100% - 32px));margin:auto;border-radius:16px}
 #operator-workspace .last-call-dialog h2{color:#984b43;font-size:1.15rem}
 .last-call-dialog p{line-height:1.5}
+
+#operator-workspace .preset-choices .action{min-height:36px;padding:4px 9px}
+@media(max-width:620px){#operator-workspace .preset-choices .action{min-height:44px}}
+#operator-workspace .owner-admissions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 20px;background:#edf3f5;border-bottom:1px solid #cad5da;font-size:12px}
+#operator-workspace .owner-admissions small{color:#536e7a}

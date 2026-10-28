@@ -636,3 +636,18 @@ server availability after reload and disable new starts until it is known to be
 available, without hiding completed results. Shutdown of either listener shuts down
 both and closes the service once. No actual model loading or public deployment is
 part of this slice.
+
+## Paired local model smoke
+
+The separately approved Ollama launcher may select paired loopback entrypoints
+with an explicit CLI flag. Its approval must bind both listener profiles (visitor
+preset-only on port 8000, owner local-free-text on port 8001); a single-entry
+approval cannot authorize this topology. Both listeners share the same provider,
+coordinator lock, quarantine and total two-preparation smoke budget. No additional
+model, sampling configuration, prompt or runtime authorization change is included.
+Template creation remains offline and unapproved. Startup verification and
+revision/profile/evidence binding remain mandatory. Neither opening a page nor
+reading/toggling admissions invokes the model. The owner admission switch uses a
+stable private file separate from simulator settings and run evidence. Either
+listener shutdown closes the shared service once. Both ports remain loopback-only;
+this smoke does not authorize public networking.

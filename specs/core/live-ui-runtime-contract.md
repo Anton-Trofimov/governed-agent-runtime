@@ -626,7 +626,13 @@ public admissions. Disabled state is enforced before prepare, under the shared
 lock; accepted command replays remain idempotent. Existing public admissions may
 continue, confirm, stop and view results. Private admissions remain eligible when
 the shared slot is free. No control route or control metadata is exposed through
-the public listener. The setting is process-local and defaults disabled at paired
-startup; the owner explicitly enables it. Shutdown of either listener shuts down
+the public listener. The setting is persisted atomically in a private server-side settings file,
+independent of per-run evidence directories. First startup defaults enabled;
+subsequent startups restore the last saved boolean. Invalid or unreadable saved
+settings prevent startup; failed writes leave the in-memory setting unchanged.
+The owner can explicitly disable new admissions. Readiness, quarantine and slot
+checks still apply even when admissions are enabled. Terminal/idle UI views poll
+server availability after reload and disable new starts until it is known to be
+available, without hiding completed results. Shutdown of either listener shuts down
 both and closes the service once. No actual model loading or public deployment is
 part of this slice.

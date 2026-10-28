@@ -3,6 +3,19 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Preset and paired local closure preparation — 2026-10-28
+
+Owner requested branch review and PR preparation; merge is not authorized yet.
+[Closure record](../reports/decisions/preset-paired-local-disposition.md) captures
+implemented boundaries, automated verification and owner-observed Ollama runs.
+Local checks: 386 Python tests, 78 UI tests, Ruff, UI build and export check PASS.
+Visitor recovery has a supplied COMPLETED report; owner rejection ended safely.
+Shared two-preparation exhaustion was observed on both entries. Free-form model
+explanations still contain arithmetic and current/projected-load errors; runtime
+does not certify prose. Manual admission switching with Ollama remains unverified.
+The paired launcher now supports explicitly approved local Ollama; older entries
+below describe their historical scope. Public deployment remains outside scope.
+
 ## Admission persistence and reload feedback — 2026-10-28
 
 Owner requested automatic initial visitor access with remembered manual pauses.

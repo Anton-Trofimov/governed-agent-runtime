@@ -35,6 +35,7 @@ it('rejects a terminal snapshot without an outcome',()=>{
 });
 it('restores an existing session read-only after mounting',async()=>{
   const fetcher=vi.fn(async(path:string)=>({ok:true,json:async()=>{
+    if(path==='/api/status')return {kind:'status',version:'live.v1',availability:'available',model_status:'ready',server_time:snapshot.server_time};
     if(path==='/api/session')return {kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null};
     if(path.includes('/events?'))return page;
@@ -51,7 +52,7 @@ it('restores an existing session read-only after mounting',async()=>{
 
 it('keeps only a disabled contextual composer after completion and exposes home navigation',async()=>{
   vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>
-    path==='/api/session'?{kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
+    path==='/api/status'?{kind:'status',version:'live.v1',availability:'available',model_status:'ready',server_time:snapshot.server_time}:path==='/api/session'?{kind:'session',provider:{kind:'simulator',model_name:null},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null}:path.includes('/events?')?page:snapshot})));
   render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
   await screen.findByRole('button',{name:'Начать заново'});
@@ -179,6 +180,7 @@ it('links live proposal and admission in both directions and preserves journal r
 
 it('uses server provider identity for real-model labels without sending commands',async()=>{
   const fetcher=vi.fn(async(path:string)=>({ok:true,json:async()=>{
+    if(path==='/api/status')return {kind:'status',version:'live.v1',availability:'available',model_status:'ready',server_time:snapshot.server_time};
     if(path==='/api/session')return {kind:'session',provider:{kind:'ollama',model_name:'qwen3.8:27b'},version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,
       current_run_id:'run-1',model_status:'ready',preparation_error:null};
     if(path.includes('/events?'))return page;
@@ -262,4 +264,23 @@ it('keeps anonymous busy feedback across polls without reporting a broken connec
   await waitFor(()=>expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeEnabled(),{timeout:2200});
   expect(screen.queryByRole('alert')).toBeNull();
   expect(vi.mocked(fetch).mock.calls.every(([path])=>path==='/api/session'||path==='/api/status')).toBe(true);
+});
+
+it('restores terminal results and admission availability after reload without a new start',async()=>{
+  let availability='busy';
+  vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>{
+    if(path==='/api/status')return {kind:'status',version:'live.v1',availability,model_status:'ready',server_time:snapshot.server_time};
+    if(path==='/api/session')return {kind:'session',version:'live.v1',session_id:'session-1',server_time:snapshot.server_time,reservation:null,current_run_id:'run-1',model_status:'ready',preparation_error:null};
+    if(path.includes('/events?'))return page;
+    return snapshot;
+  }})));
+  render(<LiveWorkspace onExit={()=>{}} renderState={()=>null} renderCompact={()=>null}/>);
+  expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeDisabled();
+  await waitFor(()=>expect(screen.getByText('CONFIRMATION_EXPIRED')).toBeVisible());
+  expect(screen.getByRole('button',{name:'Начать заново'})).toBeDisabled();
+  expect(screen.getByRole('alert')).toHaveTextContent('Живой режим занят');
+  availability='available';
+  await waitFor(()=>expect(screen.getByRole('button',{name:'Начать заново'})).toBeEnabled(),{timeout:2200});
+  expect(screen.queryByRole('alert')).toBeNull();
+  expect(vi.mocked(fetch).mock.calls.every(([,options])=>!options?.body)).toBe(true);
 });

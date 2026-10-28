@@ -1,13 +1,17 @@
 """Two loopback-only simulator listeners with a shared execution slot."""
 import argparse
 import asyncio
+import json
+import os
 import signal
 from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
+from uuid import uuid4
 
 from governed_agent_runtime.live_dialogue import DialogueService
 from governed_agent_runtime.live_http import create_app
+from governed_agent_runtime.live_ollama import private_json
 from governed_agent_runtime.live_service import LiveError
 
 
@@ -33,6 +37,10 @@ class EntryPoint:
         if not self.owner_control or type(enabled) is not bool:
             raise LiveError('NOT_FOUND', 404)
         with self.condition:
+            try:
+                save_setting(self.control['path'], enabled)
+            except OSError:
+                raise LiveError('LIVE_UNAVAILABLE', 503) from None
             self.control['enabled'] = enabled
 
     def bootstrap(self, token=None):
@@ -80,15 +88,32 @@ class EntryPoint:
         pass
 
 
-def paired_apps(service, public_origin, owner_origin):
+def save_setting(path, enabled):
+    temporary = path.with_name(path.name + '.' + uuid4().hex + '.tmp')
+    try:
+        private_json(temporary, {'enabled': enabled})
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def paired_apps(service, public_origin, owner_origin, settings_path=None):
     if urlsplit(public_origin).port == urlsplit(owner_origin).port:
         raise ValueError('Entry points require distinct listener ports')
-    control = {'enabled': False}
+    path = Path(settings_path) if settings_path is not None else service.evidence / 'admissions.json'
+    try:
+        saved = json.loads(path.read_text())
+    except FileNotFoundError:
+        saved = {'enabled': True}
+        save_setting(path, True)
+    if not isinstance(saved, dict) or set(saved) != {'enabled'} or type(saved['enabled']) is not bool:
+        raise ValueError('Invalid saved admission setting')
+    control = {**saved, 'path': path}
     return (create_app(EntryPoint(service, False, control), public_origin),
             create_app(EntryPoint(service, True, control), owner_origin))
 
 
-async def serve_pair(service, public_port, owner_port):
+async def serve_pair(service, public_port, owner_port, settings_path=None):
     import uvicorn
 
     class PairedServer(uvicorn.Server):
@@ -97,8 +122,12 @@ async def serve_pair(service, public_port, owner_port):
             # One process-level handler owns both listeners and provider cleanup.
             yield
 
-    apps = paired_apps(service, f'http://127.0.0.1:{public_port}',
-                       f'http://127.0.0.1:{owner_port}')
+    try:
+        apps = paired_apps(service, f'http://127.0.0.1:{public_port}',
+                           f'http://127.0.0.1:{owner_port}', settings_path=settings_path)
+    except Exception:
+        service.close()
+        raise
     servers = [PairedServer(uvicorn.Config(app, host='127.0.0.1', port=port,
                 workers=1, proxy_headers=False, access_log=False))
                for app, port in zip(apps, (public_port, owner_port), strict=True)]
@@ -128,6 +157,8 @@ def main():
     parser.add_argument('--evidence-dir', type=Path, required=True)
     parser.add_argument('--public-port', type=int, default=8000)
     parser.add_argument('--owner-port', type=int, default=8001)
+    parser.add_argument('--settings-file', type=Path,
+                        default=Path.home() / '.local/state/gar-ui-simulator/admissions.json')
     args = parser.parse_args()
     if (args.public_port == args.owner_port or
             any(port < 1024 or port > 65535 for port in (args.public_port, args.owner_port))):
@@ -135,9 +166,11 @@ def main():
     root = Path(__file__).resolve().parents[2]
     if args.evidence_dir.resolve().is_relative_to(root):
         parser.error('Keep evidence outside the repository')
+    if args.settings_file.resolve().is_relative_to(root):
+        parser.error('Keep settings outside the repository')
     service = DialogueService(root, args.evidence_dir)
-    print('Paired simulator: public admissions disabled until enabled from the owner interface.')
-    asyncio.run(serve_pair(service, args.public_port, args.owner_port))
+    print('Paired simulator: restoring public admission setting (first startup: enabled).')
+    asyncio.run(serve_pair(service, args.public_port, args.owner_port, args.settings_file))
 
 
 if __name__ == '__main__':

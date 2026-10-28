@@ -1,5 +1,6 @@
 """Explicitly approved, loopback-only station smoke; template creation is offline."""
 import argparse
+import asyncio
 import json
 import subprocess
 import sys
@@ -7,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from governed_agent_runtime.live_dialogue import DialogueService
+from governed_agent_runtime.live_dual_http import serve_pair
 from governed_agent_runtime.live_http import create_app
 from governed_agent_runtime.live_ollama import (
     LocalOllamaModel,
@@ -34,7 +36,13 @@ def main():
     group.add_argument('--approval-file', type=Path)
     parser.add_argument('--input-profile', choices=['preset-only', 'local-free-text'],
                         default='preset-only')
+    parser.add_argument('--paired', action='store_true', help='Two loopback listeners sharing one model slot')
     args = parser.parse_args()
+    if args.paired and args.input_profile != 'preset-only':
+        parser.error('Paired profiles are fixed: public preset-only, owner local-free-text')
+    entrypoints = ({'public': {'port': 8000, 'profile': 'preset-only'},
+                   'owner': {'port': 8001, 'profile': 'local-free-text'}} if args.paired
+                  else {'single': {'port': 8000, 'profile': args.input_profile}})
     root = Path(__file__).resolve().parents[2]
     evidence = args.evidence_dir.resolve()
     approval_path = (args.write_approval_template or args.approval_file).resolve()
@@ -43,7 +51,7 @@ def main():
     profile = load_profile(root)
     if args.write_approval_template:
         private_json(approval_path, {
-            'input_profile': args.input_profile, 'approved': False, 'reviewer': '', 'approval_id': uuid4().hex,
+            'entrypoints': entrypoints, 'input_profile': args.input_profile, 'approved': False, 'reviewer': '', 'approval_id': uuid4().hex,
             'revision': revision(root), 'profile_sha256': profile_hash(profile),
             'evidence_dir': str(evidence), 'exclusive_provider': False,
             'no_outstanding_work': False})
@@ -58,6 +66,8 @@ def main():
         parser.error('Approval already used. Preserve evidence and create a new explicitly approved test package.')
     if approval.get('input_profile') != args.input_profile:
         parser.error('Approval must match the server input profile')
+    if approval.get('entrypoints', {'single': {'port': 8000, 'profile': args.input_profile}}) != entrypoints:
+        parser.error('Approval must match the listener topology')
     for command in ([sys.executable, '-m', 'ruff', 'check', '.'],
                     [sys.executable, '-m', 'pytest', '-q'], ['git', 'diff', '--check'],
                     ['npm', '--prefix', 'ui', 'test'], ['npm', '--prefix', 'ui', 'run', 'build']):
@@ -82,9 +92,13 @@ def main():
             parser.error('Approval already used. Preserve evidence and create a new explicitly approved test package.')
         private_json(evidence / 'startup.json', {
             'approval': approval, 'profile': profile, 'revision': approved_revision})
-        import uvicorn
-        uvicorn.run(create_app(service), host='127.0.0.1', port=8000, workers=1,
-                    proxy_headers=False, access_log=False)
+        if args.paired:
+            asyncio.run(serve_pair(service, 8000, 8001,
+                        settings_path=state.parent / 'public-admissions.json', close_service=False))
+        else:
+            import uvicorn
+            uvicorn.run(create_app(service), host='127.0.0.1', port=8000, workers=1,
+                        proxy_headers=False, access_log=False)
     finally:
         service.close()
 

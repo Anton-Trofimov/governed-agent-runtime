@@ -3,6 +3,16 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## Admission persistence and reload feedback — 2026-10-28
+
+Owner requested automatic initial visitor access with remembered manual pauses.
+Paired simulator now defaults enabled on first startup and atomically persists the
+switch separately from per-run evidence. Corrupt settings block startup; failed
+writes preserve the current state. Idle/terminal live screens restore availability
+from the server on reload, disable new starts until availability is known and
+retain access to completed results. Verification: 383 Python tests, 78 UI tests,
+Ruff and UI build pass. No real model calls or public networking.
+
 ## Paired loopback simulator entries — 2026-10-28
 
 One simulator process now serves preset-only visitor and local-free-text owner

@@ -37,7 +37,8 @@ def test_shared_slot_profiles_pause_and_no_preemption(tmp_path):
     apps = paired_apps(service, PUBLIC, OWNER)
     try:
         with TestClient(apps[0], base_url=PUBLIC) as public, TestClient(apps[1], base_url=OWNER) as owner:
-            assert public.get('/api/status').json()['unavailability_reason'] == 'PUBLIC_PAUSED'
+            assert public.get('/api/status').json()['availability'] == 'available'
+            assert send(owner, '/api/admin/admissions', 'set_public_admissions', enabled=False).status_code == 200
             assert 'public_admissions_enabled' not in public.get('/api/status').json()
             assert owner.get('/api/status').json()['public_admissions_enabled'] is False
             assert service.preparations == 0 and service.slot is None
@@ -90,7 +91,7 @@ def test_listener_origin_and_control_body_are_strict(tmp_path):
             assert owner.get('/api/admin/admissions', headers={'x-forwarded-for':'127.0.0.1'}).status_code == 403
             assert send(owner, '/api/admin/admissions', 'set_public_admissions', enabled=True, extra='x').status_code == 400
             assert send(owner, '/api/admin/admissions', 'set_public_admissions', enabled='true').status_code == 400
-            assert owner.get('/api/status').json()['public_admissions_enabled'] is False
+            assert owner.get('/api/status').json()['public_admissions_enabled'] is True
     finally:
         service.close()
 
@@ -140,5 +141,44 @@ def test_foreign_run_trace_confirmation_and_stop_are_rejected(tmp_path):
             assert owner.get(f'/api/runs/{run_id}').json()['phase'] == 'awaiting_confirmation'
             # Pausing public admission never prevents the owner from stopping its own run.
             assert send(owner, f'/api/runs/{run_id}/stop', 'stop').status_code == 202
+    finally:
+        service.close()
+
+
+def test_admission_setting_survives_new_evidence_directory(tmp_path):
+    settings = tmp_path / 'settings.json'
+    for index, expected in enumerate((True, False, True)):
+        service = DialogueService(ROOT, tmp_path / str(index))
+        try:
+            apps = paired_apps(service, PUBLIC, OWNER, settings_path=settings)
+            with TestClient(apps[1], base_url=OWNER) as owner:
+                assert owner.get('/api/status').json()['public_admissions_enabled'] is expected
+                assert send(owner, '/api/admin/admissions', 'set_public_admissions', enabled=not expected).status_code == 200
+        finally:
+            service.close()
+
+
+def test_invalid_saved_setting_prevents_startup(tmp_path):
+    import pytest
+    settings = tmp_path / 'settings.json'
+    settings.write_text('{"enabled": "false"}')
+    service = DialogueService(ROOT, tmp_path / 'evidence')
+    try:
+        with pytest.raises(ValueError):
+            paired_apps(service, PUBLIC, OWNER, settings_path=settings)
+    finally:
+        service.close()
+
+
+def test_failed_setting_write_preserves_current_admission(tmp_path, monkeypatch):
+    service = DialogueService(ROOT, tmp_path)
+    try:
+        apps = paired_apps(service, PUBLIC, OWNER)
+        def fail(*args):
+            raise OSError('storage unavailable')
+        monkeypatch.setattr('governed_agent_runtime.live_dual_http.save_setting', fail)
+        with TestClient(apps[1], base_url=OWNER) as owner:
+            assert send(owner, '/api/admin/admissions', 'set_public_admissions', enabled=False).status_code == 503
+            assert owner.get('/api/status').json()['public_admissions_enabled'] is True
     finally:
         service.close()

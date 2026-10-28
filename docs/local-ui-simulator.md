@@ -182,3 +182,17 @@ revision/profile approvals cannot authorize this version. Bounded owner-run
 real-model smokes are recorded in the
 [BC-012 disposition](../reports/decisions/bc-012-initial-dialogue-disposition.md);
 they are not a general semantic-quality guarantee.
+
+## Paired Ollama smoke
+
+Use `live_ollama_http --paired` both when generating the approval template and
+when starting the approved package. The template explicitly binds preset-only
+port 8000 and local-free-text port 8001. Single-entry approvals cannot be reused.
+Existing revision, model/profile, evidence, exclusivity and quarantine checks
+remain mandatory. Two preparation attempts are shared across both listeners.
+The private switch persists at
+`$HOME/.local/state/governed-agent-runtime/public-admissions.json`, independently
+of simulator settings. Both listeners remain loopback-only. Review and approve
+the template manually before startup; no model calls occur during template creation.
+Suggested smoke: one visitor recovery with three confirmations, then one owner
+free-text dialogue/recovery with explicit refusal. Other clients must see busy.

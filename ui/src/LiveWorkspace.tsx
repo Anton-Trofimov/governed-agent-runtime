@@ -78,9 +78,15 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
         }
         reservationRef.current=s.reservation?.reservation_id??null;
         if(s.reservation)lastServiceView.current=s.reservation.service_view;
-        setSession(s);setSnapshot(snap);setConnected(true);failedAt=undefined;
-        setAvailability(undefined);setAvailabilityNotice('');
-        setConnectionError('');
+        setSession(s);setSnapshot(snap);
+        if(!s.reservation&&(!snap||snap.phase==='terminal')){
+          const status=statusSchema.parse(await request('/api/status'));
+          if(!active)return;
+          setAvailability(status.availability);
+          setAvailabilityNotice(status.availability==='available'?'':explainError(new ApiError(status.unavailability_reason==='PUBLIC_PAUSED'?'PUBLIC_PAUSED':status.unavailability_reason==='SMOKE_LIMIT'?'SMOKE_LIMIT':status.availability==='busy'?'LIVE_BUSY':'LIVE_UNAVAILABLE')));
+          if(status.availability==='available')setError('');
+        }else{setAvailability(undefined);setAvailabilityNotice('');}
+        setConnected(true);failedAt=undefined;setConnectionError('');
       }catch(err){
         if(!active)return;
         setConnected(false);
@@ -188,7 +194,7 @@ export function LiveWorkspace({onExit,renderState,renderCompact,initialState}:Pr
     <div className="task-toolbar live-toolbar"><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
       <nav className="live-navigation" aria-label="Управление сценарием">
       <button className="action" disabled={busy} onClick={onExit}>К началу</button>
-      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current||availability==='busy'||availability==='unavailable'} onClick={()=>void prepare()}>{snapshot||dialogue?.state==='terminal'||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
+      {!session?.reservation&&!active&&<button className="action primary" disabled={busy||!!pending.current||!connected||availability!=='available'} onClick={()=>void prepare()}>{snapshot||dialogue?.state==='terminal'||session?.preparation_error?.code==='READY_EXPIRED'?'Начать заново':'Начать живой сценарий'}</button>}
       <button className="action chat-jump" onClick={()=>chat.current?.scrollIntoView?.({block:'start'})}>К чату ↓</button>
       {notice&&<p role="alert" className="admission-notice">{notice}</p>}
       {timedOut&&<button className="action" onClick={()=>setRetry(x=>x+1)}>Восстановить связь</button>}

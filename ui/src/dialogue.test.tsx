@@ -57,12 +57,12 @@ it('retains terminal dialogue without a remediation result and permits a new adm
   const current=session();current.reservation=null;current.dialogue!.state='terminal';current.dialogue!.reason='DIALOGUE_LIMIT';
   current.preparation_error={code:'DIALOGUE_LIMIT',message:'Лимит начального диалога исчерпан.'};
   current.dialogue!.messages=[{id:'a1',actor:'agent',text:'Ответ сохранён.',occurred_at:current.server_time,outcome:'answer'}];
-  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>current})));
+  vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,json:async()=>path==='/api/status'?{kind:'status',version:'live.v1',availability:'available',model_status:'ready',server_time:current.server_time}:current})));
   render(<LiveWorkspace {...props}/>);
   await screen.findByText('Ответ сохранён.');
   expect(screen.queryByRole('button',{name:'Открыть итоговый отчёт'})).toBeNull();
   expect(screen.getByRole('textbox',{name:'Состояние диалога'})).toBeDisabled();
-  expect(screen.getByRole('button',{name:/Начать/})).toBeEnabled();
+  await waitFor(()=>expect(screen.getByRole('button',{name:/Начать/})).toBeEnabled());
 });
 
 it('warns before the fifth call and suggestions only populate editable text',async()=>{

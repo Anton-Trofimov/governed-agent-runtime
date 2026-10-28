@@ -83,11 +83,15 @@ process owns their shared execution slot. Separate cookies and server-bound
 profiles keep ownership distinct even in the same browser. Ports may be changed
 with `--public-port` and `--owner-port`; use the matching exact origins.
 
-New visitor admissions start disabled. Enable them from the owner start screen;
-this control does not reserve the slot. Starting either scenario makes the other
+New visitor admissions are enabled on first startup. The owner start screen
+can toggle them without reserving the slot. Starting either scenario makes the other
 entry busy. Disabling new visitor admissions preserves an already admitted run;
 the owner may start after that run releases the slot. No preemption is provided.
-The switch resets to disabled after process restart. Ctrl+C closes both listeners
+The switch is saved outside per-run evidence and restored after process restart.
+By default it uses `$HOME/.local/state/gar-ui-simulator/admissions.json`;
+`--settings-file` can select another private path. Keep that path stable across
+restarts. Invalid/unreadable settings stop startup rather than silently enabling
+admissions; a failed save leaves the current switch unchanged. Ctrl+C closes both listeners
 and the shared service. The existing quarantine behavior remains in force.
 
 Check: enable visitor admissions; start a visitor scenario; observe owner busy;

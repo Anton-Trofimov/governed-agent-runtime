@@ -244,6 +244,25 @@ Credential handling, access controls and station exposure require an explicit
 human-agreed design before implementation. Documentation hygiene does not
 replace technical security controls or authorize deployment.
 
+### Deployment documentation boundary
+
+For deployment-related work, public descriptions are limited to high-level
+product concepts and sanitized examples with placeholders. Do not publish
+operational runbooks, deployment topology or control/recovery procedures in any
+public branch, issue, PR, commit message or CI output. Discussion or design
+approval does not by itself authorize publication of operational details.
+
+Keep operational design in a separately verified private repository, without
+actual installation values. Actual addresses, selected ports, credentials,
+tokens and filled configuration remain exclusively in owner-controlled local
+storage outside Git and agent access. Do not request, discover, read or echo
+those values. Supply placeholder-based instructions explaining each value's
+purpose and let the owner fill them locally. Diagnostics shared for assistance
+must be redacted. A private GitHub repository is not an owner-only secret store.
+
+These rules do not require removing generic runtime source, synthetic contracts
+or reproducible tests. They govern disclosure of deployment-specific material.
+
 ## Git discipline
 
 Keep commits atomic and aligned with the SDD sequence.

@@ -3,16 +3,15 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
-## Public operation modes — agreed design, 2026-10-29
+## Public operation modes — product concept, 2026-10-29
 
-PR #14 merged as `b1f1f94`. The next owner-approved design is recorded in
-[public operation modes](../reports/decisions/public-operation-modes-design.md):
-live, pause and reversible demonstration-only mode; independent private owner
-access; separate persistent emergency public shutoff. Normal live operation may
-be paused when the owner needs GPU resources. Provider queueing is not a guarantee
-against application timeouts; shared-provider validation remains pending.
-This branch records design only. Hosting, authentication, limits and transition
-contracts must be specified before implementation/public exposure.
+PR #14 merged as `b1f1f94`.
+[Public product concept](../reports/decisions/public-operation-modes-design.md)
+records live, pause and reversible demonstration-only behavior. This branch
+contains documentation only; no public deployment is established.
+Operational documentation is maintained separately and must not be published
+here. Actual configuration values are owner-managed and excluded from Git and
+agent-visible material. See the disclosure rules in AGENTS.md.
 
 ## Preset and paired local closure preparation — 2026-10-28
 
@@ -299,7 +298,7 @@ runtime-verified COMPLETED. Recovery-after-rejection NOT OBSERVED.
 ## Station evidence convention
 
 For future external staging use:
-`/home/anton/projects/evidence/governed-agent-runtime/<bounded-change>/<unique-run-id>/`.
+`<PRIVATE_EVIDENCE_ROOT>/<bounded-change>/<unique-run-id>/`.
 Each pool retains its manifest.json, preload/ and attempts/. Never overwrite or mix
 pools. Existing station folders have not been moved automatically. Accepted evidence
 may be copied unchanged into the repository for reproducibility after pool completion.

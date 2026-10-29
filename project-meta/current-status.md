@@ -6,12 +6,13 @@ This file is not model-visible operational evidence.
 ## BC-013 contract preparation — 2026-10-29
 
 Current bounded concern: [explicit recorded-only UI build](../specs/bounded-changes/bc-013-recorded-only-build.md).
-Contract prepared on a separate branch; implementation, verification and acceptance
-are pending. Build-time selection must suppress live initialization while preserving
-saved examples and existing live-enabled behavior. No model calls or hosting work.
+Draft on hold: build-time selection is under reconsideration. Autonomous recorded
+viewing must suppress live initialization while preserving saved examples.
+Resolve configuration selection and revise the contract before implementation.
+No implementation, verification, acceptance, model calls or hosting work.
 The accepted implementation baseline is PR #14 merge
 `b1f1f9445f2c4c1689d73fb080fd4f0d542af74b`; older pre-merge entries below are historical.
-Next: focused contract checks, minimal UI/configuration changes and required gates.
+Next: resolve configuration selection; do not implement the draft build-time choice.
 
 ## Preset and paired local closure preparation — 2026-10-28
 

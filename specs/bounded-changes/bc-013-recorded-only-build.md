@@ -1,6 +1,9 @@
 # BC-013 — Explicit recorded-only UI build
 
-2026-10-29. Contract preparation; implementation and verification pending.
+2026-10-29. Draft on hold; configuration mechanism under reconsideration.
+Do not implement or treat the build-time setting below as an accepted decision.
+Autonomous recorded viewing remains the goal. Resolve how mode is selected and
+revise configuration-dependent criteria before implementation.
 Current lifecycle is recorded in [specs router](../README.md).
 
 ## Intent and dependencies

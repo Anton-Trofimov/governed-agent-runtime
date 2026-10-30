@@ -8,6 +8,7 @@ Load only the rows relevant to the bounded task, then inspect the affected schem
 
 | Concern | Authority | Scope | Lifecycle | Relevance |
 | --- | --- | --- | --- | --- |
+| Standalone recorded-only configuration | [`BC-013`](./bounded-changes/bc-013-recorded-only-build.md) | Static runtime configuration, no live API initialization, preserved saved-run behavior | Implemented; automated and bounded browser checks passed; human acceptance pending | Current bounded UI change; no hosting or execution change |
 | Product intent | [`core/product-brief.md`](./core/product-brief.md) | Product concept, user, problem, hypotheses and success direction | Active | Current |
 | Agent role and behavioral boundary | [`core/agent-charter.md`](./core/agent-charter.md) | Permitted responsibilities, behavioral principles and limits of model authority | Active | Current |
 | Runtime architecture and control ownership | [`core/runtime-architecture.md`](./core/runtime-architecture.md) | Component boundaries and deterministic control-plane responsibilities | Active | Current |

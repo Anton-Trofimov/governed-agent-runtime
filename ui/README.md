@@ -1,83 +1,83 @@
-# Operator UI — BC-010
+# Governed Agent operator UI
 
-Local static viewer of two recorded synthetic runs. No live calls, execution,
-login or hosting integration. Source authority: `specs/bounded-changes/bc-010-recorded-run-ui.md`.
+One React UI supports saved synthetic runs and the bounded local live adapter.
+Runtime authorization and execution remain server-owned. The UI does not certify
+model explanations or turn recorded evidence into a new execution.
 
-## Develop
+## Build and verify
 
-Use Node 24 (implementation checked with 24.19.0) and npm. From `ui/`:
+From `ui/` (Node/npm are required):
 
-```bash
+```sh
 npm ci
-npm run dev
-```
-
-Open the local URL printed by Vite. For another device on the same trusted LAN,
-use the computer's LAN address and the printed port; firewall/access may need
-configuration. This static viewer has no authentication. Do not expose a live
-runtime through these development instructions.
-
-## Verify and build
-
-```bash
 npm test
 npm run build
 ```
 
-The build is `ui/dist/`; relative asset URLs support a domain root or subdirectory.
-Serve it with an HTTP server, not by double-clicking `index.html` (JSON is fetched).
-From `ui/dist/`, with Python installed:
+The build writes `dist/`, including `LICENSE`, `NOTICE`,
+`THIRD-PARTY-NOTICES.txt` and the bundled font license. Publish only reviewed output,
+not the repository, local configuration or raw evidence directories.
 
-```bash
-python -m http.server 8000 --bind 127.0.0.1
+From the repository root, check the two exported recorded examples:
+
+```sh
+python ui/scripts/export_runs.py --check
 ```
 
-Open http://localhost:8000. On Windows, `py` may be used instead of `python`.
-The build needs no Node, Python runtime APIs or Ollama after static hosting.
+The assets are selected trace-derived projections of BC-006 success and BC-007
+recovery FAIL / safe fallback. Original rationales and final reports are retained.
+Source export is read-only with respect to historical evidence.
 
-## Regenerate/verify recorded assets
+## Mode configuration (BC-013)
 
-From the repository root, with project Python dependencies installed:
+The application reads `app-config.json` beside `index.html` before initializing
+live behavior. The same JavaScript/CSS build supports either exact configuration:
 
-```bash
-PYTHONPATH=src .venv/bin/python ui/scripts/export_runs.py
-PYTHONPATH=src .venv/bin/python ui/scripts/export_runs.py --check
+```json
+{"mode":"recorded-only"}
 ```
 
-The exporter reads only the two declared evidence directories and uses BC-009
-`build_view` / `render_text`. `public/runs/*.json` contains generated views,
-reports, selected chronological trace events and evidence hashes; it is not a
-new measured run. Do not edit by hand.
-Only selected run ID is persisted in local storage. No accounts or task history.
+```json
+{"mode":"live-enabled"}
+```
 
-## Human visual review still required
+The supplied `public/app-config.json` enables existing **local** live launchers.
+For autonomous static publication, replace `dist/app-config.json` with the
+recorded-only object. Do this after each fresh build: Vite copies the supplied
+local configuration again. No recompilation is required to change the output
+configuration. The publication workflow must select its intended configuration
+explicitly; this repository does not deploy a public site.
 
-Automated component tests use jsdom, not browser layout. Check both runs at 390,
-768 and 1440 CSS pixels, keyboard focus, touch controls, enlarged text, report
-expansion and lack of page-wide overflow. This environment has no supported
-browser-control plugin, so actual browser visual/responsive QA was not performed.
+Recorded-only mode requests static assets only. It has no live status polling,
+session restoration, live commands or owner controls. The home screen says:
+“Живой режим сейчас недоступен. Вы можете посмотреть сохранённый пример.”
+It does not say busy or promise a later opening. Saved confirmations remain
+historical, disabled displays. Both examples, journal, replay and reports work
+without a backend. Browser storage is optional (selected example only).
 
-## Recorded demonstration
+A missing/invalid configuration, failed request or timeout (3 seconds including
+JSON decoding) falls back to recorded-only. Late responses cannot enable live
+mode. Configuration is fetched without credentials, cache or redirect following.
+Mode is fixed for that page load; published edits apply after reload/new opening
+and hosting propagation. URL, cookies and browser storage cannot select live mode.
+This file is public, contains no secrets, and is **not authorization or an emergency
+shutdown**. A backend must independently enforce admission and permissions.
 
-The React workspace follows the accepted r8 sketch: dark service state, a chat-shaped
-recorded timeline, and runtime journal. Select “Посмотреть пример”, then choose the saved demonstration. “Далее” advances one recorded event; “К результату” shows the final
-BC-009 outcome; “К началу” resets playback. Historical confirmations are text only.
-The dashboard uses the most recent accepted observation at the replay cursor.
-No model inference, tools, live confirmation or cancellation are connected.
-Live prompt input and suggestions are hidden until live mode is available.
-The versions table is always visible. Safety conditions default open on desktop
-and closed on mobile. Version summary and total traffic remain visible. Original model rationale remains in its source language.
+Assets use a relative base, supporting static hosting under a subdirectory.
+For a local static preview, run `npm run preview -- --host 127.0.0.1` and open the
+reported address. The local live adapter serves `dist/` and its relative `/api`
+routes; see [local simulator instructions](../docs/local-ui-simulator.md).
+Enabling live UI alone does not connect an external backend or configure access.
 
-On desktop the bounded chat and journal scroll independently; mobile chat uses
-bounded internal scrolling, side gutters and a compact service summary. Event summaries explain the
-action; original model rationale remains visible, while details retain actual gate
-statuses/IDs and explained contract references. Changed values are emphasized
-for two seconds.
-“Открыть итоговый отчёт” opens the unchanged BC-009 report at completion.
-Infrastructure telemetry, reconnection and access/security are documented future
-work only; no station connection or live session mechanism is implemented.
+## Presentation and scope
 
-“Как это работает” opens an explanatory dialog without auto-opening. Historical
-confirmation buttons are disabled. The opening “Восстанови работу сервиса” is
-explicitly a demonstration phrase from BC-008, not a recorded request of the
-BC-006/007 evidence. Full model explanations are preserved verbatim.
+Desktop state, chat and journal panels retain the accepted layout; mobile uses a
+compact service summary and bounded message scrolling. “Как это работает” opens
+only on request. Replay distinguishes model proposals, checks, historical operator
+confirmations, tool calls and accepted observations. “К результату” exposes the
+unchanged recorded outcome and final report. Selecting another example resets
+playback. No inference occurs while browsing saved examples.
+
+Authority: [BC-013](../specs/bounded-changes/bc-013-recorded-only-build.md),
+[BC-010](../specs/bounded-changes/bc-010-recorded-run-ui.md), and the
+[live contract](../specs/core/live-ui-runtime-contract.md).

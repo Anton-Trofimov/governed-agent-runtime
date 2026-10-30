@@ -1,7 +1,7 @@
 # BC-013 — Explicit recorded-only UI configuration
 
 2026-10-30. Runtime configuration and unavailable-mode notice approved by owner.
-Implemented with automated verification; browser and human acceptance pending.
+Implemented with automated and bounded browser verification; human acceptance pending.
 
 ## Intent and dependencies
 

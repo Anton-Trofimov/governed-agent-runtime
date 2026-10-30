@@ -1,10 +1,7 @@
-# BC-013 — Explicit recorded-only UI build
+# BC-013 — Explicit recorded-only UI configuration
 
-2026-10-29. Draft on hold; configuration mechanism under reconsideration.
-Do not implement or treat the build-time setting below as an accepted decision.
-Autonomous recorded viewing remains the goal. Resolve how mode is selected and
-revise configuration-dependent criteria before implementation.
-Current lifecycle is recorded in [specs router](../README.md).
+2026-10-30. Runtime configuration and unavailable-mode notice approved by owner.
+Implemented with automated verification; browser and human acceptance pending.
 
 ## Intent and dependencies
 
@@ -22,16 +19,23 @@ previous acceptance records are unchanged. This is not a backend authorization c
 
 ## Configuration contract
 
-Use one non-secret build-time setting: `VITE_APP_MODE`.
-Accepted values: `recorded-only` and `live-enabled`.
-An absent setting preserves existing behavior as `live-enabled`; any present
-unsupported value, including empty, fails configuration/build with a clear error.
-Development startup follows the same validation.
+Use one frontend build with a non-secret static `app-config.json` next to the
+site entry point. Schema: exactly `{ "mode": "recorded-only" }` or
+`{ "mode": "live-enabled" }`. Read it before mounting the application, using the
+relative asset base, no credentials, no cache and no redirect following.
+Allow at most 3 seconds including response decoding. Missing, malformed, unknown,
+failed or timed-out configuration resolves to recorded-only. A late response must
+not enable live mode after fallback. No API probing is permitted to infer mode.
 
-Resolve configuration before application initialization. It is immutable for
-that loaded build. URL, storage, cookies and server responses cannot override it.
-Do not infer mode by probing a server, and do not reuse a test-only loader override
-as the production configuration. Keep the existing relative asset-base support.
+The resolved mode is fixed for this page load. URL/history/storage/cookies cannot
+override it. Editing the published configuration applies on reload/new opening,
+subject to hosting propagation; no automatic polling or hot switching. This is
+presentation configuration, not backend authorization or an emergency control.
+
+The repository supplies `live-enabled` for existing local launchers. Autonomous
+publication explicitly replaces only the output configuration with `recorded-only`;
+no recompilation is necessary. Missing configuration is always recorded-only.
+Do not place credentials, private endpoints or operational settings in this file.
 
 ## Recorded-only behavior
 
@@ -43,7 +47,9 @@ as the production configuration. Keep the existing relative asset-base support.
   a backend. Do not clear unrelated storage or claim to cancel a previous run.
 - Normalize a stale live URL to the recorded home view; Back/Forward cannot restore
   a live screen. Existing recorded navigation remains available.
-- Home offers recorded viewing without a live mode chooser. Hide live start,
+- Home offers recorded viewing without a live mode chooser. Display the neutral
+  notice “Живой режим сейчас недоступен. Вы можете посмотреть сохранённый пример”.
+  Do not describe this as busy or promise later availability. Hide live start,
   restart, stop, owner controls, composer and live return/result links.
 - Historical operator decisions remain visible and clearly recorded; disabled
   historical confirmation displays may remain. They send no commands.
@@ -54,7 +60,7 @@ as the production configuration. Keep the existing relative asset-base support.
 - Missing, malformed or unsupported recorded assets produce a truthful content
   error. Never fabricate success. Unavailable browser storage does not block viewing.
 
-Live-enabled builds retain existing behavior and runtime authority. This change
+Live-enabled configuration retains existing behavior and runtime authority. This change
 does not change live input profiles, admission, confirmation or provider budgets.
 
 ## Acceptance and evidence
@@ -66,14 +72,14 @@ does not change live input profiles, admission, confirmation or provider budgets
 | Stale live URL/history and seeded live storage | Recorded home fallback; no live restoration; recorded navigation works |
 | Missing/malformed recorded data and denied storage | Clear content error or usable storage-independent view; no live fallback |
 | Recorded UI | No actionable live controls or live-return promises; historical decisions preserved |
-| Setting absent or live-enabled | Existing live tests and behavior preserved |
-| Unsupported or empty setting | Build/development configuration fails before app startup |
+| Explicit live-enabled configuration | Existing live tests and behavior preserved |
+| Missing, invalid, failed or timed-out configuration | Recorded-only fallback, no live API access, neutral unavailable notice |
 | Relative base path | Static assets and report navigation work under a non-root path |
 
 Use focused failing checks for the intended behavior before implementation.
 Verify network absence at the transport boundary, not merely hidden buttons.
 Exercise the real application entry/configuration, not only injected loaders.
-Run UI tests, typecheck/build for both modes, recorded export consistency and
+Run UI tests, typecheck/build and exercise both configurations of that same build, recorded export consistency and
 required repository regression gates. Record exact commands, revision and results.
 Perform a static-server browser smoke with network observation and representative
 desktop/mobile views; report any unavailable manual verification explicitly.
@@ -85,5 +91,6 @@ No hosting, public networking, authentication, runtime execution changes, new
 recorded evidence, model evaluation, dependency upgrades or layout redesign.
 No claim of public deployment readiness or prose correctness follows from this BC.
 
-Update user-facing build instructions during implementation. Close with verification
+Include root LICENSE, NOTICE and notices for bundled dependencies/fonts in the
+output. Update user-facing build instructions during implementation. Close with verification
 evidence and human disposition; do not present this contract as implemented.

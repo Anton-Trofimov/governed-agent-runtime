@@ -1,3 +1,4 @@
+import type { AppMode } from './config';
 import { OwnerAdmissions } from './OwnerAdmissions';
 import { AgentStatus } from './AgentStatus';
 import { ReportDialog, revealEvent } from './presentation';
@@ -9,7 +10,8 @@ import { loadRun, runs, readSelection, saveSelection, type Run, type Observation
 type Loader = (id: string) => Promise<Run>;
 const timestamp = (value:string) => new Intl.DateTimeFormat('ru-RU', {dateStyle:'short', timeStyle:'medium',timeZone:'Europe/Moscow'}).format(new Date(value))+' МСК';
 
-export function App({loader=loadRun}:{loader?:Loader}) {
+export function App({loader=loadRun,mode="recorded-only"}:{loader?:Loader;mode?:AppMode}) {
+  const recordedOnly=mode!=="live-enabled";
   const [mobile,setMobile]=useState(()=>window.innerWidth<=620);
   useEffect(()=>{const resize=()=>setMobile(window.innerWidth<=620);window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
   const help=useRef<HTMLDialogElement>(null);
@@ -26,6 +28,7 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   type Screen='home'|'demo'|'live';
   const applyScreen=(screen:Screen)=>{setLive(screen==='live');setStarted(screen==='demo');};
   async function navigate(screen:Screen,push=true){
+    if(recordedOnly&&screen==='live'){screen='home';window.history.replaceState({garScreen:'home'},'','#home');}
     if(navigationBusy.current)return;
     navigationBusy.current=true;
     try{
@@ -51,7 +54,7 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),1000);return()=>window.clearInterval(timer);},[]);
   const startCommand=useRef<ReturnType<typeof command>|null>(null);
   async function enterLive(restart=false){
-    if(liveBusy)return;
+    if(recordedOnly||liveBusy)return;
     setLiveBusy(true);setLiveError('');
     try{
       const session=await ensureSession();
@@ -70,6 +73,12 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const [provider,setProvider]=useState<Provider>();
   const [publicAdmissions,setPublicAdmissions]=useState<boolean>();
   useEffect(()=>{
+    if(recordedOnly){
+      const saved=window.history.state?.garScreen;
+      const screen=saved==='demo'||window.location.hash==='#demo'?'demo':'home';
+      applyScreen(screen);window.history.replaceState({garScreen:screen},'',`#${screen}`);
+      return;
+    }
     if(loader!==loadRun)return;
     let active=true;
     const inspect=async()=>{
@@ -90,7 +99,7 @@ export function App({loader=loadRun}:{loader?:Loader}) {
     }
     const timer=window.setInterval(inspect,3000);
     return()=>{active=false;window.clearInterval(timer);};
-  },[loader]);
+  },[loader,recordedOnly]);
   const [id,setId]=useState(readSelection);
   const [started,setStarted]=useState(false);
   const [result,setResult]=useState<{id:string;run?:Run;error?:boolean}>();
@@ -127,18 +136,18 @@ export function App({loader=loadRun}:{loader?:Loader}) {
   const mobileReturn=mobile&&ownsRun?<button className="action mobile-owner-access" onClick={()=>void navigate('live')}>{terminalOwner?'Результат живого запуска':'Вернуться к запуску'}{remaining!==null?` · ${Math.floor(remaining/60)}:${String(remaining%60).padStart(2,'0')}`:''}{!ownerConnected?' · связь уточняется':''}</button>:null;
   return <div id="operator-workspace" className={live||started?'working-mode':''}>
     <header className="brandbar"><div className="brand-identity"><a href="#home" className="brand" onClick={e=>{e.preventDefault();void navigate('home');}}>Governed Agent</a><small>Антон Трофимов · <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a></small></div><div className="platform-concept"><strong>Агентная платформа с разделением ответственности</strong></div><button className="help-trigger" ref={helpButton} onClick={()=>help.current?.showModal()} aria-haspopup="dialog">ⓘ Как это работает</button></header>
-    <AboutDialog provider={provider} dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
-    <main id="main">{publicAdmissions!==undefined&&<OwnerAdmissions enabled={publicAdmissions} connected={ownerConnected} onChange={setPublicAdmissions}/>}{!live&&<div className={started?"task-toolbar demo-toolbar":"context"}><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
+    <AboutDialog recordedOnly={recordedOnly} provider={provider} dialogRef={help} onClose={()=>helpButton.current?.focus()}/>
+    <main id="main">{!recordedOnly&&publicAdmissions!==undefined&&<OwnerAdmissions enabled={publicAdmissions} connected={ownerConnected} onChange={setPublicAdmissions}/>}{!live&&<div className={started?"task-toolbar demo-toolbar":"context"}><h1 id="task-heading">Восстановление <span className="desktop-word">сервиса </span><span className="service-name">payment-api</span></h1>
       {started&&!live&&<div className="run-picker"><label htmlFor="run">Демонстрационный пример</label><select id="run" value={id} onChange={e=>setId(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>}{started&&<nav className="demo-navigation" aria-label="Навигация примера"><button className="action home-button" onClick={()=>void navigate('home')}>К началу</button>{mobileReturn}{ownerAccess}<button className="action chat-jump" onClick={()=>document.getElementById('replay-chat')?.scrollIntoView?.({block:'start'})}>К чату ↓</button></nav>}</div>}
 
       {live&&liveError&&<p role="alert" className="admission-notice">{liveError}</p>}
-      {live?<LiveWorkspace initialState={current?.run?<StatePanel o={current.run.replay.events.find(e=>e.observation)!.observation!} initial/>:undefined} onExit={()=>void navigate('home')} renderState={(s,unknown)=><StatePanel o={s} live unknown={unknown}/>} renderCompact={(s,unknown)=><CompactState o={s} unknown={unknown}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace key={id} run={current.run} started={started} setStarted={value=>void navigate(value?'demo':'home')} liveControls={liveControls} ownerStatus={ownerStatus} resultLink={resultLink} availability={availability} liveError={liveError||(availabilityReason==='PUBLIC_PAUSED'?explainError(new ApiError('PUBLIC_PAUSED')):availabilityReason==='SMOKE_LIMIT'?explainError(new ApiError('SMOKE_LIMIT')):'')} ownsRun={ownsRun}/>}
+      {live?<LiveWorkspace initialState={current?.run?<StatePanel o={current.run.replay.events.find(e=>e.observation)!.observation!} initial/>:undefined} onExit={()=>void navigate('home')} renderState={(s,unknown)=><StatePanel o={s} live unknown={unknown}/>} renderCompact={(s,unknown)=><CompactState o={s} unknown={unknown}/>}/>:!current?<p className="empty" role="status">Загрузка сохранённых данных…</p>:current.error||!current.run?<section className="empty" role="alert"><h2>Данные запуска недоступны</h2><p>Не удалось загрузить или проверить запись. Состояние системы не установлено.</p><button className="action" onClick={()=>{setResult(undefined);setRetry(x=>x+1);}}>Повторить загрузку</button></section>:<Workspace recordedOnly={recordedOnly} key={id} run={current.run} started={started} setStarted={value=>void navigate(value?'demo':'home')} liveControls={recordedOnly?null:liveControls} ownerStatus={ownerStatus} resultLink={resultLink} availability={availability} liveError={liveError||(availabilityReason==='PUBLIC_PAUSED'?explainError(new ApiError('PUBLIC_PAUSED')):availabilityReason==='SMOKE_LIMIT'?explainError(new ApiError('SMOKE_LIMIT')):'')} ownsRun={ownsRun}/>}
     </main>
-    <footer className="page-notes"><p>{providerNotice(provider)}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p className="project-credit">Проект Антона Трофимова · Исходный код и спецификации — <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a><br/>Разработано с участием AI-агентов по SDD Operating Model.</p></footer>
+    <footer className="page-notes"><p>{recordedOnly?'Сохранённые примеры доступны без вызова модели.':providerNotice(provider)}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p><p className="project-credit">Проект Антона Трофимова · Исходный код и спецификации — <a href="https://github.com/Anton-Trofimov/governed-agent-runtime">GitHub</a><br/>Разработано с участием AI-агентов по SDD Operating Model.</p></footer>
   </div>;
 }
 
-function Workspace({run,started,setStarted,liveControls,ownerStatus,resultLink,availability,liveError,ownsRun}:{run:Run;started:boolean;setStarted:(value:boolean)=>void;liveControls:ReactNode;ownerStatus:ReactNode;resultLink:ReactNode;availability?:string;liveError:string;ownsRun:boolean}) {
+function Workspace({recordedOnly,run,started,setStarted,liveControls,ownerStatus,resultLink,availability,liveError,ownsRun}:{recordedOnly:boolean;run:Run;started:boolean;setStarted:(value:boolean)=>void;liveControls:ReactNode;ownerStatus:ReactNode;resultLink:ReactNode;availability?:string;liveError:string;ownsRun:boolean}) {
   const [cursor,setCursor]=useState(0);
   const journal=useRef<HTMLOListElement>(null);
   const messages=useRef<HTMLDivElement>(null);
@@ -171,7 +180,7 @@ function Workspace({run,started,setStarted,liveControls,ownerStatus,resultLink,a
       <section id="replay-chat" className="chat" aria-label="Диалог с агентом">
         {started&&<CompactState o={observation} unknown={done&&run.view.unknown_write_effect}/>}
         <div className="chat-head"><div><h2>Агент управления сервисом</h2><div className="agent-controls"><AgentStatus phase="idle" label={done?'Просмотр завершён':started?'Демонстрационный пример':'Готов к началу'}/></div></div></div>
-        {!started?<div className="welcome"><h3>Восстановите сервис payment-api после неудачного обновления.</h3><ul><li>Вы задаёте цель и подтверждаете изменения.</li><li>Агент оценивает состояние среды и предлагает действия.</li><li>Runtime проверяет условия и управляет выполнением.</li></ul><p className="value-explanation">Такой подход полезен там, где важны надёжность, ответственность и прослеживаемость операций. Сценарий намеренно ограничен, чтобы показать, как решения AI превращаются в проверяемые действия под контролем платформы.</p><p className="choose-mode">Выберите режим</p><div className="buttons">{liveControls}<button className="action primary" onClick={()=>setStarted(true)}>Посмотреть пример</button></div>{ownsRun&&<div className="owner-status" aria-label="Ваш запуск">{ownerStatus}{resultLink}</div>}<p className={liveError||((!ownsRun||!!resultLink)&&availability==='busy')?'admission-notice':'subtle'} role="status">{liveError||(ownsRun&&!resultLink?'':availability==='busy'?'Живой режим занят. Пока можно посмотреть демонстрационный пример.':availability==='available'?'Локальный живой режим — доступен':availability==='unavailable'?'Живой режим временно недоступен.':'Живой режим пока не подключён.')}</p></div>:<>
+        {!started?<div className="welcome"><h3>Восстановите сервис payment-api после неудачного обновления.</h3><ul><li>Вы задаёте цель и подтверждаете изменения.</li><li>Агент оценивает состояние среды и предлагает действия.</li><li>Runtime проверяет условия и управляет выполнением.</li></ul><p className="value-explanation">Такой подход полезен там, где важны надёжность, ответственность и прослеживаемость операций. Сценарий намеренно ограничен, чтобы показать, как решения AI превращаются в проверяемые действия под контролем платформы.</p>{!recordedOnly&&<p className="choose-mode">Выберите режим</p>}<div className="buttons">{liveControls}<button className="action primary" onClick={()=>setStarted(true)}>Посмотреть пример</button></div>{ownsRun&&<div className="owner-status" aria-label="Ваш запуск">{ownerStatus}{resultLink}</div>}<p className={liveError||((!ownsRun||!!resultLink)&&availability==='busy')?'admission-notice':'subtle'} role="status">{recordedOnly?'Живой режим сейчас недоступен. Вы можете посмотреть сохранённый пример.':liveError||(ownsRun&&!resultLink?'':availability==='busy'?'Живой режим занят. Пока можно посмотреть демонстрационный пример.':availability==='available'?'Локальный живой режим — доступен':availability==='unavailable'?'Живой режим временно недоступен.':'Живой режим пока не подключён.')}</p></div>:<>
           <div className="messages" ref={messages} aria-label="События диалога">
             <article className="user-message illustrative-request"><div className="author"><span className="actor-label">Оператор</span> · <span>Запрос для демонстрации</span></div><p>Восстанови работу сервиса</p><small className="subtle">Формулировка для интерфейса. Исходный текст запроса в этой записи не сохранён.</small></article>
             {visible.filter(e=>['LLM','Оператор'].includes(e.actor)||['started','confirmation_pending','observation_applied','terminal','terminal_verified'].includes(e.kind)).map(e=><article key={e.source} data-event-source={e.source} data-highlight={highlight?.side==='chat'&&highlight.source===e.source} className={e.actor==='Оператор'?'user-message':e.actor==='LLM'?'agent-message':'runtime-message'}><div className="author"><span className="actor-label">{e.actor==='LLM'?'Агент · предложение':e.actor}</span> · {timestamp(e.at)}</div>{e.kind==='confirmation_consumed'&&<div className="recorded-decision"><small>Решение оператора в записи</small><div className="buttons"><button className="action selected-decision" disabled aria-pressed="true" aria-label="Подтвердить">✓ Подтвердить</button><button className="action" disabled aria-pressed="false">Отклонить</button></div></div>}{e.actor==='LLM'&&<p className="subtle summary-label">Краткое объяснение, сформировано интерфейсом</p>}<p><EventSummary text={e.summary} correctStop={failureEvent>0&&run.view.task_state==='SAFE_FALLBACK'}/></p>{e.actor==='LLM'&&<><p className="subtle original-label">Ответ агента</p><p lang="en">{e.text}</p></>}<EventDetails event={e} visibleSources={visible.map(item=>item.source)} onReveal={reveal}/></article>)}
@@ -253,7 +262,7 @@ function CompactState({o,unknown}:{o:Observation;unknown:boolean}) {
   return <a className="compact-state" href="#service-state" aria-label="К полному состоянию сервиса"><span>{o.stable_version_id} · <Changed value={unknown?'данные до изменения':`${o.healthy} Ready`}/> · <Changed value={o.stable_traffic_rps}/> RPS</span><span>{o.candidate_version_id} · <Changed value={o.candidate_count}/> реплик · <Changed value={o.total_rps-o.stable_traffic_rps}/> RPS</span><strong className={recovery.startsWith('Деградация новой версии')?'degradation-label':undefined}><Changed value={recovery}/></strong></a>;
 }
 
-function AboutDialog({dialogRef,onClose,provider}:{provider?:Provider;dialogRef:React.RefObject<HTMLDialogElement|null>;onClose:()=>void}) {
+function AboutDialog({dialogRef,onClose,provider,recordedOnly}:{recordedOnly:boolean;provider?:Provider;dialogRef:React.RefObject<HTMLDialogElement|null>;onClose:()=>void}) {
   return <dialog className="about-dialog" ref={dialogRef} onClose={onClose} aria-labelledby="about-title">
     <button className="action close-help" autoFocus onClick={()=>dialogRef.current?.close()}>Закрыть</button>
     <h2 id="about-title">От предложения модели — к контролируемому действию</h2>
@@ -267,7 +276,7 @@ function AboutDialog({dialogRef,onClose,provider}:{provider?:Provider;dialogRef:
     </ol>
     <h3>Почему это важно</h3><p>Убедительный ответ модели ещё не означает разрешение на действие. Подтверждение оператора тоже не отменяет проверки платформы. Журнал позволяет проследить, кто предложил и разрешил действие, чем подтверждён результат.</p>
 
-    <div className="about-notes"><p>{providerNotice(provider)}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p></div>
+    <div className="about-notes"><p>{recordedOnly?'Сохранённые примеры доступны без вызова модели.':providerNotice(provider)}<br/>Условия работы сервиса payment-api и операции с ним моделируются.</p></div>
   </dialog>;
 }
 

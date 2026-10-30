@@ -9,7 +9,7 @@ const loader=async(id:string)=>parseRun(id==='success'?success:stop,id);
 async function start(){fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));}
 function finish(){fireEvent.click(screen.getByRole('button',{name:'К результату'}));}
 it('replays observations without leaking final state and resets to the initial observation',async()=>{
- render(<App loader={loader}/>);
+ render(<App mode="live-enabled" loader={loader}/>);
  await start();
  const state=screen.getByRole('region',{name:'Состояние системы'});
  expect(within(state).getByText('615')).toBeVisible();
@@ -28,7 +28,7 @@ it('replays observations without leaking final state and resets to the initial o
 it('switches runs without old state under the new selection',async()=>{
  let resolve:(r:Run)=>void=()=>{};
  const delayed=(id:string)=>id==='success'?loader(id):new Promise<Run>(r=>{resolve=r;});
- render(<App loader={delayed}/>);await start();finish();
+ render(<App mode="live-enabled" loader={delayed}/>);await start();finish();
  fireEvent.change(screen.getByLabelText('Демонстрационный пример'),{target:{value:'stop'}});
  expect(screen.queryByRole('heading',{name:'Откат завершён'})).not.toBeInTheDocument();
  expect(screen.getByText('Загрузка сохранённых данных…')).toBeVisible();
@@ -38,12 +38,12 @@ it('switches runs without old state under the new selection',async()=>{
  expect(readSelection()).toBe('stop');
 });
 it('shows an error when data cannot load',async()=>{
- render(<App loader={async()=>{throw Error('missing');}}/>);
+ render(<App mode="live-enabled" loader={async()=>{throw Error('missing');}}/>);
  expect(await screen.findByRole('alert')).toHaveTextContent('Состояние системы не установлено');
 });
 it('suppresses reassurance for an unknown write outcome',async()=>{
  const value=structuredClone(stop);value.view.unknown_write_effect=true;
- render(<App loader={async()=>parseRun(value,'stop')}/>);await start();finish();
+ render(<App mode="live-enabled" loader={async()=>parseRun(value,'stop')}/>);await start();finish();
  expect(screen.getByRole('heading',{name:'Исход изменения неизвестен'})).toBeVisible();
  expect(screen.getByText(/Последние данные до изменения с неизвестным исходом/)).toBeVisible();
 });
@@ -51,7 +51,7 @@ it('works without browser storage',async()=>{
  vi.spyOn(Storage.prototype,'getItem').mockImplementation(()=>{throw Error('disabled');});
  vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw Error('disabled');});
  expect(readSelection()).toBe('success');expect(()=>saveSelection('stop')).not.toThrow();
- render(<App loader={loader}/>);await start();finish();
+ render(<App mode="live-enabled" loader={loader}/>);await start();finish();
  expect(screen.getByRole('heading',{name:'Откат завершён'})).toBeVisible();
 });
 it('falls back from obsolete selection',()=>{
@@ -60,7 +60,7 @@ it('falls back from obsolete selection',()=>{
 it('ignores a stale response',async()=>{
  let resolve:(r:Run)=>void=()=>{};
  const delayed=(id:string)=>id==='success'?loader(id):new Promise<Run>(r=>{resolve=r;});
- render(<App loader={delayed}/>);await start();
+ render(<App mode="live-enabled" loader={delayed}/>);await start();
  fireEvent.change(screen.getByLabelText('Демонстрационный пример'),{target:{value:'stop'}});
  fireEvent.change(screen.getByLabelText('Демонстрационный пример'),{target:{value:'success'}});
  await screen.findByRole('button',{name:'К результату'});finish();resolve(parseRun(stop,'stop'));
@@ -73,7 +73,7 @@ it('rejects missing, malformed and mismatched network data',async()=>{
  fetcher.mockResolvedValue({ok:true,json:async()=>({})} as Response);await expect(loadRun('success')).rejects.toThrow();
 });
 it('gates mode controls and keeps versions always visible',async()=>{
- render(<App loader={loader}/>);await screen.findByRole('button',{name:'Посмотреть пример'});
+ render(<App mode="live-enabled" loader={loader}/>);await screen.findByRole('button',{name:'Посмотреть пример'});
  expect(screen.queryByLabelText('Демонстрационный пример')).not.toBeInTheDocument();
  expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
  expect(screen.getByText('Версии и реплики').closest('details')).toBeNull();
@@ -88,14 +88,14 @@ it('keeps mobile versions visible and safety conditions initially closed',async(
  const original=window.matchMedia;
  window.matchMedia=vi.fn().mockReturnValue({matches:true});
  try {
-  render(<App loader={loader}/>);await screen.findByRole('button',{name:'Посмотреть пример'});
+  render(<App mode="live-enabled" loader={loader}/>);await screen.findByRole('button',{name:'Посмотреть пример'});
   expect(screen.getByText('Версии и реплики').closest('details')).toBeNull();
   expect(screen.getByText('Условия безопасной работы').closest('details')!.open).toBe(false);
   expect(screen.getByText('Общий трафик')).toBeVisible();
  } finally { window.matchMedia=original; }
 });
 it('emphasizes changes only after observed updates and clears emphasis',async()=>{
- render(<App loader={loader}/>);await start();
+ render(<App mode="live-enabled" loader={loader}/>);await start();
  expect(document.querySelector('.value-changed')).toBeNull();
  const index=success.replay.events.findIndex(e=>e.kind==='observation_applied');
  for(let i=0;i<index;i++)fireEvent.click(screen.getByRole('button',{name:'Далее'}));
@@ -104,7 +104,7 @@ it('emphasizes changes only after observed updates and clears emphasis',async()=
 });
 
 it('shows recorded confirmations as disabled choices, never actionable consent',async()=>{
- render(<App loader={loader}/>);await start();finish();
+ render(<App mode="live-enabled" loader={loader}/>);await start();finish();
  const confirms=screen.getAllByRole('button',{name:'Подтвердить'});
  expect(confirms.length).toBe(3);
  confirms.forEach(button=>{expect(button).toBeDisabled();expect(button).toHaveAttribute('aria-pressed','true');});
@@ -116,7 +116,7 @@ it('opens explanatory dialog only on demand and restores trigger focus',async()=
  // jsdom does not implement native dialog methods; test our open/close wiring.
  HTMLDialogElement.prototype.showModal=function(){this.open=true;};
  HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new Event('close'));};
- render(<App loader={loader}/>);await screen.findByRole('button',{name:'Посмотреть пример'});
+ render(<App mode="live-enabled" loader={loader}/>);await screen.findByRole('button',{name:'Посмотреть пример'});
  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
  const trigger=screen.getByRole('button',{name:'ⓘ Как это работает'});
  fireEvent.click(trigger);
@@ -132,7 +132,7 @@ it('highlights the compact state and advances without scrolling the page',async(
  const original=HTMLElement.prototype.scrollIntoView;
  HTMLElement.prototype.scrollIntoView=scroll;
  try {
-  render(<App loader={loader}/>);await start();
+  render(<App mode="live-enabled" loader={loader}/>);await start();
   expect(scroll).toHaveBeenCalledTimes(1);
   scroll.mockClear();finish();
   expect(document.querySelector('.compact-state .value-changed')).not.toBeNull();
@@ -141,7 +141,7 @@ it('highlights the compact state and advances without scrolling the page',async(
 });
 
 it('keeps the event breakdown in replay only and derives counts for each example',async()=>{
- render(<App loader={loader}/>);
+ render(<App mode="live-enabled" loader={loader}/>);
  await screen.findByRole('button',{name:'Посмотреть пример'});
  expect(screen.queryByLabelText('Состав событий')).not.toBeInTheDocument();
  await start();
@@ -163,7 +163,7 @@ it('keeps the event breakdown in replay only and derives counts for each example
 });
 
 it('uses the logo as home navigation and keeps translation guidance out of welcome',async()=>{
- render(<App loader={loader}/>);
+ render(<App mode="live-enabled" loader={loader}/>);
  await screen.findByRole('button',{name:'Посмотреть пример'});
  expect(screen.queryByText(/Ответ агента записан на английском/)).not.toBeInTheDocument();
  await start();
@@ -176,7 +176,7 @@ it.each(['success','stop'])('links %s proposal and checks without scrolling the 
  const scroll=vi.fn();const original=HTMLElement.prototype.scrollIntoView;
  HTMLElement.prototype.scrollIntoView=scroll;
  try{
-  render(<App loader={loader}/>);await start();
+  render(<App mode="live-enabled" loader={loader}/>);await start();
   fireEvent.change(screen.getByLabelText('Демонстрационный пример'),{target:{value:id}});
   await screen.findByRole('button',{name:'К результату'});finish();scroll.mockClear();
   const proposal=document.querySelector<HTMLElement>('.messages [data-event-source="event-60"]')!;
@@ -193,7 +193,7 @@ it.each(['success','stop'])('links %s proposal and checks without scrolling the 
  }finally{HTMLElement.prototype.scrollIntoView=original;}
 });
 it('does not expose future checks before playback reveals them',async()=>{
- render(<App loader={loader}/>);await start();
+ render(<App mode="live-enabled" loader={loader}/>);await start();
  fireEvent.click(screen.getByRole('button',{name:'Далее'}));
  const proposal=document.querySelector('.messages [data-event-source="event-4"]')!;
  expect(proposal).not.toHaveTextContent('event-5');

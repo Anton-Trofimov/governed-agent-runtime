@@ -25,7 +25,7 @@ function mockBackend({visitor=false,terminal=false,reservation=false,busyOnPrepa
 }
 const mutations=(fetcher:ReturnType<typeof mockBackend>)=>fetcher.mock.calls.filter(([,options])=>options?.method==='POST');
 it('lets the owner view a demo and return with the same deadline, without any new command',async()=>{
- const fetcher=mockBackend();render(<App/>);
+ const fetcher=mockBackend();render(<App mode="live-enabled"/>);
  const banner=await screen.findByLabelText('Ваш запуск');
  expect(banner).toHaveTextContent('На решение: 300 сек.');
  expect(screen.queryByText('Живой режим занят. Пока можно посмотреть демонстрационный пример.')).toBeNull();
@@ -38,14 +38,14 @@ it('lets the owner view a demo and return with the same deadline, without any ne
  expect(mutations(fetcher)).toEqual([]);
 });
 it('keeps a visitor in recorded mode without offering another sessions run',async()=>{
- mockBackend({visitor:true});render(<App/>);
+ mockBackend({visitor:true});render(<App mode="live-enabled"/>);
  await screen.findByText('Живой режим занят. Пока можно посмотреть демонстрационный пример.');
  expect(screen.getByRole('button',{name:'Начать живой сценарий'})).toBeDisabled();
  expect(screen.queryByRole('complementary',{name:'Ваш запуск'})).toBeNull();
  expect(screen.getByRole('button',{name:'Посмотреть пример'})).toBeEnabled();
 });
 it('opens a terminal result read-only and history transitions never start a run',async()=>{
- const fetcher=mockBackend({terminal:true});render(<App/>);
+ const fetcher=mockBackend({terminal:true});render(<App mode="live-enabled"/>);
  fireEvent.click(await screen.findByRole('button',{name:'Посмотреть результат'}));
  await screen.findByText('Время истекло',{selector:'.outcome > p'});
  window.history.replaceState({garScreen:'demo'},'','#demo');fireEvent.popState(window);
@@ -56,7 +56,7 @@ it('opens a terminal result read-only and history transitions never start a run'
 });
 it.each(['preparing','ready','dialogue'])('preserves a %s reservation across home, demo and history without another admission',async(reservationPhase)=>{
  window.history.replaceState({garScreen:'live'},'','#live');
- const fetcher=mockBackend({reservation:true,reservationPhase});render(<App/>);
+ const fetcher=mockBackend({reservation:true,reservationPhase});render(<App mode="live-enabled"/>);
  if(reservationPhase==='dialogue')await screen.findByText('Агент отвечает');
  else await screen.findByRole('textbox',{name:'Запрос агенту'});
  window.history.replaceState({garScreen:'home'},'','#home');fireEvent.popState(window);
@@ -75,7 +75,7 @@ it.each(['preparing','ready','dialogue'])('preserves a %s reservation across hom
 
 it('starts again directly from the central chooser after a terminal run',async()=>{
  vi.stubGlobal('navigator',{locks:{request:async(_name:string,callback:()=>unknown)=>callback()}});
- const fetcher=mockBackend({terminal:true});render(<App/>);
+ const fetcher=mockBackend({terminal:true});render(<App mode="live-enabled"/>);
  const button=await screen.findByRole('button',{name:'Начать заново'});
  expect(button.closest('.welcome')).not.toBeNull();
  expect(screen.getByRole('button',{name:'Посмотреть результат'}).closest('.welcome')).not.toBeNull();
@@ -87,7 +87,7 @@ it('starts again directly from the central chooser after a terminal run',async()
 
 it('preserves result access when another session wins admission before restart',async()=>{
  vi.stubGlobal('navigator',{locks:{request:async(_name:string,callback:()=>unknown)=>callback()}});
- const fetcher=mockBackend({terminal:true,busyOnPrepare:true});render(<App/>);
+ const fetcher=mockBackend({terminal:true,busyOnPrepare:true});render(<App mode="live-enabled"/>);
  fireEvent.click(await screen.findByRole('button',{name:'Начать заново'}));
  await screen.findByText('Живой режим занят. Пока можно посмотреть демонстрационный пример.');
  expect(screen.getByRole('button',{name:'Посмотреть результат'})).toBeVisible();
@@ -97,7 +97,7 @@ it('preserves result access when another session wins admission before restart',
 
 it.each([[390,false],[390,true],[1280,false],[1280,true]])('keeps owner access beside navigation at width %s (terminal=%s)',async(width,terminal)=>{
  vi.stubGlobal('innerWidth',width);
- const fetcher=mockBackend({terminal});render(<App/>);
+ const fetcher=mockBackend({terminal});render(<App mode="live-enabled"/>);
  fireEvent.click(await screen.findByRole('button',{name:'Посмотреть пример'}));
  const button=await screen.findByRole('button',{name:terminal?(width===390?'Результат живого запуска':'Результат запуска'):(width===390?/Вернуться к запуску · 5:00/:'Вернуться к запуску')});
  expect(button.closest('.demo-navigation')).not.toBeNull();
@@ -109,7 +109,7 @@ it.each([[390,false],[390,true],[1280,false],[1280,true]])('keeps owner access b
 });
 
 it('shows the earlier absolute dialogue deadline without renewing it on navigation',async()=>{
- const fetcher=mockBackend({reservation:true,absoluteExpiry:'2026-10-22T12:01:00Z'});render(<App/>);
+ const fetcher=mockBackend({reservation:true,absoluteExpiry:'2026-10-22T12:01:00Z'});render(<App mode="live-enabled"/>);
  expect(await screen.findByLabelText('Ваш запуск')).toHaveTextContent('На обращение: 60 сек.');
  fireEvent.click(screen.getByRole('button',{name:'Вернуться к запуску'}));
  await screen.findByRole('textbox',{name:'Запрос агенту'});

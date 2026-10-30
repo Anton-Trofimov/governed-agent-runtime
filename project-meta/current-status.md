@@ -3,16 +3,19 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
-## BC-013 contract preparation — 2026-10-29
+## BC-013 runtime configuration — 2026-10-30
 
-Current bounded concern: [explicit recorded-only UI build](../specs/bounded-changes/bc-013-recorded-only-build.md).
-Draft on hold: build-time selection is under reconsideration. Autonomous recorded
-viewing must suppress live initialization while preserving saved examples.
-Resolve configuration selection and revise the contract before implementation.
-No implementation, verification, acceptance, model calls or hosting work.
-The accepted implementation baseline is PR #14 merge
-`b1f1f9445f2c4c1689d73fb080fd4f0d542af74b`; older pre-merge entries below are historical.
-Next: resolve configuration selection; do not implement the draft build-time choice.
+Owner approved one UI build with a separate static mode configuration and a
+neutral live-unavailable notice. [BC-013](../specs/bounded-changes/bc-013-recorded-only-build.md)
+now replaces the held build-time proposal. Implementation uses an initialization
+barrier, recorded-only fallback, guarded navigation and bundled license notices.
+Local verification: 94 UI tests, 386 Python tests, Ruff, UI build/typecheck,
+export consistency and artifact notice checks passed. Browser verification remains
+open: no installed Chromium; attempted download returned invalid archives.
+No real inference, deployment or acceptance is claimed. PR #15 remains draft.
+Next: real-browser desktop/mobile and subpath smoke, human disposition, then merge
+if accepted. Accepted main baseline remains PR #14 at
+`b1f1f9445f2c4c1689d73fb080fd4f0d542af74b`.
 
 ## Preset and paired local closure preparation — 2026-10-28
 

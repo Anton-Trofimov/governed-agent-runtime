@@ -12,6 +12,8 @@ barrier, recorded-only fallback, guarded navigation and bundled license notices.
 Local verification: 94 UI tests, 386 Python tests, Ruff, UI build/typecheck,
 export consistency and artifact notice checks passed. Browser verification remains
 open: no installed Chromium; attempted download returned invalid archives.
+[Verification record](../reports/reviews/bc-013-runtime-config-verification.md)
+identifies the implementation revision and remaining checks.
 No real inference, deployment or acceptance is claimed. PR #15 remains draft.
 Next: real-browser desktop/mobile and subpath smoke, human disposition, then merge
 if accepted. Accepted main baseline remains PR #14 at

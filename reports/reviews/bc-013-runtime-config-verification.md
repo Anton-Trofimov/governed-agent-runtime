@@ -60,3 +60,41 @@ Also verify explicit live-enabled local behavior in the browser.
 No real model calls, hosting, public exposure, backend access-control changes,
 full security certification or human disposition occurred. Existing model-prose
 limitations and historical evidence are unchanged. The PR remains a draft.
+
+## Browser follow-up — 2026-10-30
+
+The earlier browser-download blocker was resolved by using Playwright 1.51.1
+with Chromium Headless Shell 134.0.6998.35 from its official alternate mirror.
+This follow-up supersedes the open browser execution item above, preserving the
+original attempt as historical context. Application source/dependencies unchanged.
+
+Evaluated checkout: `ede9d4d92701b0320fa8c3d1a419d940d37e0e16`; implementation
+remains `73bb7920c54e660549e7f681997694bd237578d7`. The built JavaScript hash
+matches the artifact above. Static HTTP served the same dist under a nested
+`/demo/` path, with controlled configuration responses and no live backend.
+
+| Browser case | Observed result |
+| --- | --- |
+| 390, 768, 1440 CSS px, 1000 px viewport height | Home, both saved outcomes, report dialog, selection, reload and stale live history PASS |
+| Recorded mode, idle beyond status polling interval | Zero /api/ requests at all three widths; zero uncaught JavaScript errors |
+| Missing / malformed configuration | Recorded home available; zero /api/ requests |
+| Configuration delayed 4 seconds, then live-enabled | Recorded fallback remains after late response; zero /api/ requests |
+| Recorded JSON unavailable | Truthful content error; no live fallback or /api/ request |
+| Explicit live-enabled static configuration | Existing status transport initialized |
+| Actual loopback simulator adapter | Start, preset recovery goal, reject first confirmation, terminal outcome and reload PASS; zero real model calls |
+
+Six full-page screenshots (home and stopped outcome at each width) were inspected.
+The notice, example entry, replay and report controls remained readable; no
+horizontal page overflow was detected on home. The mobile selector truncates its
+long label within its existing native control. Some informational symbols use
+fallback/missing glyphs in this minimal Linux font environment; text labels remain.
+This does not constitute testing every browser, device, font installation or
+assistive technology. Human visual acceptance remains separate.
+
+The simulator used the existing DialogueService and HTTP adapter with temporary
+synthetic evidence, then was stopped. Its launcher also reran 386 Python tests,
+Ruff and whitespace checks successfully. No real provider, hosting, tunnel,
+station configuration or public deployment was involved.
+
+Result: bounded browser checks PASS; ready for human review. No merge or accepted
+dependency update is implied.

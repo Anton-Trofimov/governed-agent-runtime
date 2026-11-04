@@ -3,6 +3,24 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-013 human disposition — 2026-11-04
+
+**ACCEPTED for the bounded autonomous recorded UI; owner authorized merge of PR #15.**
+
+Owner built and visually checked revision `c8420e071a1fd344b1c3a208ea24b8b7fc4e3c30`
+and reported the recorded demonstration working. Refresh during or after playback
+restarts the example; preserving playback position is not required for this scope.
+Live-run restoration was reported working in earlier owner testing; the current
+owner smoke did not re-test live mode. The existing live restoration contract remains.
+
+CI #42 passed on the reviewed revision. Existing automated/browser evidence is in
+[the verification record](../reports/reviews/bc-013-runtime-config-verification.md).
+This closure changes documentation only; no new inference or deployment.
+Integration state and accepted merge revision are recorded in
+[PR #15](https://github.com/Anton-Trofimov/governed-agent-runtime/pull/15).
+Hosting/publication readiness and operational integration remain separate work.
+Earlier checkpoints below retain their historical status.
+
 ## BC-013 runtime configuration — 2026-10-30
 
 Owner approved one UI build with a separate static mode configuration and a

@@ -1,7 +1,10 @@
 # BC-013 — Explicit recorded-only UI configuration
 
 2026-10-30. Runtime configuration and unavailable-mode notice approved by owner.
-Implemented with automated and bounded browser verification; human acceptance pending.
+Implemented with automated and bounded browser verification; accepted by owner on
+2026-11-04 for the bounded autonomous recorded UI. Merge of PR #15 authorized.
+Recorded playback restarts on page reload; this is accepted behavior, not live-run
+state restoration. See the closure checkpoint in project-meta/current-status.md.
 
 ## Intent and dependencies
 

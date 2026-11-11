@@ -23,7 +23,7 @@ STAMP = '.personal-demo-build.json'
 def confirm(message):
     while True:
         try:
-            answer = input(message + ' [y/N] ').strip().casefold()
+            answer = input(message + ' [yes/no; Enter — no] ').strip().casefold()
         except (EOFError, KeyboardInterrupt):
             return False
         if answer in {'y', 'yes', 'да'}:

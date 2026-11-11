@@ -11,8 +11,11 @@ approval, smoke preparation quota or test/build cycle. Implemented in
 UI build and recorded export check passed. See [verification](../reports/reviews/bc-014-personal-demo-verification.md)
 and [startup](../docs/personal-demo.md). Shared lock/uncertainty recovery and runtime
 bounds remain; research launcher and published recorded UI are unchanged.
-Next: owner station start/stop/restart acceptance before merge. No new real inference
-or administrative service restart was performed by development verification.
+Owner reported station checks successful on 2026-11-11, including both entries
+and explicitly confirmed recovery. Prompt clarified to yes/no with the empty-input
+default visible. Other UI stop-behavior observations remain deferred. No old
+station evidence was deleted; merge remains a separate disposition. Development
+verification did not itself execute real inference or service administration.
 
 ## BC-013 human disposition — 2026-11-04
 

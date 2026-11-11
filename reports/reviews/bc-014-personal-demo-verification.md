@@ -2,7 +2,7 @@
 
 Date: 2026-11-11. Accepted base: `c4ba6da` (BC-013).
 Implementation is identified by the commit containing this report / its PR head.
-Status: offline checks passed; owner station acceptance pending.
+Status: offline checks passed; owner reported station acceptance 2026-11-11.
 
 ## Verified
 
@@ -37,3 +37,14 @@ An existing Starlette test-client deprecation warning remains non-blocking.
 Tests were added with this implementation; an independently recorded pre-implementation
 RED run is not claimed. Initial validation found and corrected explicit subprocess
 check flags and import ordering before the complete passing run.
+
+## Owner station check — 2026-11-11
+
+Owner reports the personal launcher working and both local entries usable without
+the two-preparation smoke quota. Supplied terminal output shows affirmative `y`
+accepted, followed by explicitly confirmed service recovery and successful startup.
+This confirms recovery integration on the station, not automatic cancellation of
+provider computation. Owner requested clearer yes/no prompting; accepted short
+answers and case-insensitive behavior remain unchanged. Other UI stop-behavior
+observations were explicitly deferred and are not claimed resolved here.
+No station raw records were imported and no old evidence was deleted.

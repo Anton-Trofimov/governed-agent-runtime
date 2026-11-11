@@ -466,5 +466,5 @@ The complete repository is licensed under the [Apache License 2.0](./LICENSE). C
 ## Quick personal local demonstration
 
 For a prepared local showing with terminal confirmation (separate from research
-smokes), see [personal demo startup](docs/personal-demo.md). Real-model station
-acceptance of this launcher is pending; it does not change the published recorded UI.
+smokes), see [personal demo startup](docs/personal-demo.md). The owner reported
+successful station checks; it does not change the published recorded UI.

@@ -1,6 +1,6 @@
 # BC-014 — Quick local personal demonstration
 
-Status: owner intent approved 2026-11-11; implemented; offline verification passed; station acceptance pending.
+Status: owner intent approved 2026-11-11; implemented; offline verification passed; owner station checks accepted 2026-11-11; merge pending.
 
 ## Intent and boundary
 

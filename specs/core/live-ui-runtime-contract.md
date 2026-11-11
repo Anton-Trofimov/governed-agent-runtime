@@ -651,3 +651,13 @@ reading/toggling admissions invokes the model. The owner admission switch uses a
 stable private file separate from simulator settings and run evidence. Either
 listener shutdown closes the shared service once. Both ports remain loopback-only;
 this smoke does not authorize public networking.
+
+## Personal demonstration exception (BC-014)
+
+[BC-014](../bounded-changes/bc-014-personal-demo.md) adds a separate local-only
+personal launcher. Its terminal confirmation and prepared-UI check replace the
+smoke's per-start approval artifact/full verification and two-preparation quota.
+The existing smoke entrypoint retains all its requirements. A terminal-only,
+explicitly confirmed provider recovery is allowed by BC-014; the HTTP application
+still cannot restart providers or clear uncertainty. Shared locking, no old-goal
+replay, pinned model checks and runtime action/step/deadline contracts remain.

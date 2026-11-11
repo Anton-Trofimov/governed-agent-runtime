@@ -8,6 +8,7 @@ Load only the rows relevant to the bounded task, then inspect the affected schem
 
 | Concern | Authority | Scope | Lifecycle | Relevance |
 | --- | --- | --- | --- | --- |
+| Quick personal local showing | [`BC-014`](./bounded-changes/bc-014-personal-demo.md) | Terminal consent, prepared UI, transient records and explicit recovery | Offline checks passed; owner station checks accepted 2026-11-11 | Separate from measured smoke and public deployment |
 | Standalone recorded-only configuration | [`BC-013`](./bounded-changes/bc-013-recorded-only-build.md) | Static runtime configuration, no live API initialization, preserved saved-run behavior | Accepted by owner 2026-11-04; automated and bounded browser checks passed | Current bounded UI change; no hosting or execution change |
 | Product intent | [`core/product-brief.md`](./core/product-brief.md) | Product concept, user, problem, hypotheses and success direction | Active | Current |
 | Agent role and behavioral boundary | [`core/agent-charter.md`](./core/agent-charter.md) | Permitted responsibilities, behavioral principles and limits of model authority | Active | Current |

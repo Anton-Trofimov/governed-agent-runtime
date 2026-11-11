@@ -462,3 +462,9 @@ The level of autonomy should grow only where the architecture, observed quality,
 ## Licensing
 
 The complete repository is licensed under the [Apache License 2.0](./LICENSE). Copyright and attribution information is recorded in [NOTICE](./NOTICE).
+
+## Quick personal local demonstration
+
+For a prepared local showing with terminal confirmation (separate from research
+smokes), see [personal demo startup](docs/personal-demo.md). The owner reported
+successful station checks; it does not change the published recorded UI.

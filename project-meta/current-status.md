@@ -3,6 +3,20 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-014 personal demonstration — 2026-11-11
+
+Owner approved a separate one-command personal showing, without per-start JSON
+approval, smoke preparation quota or test/build cycle. Implemented in
+`personal_demo.py`; offline verification: 410 Python tests, 94 UI tests, Ruff,
+UI build and recorded export check passed. See [verification](../reports/reviews/bc-014-personal-demo-verification.md)
+and [startup](../docs/personal-demo.md). Shared lock/uncertainty recovery and runtime
+bounds remain; research launcher and published recorded UI are unchanged.
+Owner reported station checks successful on 2026-11-11, including both entries
+and explicitly confirmed recovery. Prompt clarified to yes/no with the empty-input
+default visible. Other UI stop-behavior observations remain deferred. No old
+station evidence was deleted; merge remains a separate disposition. Development
+verification did not itself execute real inference or service administration.
+
 ## BC-013 human disposition — 2026-11-04
 
 **ACCEPTED for the bounded autonomous recorded UI; owner authorized merge of PR #15.**

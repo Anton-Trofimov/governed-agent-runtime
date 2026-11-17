@@ -3,6 +3,18 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-015 public simulator candidate — 2026-11-17
+
+Baseline is accepted PR #16 merge `f264bd6`. The [bounded contract](../specs/bounded-changes/bc-015-public-simulator.md)
+adds explicit external-entry presentation and a separate finite simulator HTTP
+profile. Recorded-only still makes no backend calls. Same-origin session/command
+checks remain; only the minimal status probe permits a configured static origin.
+No model calls, station access, transport publication or hosting changes performed.
+Full deployment design/acceptance remains in the deployment project; this branch
+is a candidate, not public exposure approval. Offline checks passed: 419 Python
+tests, 103 UI tests, Ruff, TypeScript/Vite build, recorded export and diff checks.
+Browser and real-transport acceptance remain pending. [Usage boundary](../docs/public-simulator.md).
+
 ## BC-014 personal demonstration — 2026-11-11
 
 Owner approved a separate one-command personal showing, without per-start JSON

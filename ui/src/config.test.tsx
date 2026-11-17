@@ -71,3 +71,27 @@ it('recorded asset failure and unavailable storage never trigger live fallback',
   await screen.findByRole('heading',{name:'Данные запуска недоступны'});
   expect(fetcher.mock.calls.every(([path])=>!String(path).includes('/api/'))).toBe(true);
 });
+
+it('external availability never bootstraps a session or navigates away from a saved example',async()=>{
+  vi.useFakeTimers();
+  let online=true;
+  const fetcher=vi.spyOn(globalThis,'fetch').mockImplementation(async path=>{
+    if(String(path).endsWith('app-config.json'))return new Response(JSON.stringify({mode:'external-entry',origin:'https://demo.example'}));
+    if(String(path).endsWith('runs/success.json'))return new Response(JSON.stringify(success));
+    if(String(path)==='https://demo.example/public/status'){
+      if(!online)throw Error('offline');
+      return new Response(JSON.stringify({availability:'available',provider:'simulator'}));
+    }
+    throw Error('Unexpected transport');
+  });
+  render(<ConfiguredApp/>);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  fireEvent.click(screen.getByRole('button',{name:'Посмотреть пример'}));
+  expect(window.location.hash).toBe('#demo');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(15000);});
+  expect(window.location.hash).toBe('#demo');
+  online=false;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(60000);});
+  expect(window.location.hash).toBe('#demo');
+  expect(fetcher.mock.calls.every(([path])=>!String(path).includes('/api/'))).toBe(true);
+});

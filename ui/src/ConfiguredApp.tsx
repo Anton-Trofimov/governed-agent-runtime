@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { App } from './App';
-import { loadMode, type AppMode } from './config';
+import { loadConfig, type AppConfig } from './config';
 
 export function ConfiguredApp() {
-  const [mode, setMode] = useState<AppMode>();
+  const [config, setConfig] = useState<AppConfig>();
   useEffect(() => {
     let active = true;
-    void loadMode().then(value => { if (active) setMode(value); });
+    void loadConfig().then(value => { if (active) setConfig(value); });
     return () => { active = false; };
   }, []);
-  return mode ? <App mode={mode}/> : <p role="status">Загрузка интерфейса…</p>;
+  return config ? <App mode={config.mode} externalOrigin={config.origin}/> : <p role="status">Загрузка интерфейса…</p>;
 }

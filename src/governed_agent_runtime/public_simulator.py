@@ -135,4 +135,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Keep the service class identical to the HTTP adapter's canonical import.
+    # A class defined by python -m in __main__ is a distinct Python type.
+    from governed_agent_runtime.public_simulator import main as module_main
+
+    module_main()

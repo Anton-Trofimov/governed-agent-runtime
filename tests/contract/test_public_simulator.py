@@ -1,4 +1,7 @@
 import asyncio
+import os
+import subprocess
+import sys
 import time
 from pathlib import Path
 from uuid import uuid4
@@ -13,6 +16,44 @@ from governed_agent_runtime.live_http import create_app
 ROOT = Path(__file__).resolve().parents[2]
 ORIGIN = 'https://demo.example'
 HEADERS = {'origin': ORIGIN, 'x-gar-request': 'live.v1'}
+
+
+def test_module_launcher_uses_canonical_simulator_type():
+    # Execute as __main__ in a fresh interpreter, as python -m does. Only the
+    # listening socket and built-UI prerequisite are replaced; factory and
+    # exact-type boundary are real. This is not transport acceptance.
+    script = r'''
+import runpy
+import sys
+from pathlib import Path
+from unittest.mock import patch
+from starlette.testclient import TestClient
+
+original_is_file = Path.is_file
+def built_ui(path):
+    return str(path).endswith('/ui/dist/index.html') or original_is_file(path)
+
+def serve(app, **options):
+    from governed_agent_runtime.public_simulator import PublicSimulator
+    assert type(app.service) is PublicSimulator
+    assert options['host'] == '127.0.0.1'
+    assert options['workers'] == 1
+    assert options['proxy_headers'] is False
+    with TestClient(app, base_url='https://demo.example') as client:
+        assert client.get('/public/status').json() == {
+            'availability': 'available', 'provider': 'simulator'}
+    print('MODULE_LAUNCH_OK')
+
+sys.argv = ['public_simulator', '--origin', 'https://demo.example',
+            '--site-origin', 'https://site.example']
+with patch.object(Path, 'is_file', built_ui), patch('uvicorn.run', serve):
+    runpy.run_module('governed_agent_runtime.public_simulator', run_name='__main__')
+'''
+    result = subprocess.run([sys.executable, '-c', script], cwd=ROOT, check=False,
+                            env={**os.environ, 'PYTHONPATH': str(ROOT / 'src')},
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+    assert 'MODULE_LAUNCH_OK' in result.stdout
 
 
 def post(client, path, command, **fields):
@@ -35,6 +76,19 @@ def test_unreviewed_local_factory_rejects_public_origin(tmp_path):
             create_app(service, 'https://demo.example')
     finally:
         service.close()
+
+
+def test_public_boundary_still_rejects_other_service_types(tmp_path):
+    from governed_agent_runtime.public_simulator import PublicSimulator
+    class DerivedSimulator(PublicSimulator):
+        pass
+    for cls in (DialogueService, DerivedSimulator):
+        service = cls(ROOT, tmp_path / cls.__name__)
+        try:
+            with pytest.raises(ValueError, match='requires the bounded simulator'):
+                create_app(service, ORIGIN, _public_profile=True)
+        finally:
+            service.close()
 
 
 def test_public_factory_secure_cookie_and_status_without_session(tmp_path):

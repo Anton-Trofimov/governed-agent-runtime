@@ -3,6 +3,15 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-015 launcher correction — 2026-11-18
+
+The module launcher created a distinct `__main__.PublicSimulator` type and was
+rejected by the HTTP exact-type boundary before listening. Dispatch now uses the
+canonical module entry point; the type check is unchanged. A fresh-interpreter
+regression reproduces the failure before the fix and passes after it; other service
+types remain rejected. Real loopback/HTTPS acceptance still requires the corrected
+revision. UI source is unchanged by this fix.
+
 ## BC-015 public simulator candidate — 2026-11-17
 
 Baseline is accepted PR #16 merge `f264bd6`. The [bounded contract](../specs/bounded-changes/bc-015-public-simulator.md)

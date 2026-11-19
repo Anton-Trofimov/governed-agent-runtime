@@ -27,6 +27,9 @@ Two consecutive successful replies restore availability after unknown/offline.
 Explicit server unavailable applies immediately; busy is distinct from offline.
 Failure backoff is 15/30/60 seconds, capped at 60. Hidden tabs suspend new probes;
 returning resumes one probe. Unmount cancels work and ignores late results.
+These delays follow the first, second and third-or-later consecutive failures,
+independently of the three-failure availability threshold. Any valid successful
+status reply resets failure backoff; the normal next delay is again 15 seconds.
 No response changes replay selection, navigation, session or runtime state.
 The link can become stale between check and click; availability is advisory.
 
@@ -42,8 +45,28 @@ all session/command CORS remains forbidden. Status contains only availability an
 the simulator label, no session or station details. No wildcard CORS.
 
 Finite PoC defaults: one slot, 20 preparations per process, 1-hour admission window,
-16 sessions, 8 runs and 512 command records per session; existing bounded dialogue,
-step/confirmation limits remain. Request bodies <=16 KiB and 5-second read deadline.
+16 retained sessions per process, 8 runs per session and 512 command records per
+session; existing bounded dialogue, step/confirmation limits remain. Request
+bodies <=16 KiB and 5-second read deadline.
+The 16-session cap is shared by the simulator process's retained sessions, not
+per visitor; expired idle sessions are removed before capacity is checked. The
+8-run cap applies to each session and rejects another preparation before spending
+the process preparation allowance. Terminal runs still count toward that session's
+8-run limit. The 512-record cap is per session and retains accepted command IDs,
+including the server-generated start_run command for successful goal admission.
+The visitor's dialogue command and that internal command are separate records;
+bootstrap and read-only requests do not add records. Existing idempotency records
+are not evicted.
+
+Preparation is denied when more than 430 records are already retained (431 or
+more), independently of the 8-run limit. The base coordinator rejects new non-stop
+commands at 480 records; preset dialogue checks the same threshold. Counts 480
+through 511 leave 32 record slots reserved for stop; a new stop is rejected at
+512. Preset reservation release follows its ownership/lifecycle guard and records
+its acknowledgement without a separate 480 check, within the headroom left by
+preparation and bounded dialogue. Rejected commands add no records. Replay of an
+existing command is checked before capacity and consumes no new slot; changed
+payloads for an existing command ID remain conflicts, including at capacity.
 Global request buckets bound ingress without storing IPs; no visitor fairness or
 DDoS protection claim. Deployment still requires resource isolation and transport
 review. Restart is an explicit owner action and begins a new PoC allowance.

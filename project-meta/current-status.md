@@ -3,6 +3,58 @@
 Non-normative handoff. Specifications and recorded evidence remain authoritative.
 This file is not model-visible operational evidence.
 
+## BC-015 acceptance gaps — 2026-11-19
+
+Commit `af2d68c3d6843af5a21d130cf89b7df2f0dbddb4` closes the availability backoff mismatch:
+failure delays are 15/30/60/60 seconds from the first failure, reset by a valid
+reply, independently of the existing three-failure availability hysteresis.
+The focused UI test was RED before the implementation correction. Contract text
+now explicitly states timing and the scope of the existing capacity limits.
+
+New tests reach the real public coordinator's 16 retained sessions per process,
+8 runs per session and 512 command records per session without replacing limit
+checks or seeding counters. They verify rejection, unchanged state/evidence,
+per-session independence, stop headroom and idempotent replay at capacity.
+Python runtime implementation is unchanged. Direct service tests isolate these
+limits from the separately tested HTTP ingress buckets; they are not load tests.
+
+Verification bound to that commit: 424 Python tests, 106 UI tests, Ruff,
+typecheck/build, recorded export and diff checks PASS. Targeted Chromium checks
+of the built UI at 390/1440 passed 12/12 with example-domain interception.
+The committed implementation/test files match the tested source and patch.
+[CI #50](https://github.com/Anton-Trofimov/governed-agent-runtime/actions/runs/44503320532)
+passed on the same commit. No real inference was performed.
+
+Earlier `6021e61` backend 39/39 and Windows HTTPS 37/37 evidence remains applicable
+to the unchanged Python runtime; it is not a fresh HTTPS test of `af2d68c` or its
+new UI bundle. The `1945822` UI 20/20 record retains coverage of unchanged behavior;
+its backoff timing assumptions are superseded by this correction and focused
+browser evidence. Earlier pending-acceptance notes below are historical checkpoints.
+No repeated real HTTPS run or hosting/publication change accompanied this fix.
+These checks do not authorize public exposure, hosting, Funnel/Ollama activation,
+real inference or merge. Owner disposition and deployment acceptance remain separate.
+
+## BC-015 launcher correction — 2026-11-18
+
+The module launcher created a distinct `__main__.PublicSimulator` type and was
+rejected by the HTTP exact-type boundary before listening. Dispatch now uses the
+canonical module entry point; the type check is unchanged. A fresh-interpreter
+regression reproduces the failure before the fix and passes after it; other service
+types remain rejected. Real loopback/HTTPS acceptance still requires the corrected
+revision. UI source is unchanged by this fix.
+
+## BC-015 public simulator candidate — 2026-11-17
+
+Baseline is accepted PR #16 merge `f264bd6`. The [bounded contract](../specs/bounded-changes/bc-015-public-simulator.md)
+adds explicit external-entry presentation and a separate finite simulator HTTP
+profile. Recorded-only still makes no backend calls. Same-origin session/command
+checks remain; only the minimal status probe permits a configured static origin.
+No model calls, station access, transport publication or hosting changes performed.
+Full deployment design/acceptance remains in the deployment project; this branch
+is a candidate, not public exposure approval. Offline checks passed: 419 Python
+tests, 103 UI tests, Ruff, TypeScript/Vite build, recorded export and diff checks.
+Browser and real-transport acceptance remain pending. [Usage boundary](../docs/public-simulator.md).
+
 ## BC-014 personal demonstration — 2026-11-11
 
 Owner approved a separate one-command personal showing, without per-start JSON

@@ -1,6 +1,7 @@
 """Loopback-only live HTTP server. Only the deterministic provider is executable."""
 
 import argparse
+import asyncio
 import json
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -19,10 +20,14 @@ from governed_agent_runtime.live_service import LiveError, now
 COOKIE = "gar_local_session"
 
 
-def create_app(service, origin="http://127.0.0.1:8000"):
+def create_app(service, origin="http://127.0.0.1:8000", *, _public_profile=False):
     cookie_name = getattr(service, "cookie_name", COOKIE)
     parsed = urlsplit(origin)
-    if parsed.scheme != "http" or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
+    if _public_profile:
+        from governed_agent_runtime.public_simulator import PublicSimulator, https_origin
+        if type(service) is not PublicSimulator or not https_origin(origin):
+            raise ValueError("Public profile requires the bounded simulator")
+    elif parsed.scheme != "http" or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise ValueError("Only a loopback HTTP origin is supported")
     schema = json.loads((service.root / "schemas/bc011-live.schema.json").read_text())
 
@@ -64,10 +69,11 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                 if request.headers.get("content-type", "").split(";")[0] != "application/json":
                     raise LiveError("INVALID_REQUEST", 400)
                 raw = bytearray()
-                async for chunk in request.stream():
-                    raw.extend(chunk)
-                    if len(raw) > 16384:
-                        raise LiveError("REQUEST_TOO_LARGE", 413)
+                async with asyncio.timeout(5 if _public_profile else None):
+                    async for chunk in request.stream():
+                        raw.extend(chunk)
+                        if len(raw) > 16384:
+                            raise LiveError("REQUEST_TOO_LARGE", 413)
                 try:
                     body = json.loads(raw, object_pairs_hook=pairs,
                                       parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
@@ -87,7 +93,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                         "command_id": body["command_id"], "disposition": "completed",
                         "session_id": session["id"], "reservation_id": None, "run_id": None,
                         "server_time": now()})
-                    result.set_cookie(cookie_name, token, httponly=True, samesite="strict", path="/api")
+                    result.set_cookie(cookie_name, token, httponly=True, samesite="strict",
+                                      path="/api", secure=_public_profile)
                     return result
                 if path == "/api/admin/admissions" and getattr(service, "owner_control", False):
                     if request.method == "POST":
@@ -120,6 +127,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
                 validate('preset_dialogue' if command == 'dialogue' and
                          getattr(service, 'input_profile', None) == 'preset-only' else command, body)
                 return response(service.command(session, path, body), 202)
+        except TimeoutError:
+            return response({"code": "REQUEST_TIMEOUT"}, 408)
         except LiveError as error:
             command_id = body.get("command_id") if isinstance(body, dict) else None
             if not isinstance(command_id, str) or len(command_id) > 80:
@@ -149,8 +158,8 @@ def create_app(service, origin="http://127.0.0.1:8000"):
     async def local_boundary(request, call_next):
         # Apply Host protection and framing restrictions to static UI as well as APIs.
         if (request.headers.get("host") != parsed.netloc
-                or any(name in request.headers for name in
-                       ("forwarded", "x-forwarded-for", "x-forwarded-host"))):
+                or (not _public_profile and any(name in request.headers for name in
+                       ("forwarded", "x-forwarded-for", "x-forwarded-host")))):
             return JSONResponse({"code": "ORIGIN_REJECTED"}, status_code=403)
         result = await call_next(request)
         result.headers["Content-Security-Policy"] = (

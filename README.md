@@ -20,6 +20,11 @@ This README provides the short project overview. For a deeper review of the curr
 
 ## Operator experience — BC-009 / BC-010
 
+An opt-in [bounded public simulator candidate](./docs/public-simulator.md) adds
+an external interactive entry with stable availability checks. It uses no LLM or
+real tools; deployment acceptance is pending. Existing recorded-only publication
+does not automatically enable this profile.
+
 Accepted locally: a read-only outcome projection and an adaptive React viewer of
 two recorded synthetic runs — verified rollback and safe fallback after a failed
 recovery check. The UI separates agent proposals, runtime checks, operator

@@ -47,7 +47,7 @@ it('restores an existing session read-only after mounting',async()=>{
   await waitFor(()=>expect(screen.getByText('CONFIRMATION_EXPIRED')).toBeVisible());
   expect(fetcher.mock.calls.every((call)=>!String(call[0]).includes('/decisions'))).toBe(true);
   expect(fetcher.mock.calls.some(call=>call[0]==='/api/sessions')).toBe(false);
-  expect(screen.getByRole('heading',{name:/Агент управления сервисом/}).closest('.chat-head')).toHaveTextContent('Локальная проверка · имитатор модели');
+  expect(screen.getByRole('heading',{name:/Агент управления сервисом/}).closest('.chat-head')).toHaveTextContent('Тестовый сценарий · имитатор модели');
 });
 
 it('keeps only a disabled contextual composer after completion and exposes home navigation',async()=>{

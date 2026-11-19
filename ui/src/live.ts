@@ -21,8 +21,8 @@ const terminal = z.object({origin:z.enum(['platform','runtime']),reason_code:tex
 const version = z.literal('live.v1');
 const providerSchema=z.object({kind:z.enum(['simulator','ollama']),model_name:z.string().nullable()});
 export type Provider=z.infer<typeof providerSchema>;
-export function providerLabel(provider?:Provider){return provider?.kind==='ollama'?`Локальная LLM · ${provider.model_name}`:provider?.kind==='simulator'?'Локальная проверка · имитатор модели':'Тип модели уточняется';}
-export function providerNotice(provider?:Provider){return provider?.kind==='ollama'?'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.':provider?.kind==='simulator'?'В локальном тестовом режиме работает имитатор модели; LLM не вызывается.':'Сохранённые примеры доступны без вызова модели. Тип живого подключения уточняется.';}
+export function providerLabel(provider?:Provider){return provider?.kind==='ollama'?`Локальная LLM · ${provider.model_name}`:provider?.kind==='simulator'?'Тестовый сценарий · имитатор модели':'Тип модели уточняется';}
+export function providerNotice(provider?:Provider){return provider?.kind==='ollama'?'В живом режиме инференс LLM осуществляется на реальной AI-инфраструктуре.':provider?.kind==='simulator'?'В тестовом режиме работает имитатор модели; LLM не вызывается.':'Сохранённые примеры доступны без вызова модели. Тип живого подключения уточняется.';}
 
 export const statusSchema = z.object({kind:z.literal('status'),version,public_admissions_enabled:z.boolean().optional(),
   unavailability_reason:z.enum(['SMOKE_LIMIT','PROVIDER_UNAVAILABLE','SERVER_CLOSED','PUBLIC_PAUSED']).nullable().optional(),provider:providerSchema.optional(),availability:z.enum(['available','busy','unavailable']),model_status:model,server_time:text});

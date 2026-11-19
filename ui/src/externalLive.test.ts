@@ -24,13 +24,15 @@ it('keeps confirmed availability over two failures, backs off, and requires two 
   await vi.advanceTimersByTimeAsync(15000);
   expect(publish.mock.calls).toEqual([['available']]);
   fetcher.mockRejectedValue(Error('network'));
-  await vi.advanceTimersByTimeAsync(30000);
+  await vi.advanceTimersByTimeAsync(15000);
   expect(publish.mock.calls).toEqual([['available']]);
   await vi.advanceTimersByTimeAsync(15000);
+  expect(publish.mock.calls).toEqual([['available']]);
+  await vi.advanceTimersByTimeAsync(30000);
   expect(publish.mock.calls).toEqual([['available'],['unavailable']]);
-  await vi.advanceTimersByTimeAsync(15000); // fourth failure -> 30 seconds
+  await vi.advanceTimersByTimeAsync(60000);
   const count=fetcher.mock.calls.length;
-  await vi.advanceTimersByTimeAsync(29999);
+  await vi.advanceTimersByTimeAsync(59999);
   expect(fetcher).toHaveBeenCalledTimes(count);
   fetcher.mockImplementation(async()=>reply());
   await vi.advanceTimersByTimeAsync(1);
@@ -39,6 +41,33 @@ it('keeps confirmed availability over two failures, backs off, and requires two 
   expect(publish.mock.calls).toEqual([['available'],['unavailable'],['available']]);
   expect(fetcher.mock.calls.every(([url])=>url==='https://demo.example/public/status')).toBe(true);
   expect(fetcher).toHaveBeenCalledWith(expect.any(String),expect.objectContaining({credentials:'omit',redirect:'error',cache:'no-store'}));
+  stop();
+});
+
+it.each(['available','busy','unavailable'])('uses 15/30/60/60 failure delays and resets after %s',async state=>{
+  vi.useFakeTimers();
+  const fetcher=vi.spyOn(globalThis,'fetch').mockRejectedValue(Error('network'));
+  const stop=observeAvailability('https://demo.example',vi.fn());
+  await vi.advanceTimersByTimeAsync(0);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  for (const [index,delay] of [15000,30000,60000,60000].entries()) {
+    await vi.advanceTimersByTimeAsync(delay-1);
+    expect(fetcher).toHaveBeenCalledTimes(index+1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fetcher).toHaveBeenCalledTimes(index+2);
+  }
+  fetcher.mockImplementation(async()=>reply(state));
+  await vi.advanceTimersByTimeAsync(60000);
+  expect(fetcher).toHaveBeenCalledTimes(6);
+  fetcher.mockRejectedValue(Error('network'));
+  await vi.advanceTimersByTimeAsync(14999);
+  expect(fetcher).toHaveBeenCalledTimes(6);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(fetcher).toHaveBeenCalledTimes(7);
+  await vi.advanceTimersByTimeAsync(14999);
+  expect(fetcher).toHaveBeenCalledTimes(7);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(fetcher).toHaveBeenCalledTimes(8);
   stop();
 });
 

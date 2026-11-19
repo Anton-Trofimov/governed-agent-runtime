@@ -36,7 +36,7 @@ export function observeAvailability(origin: string, publish: (state: Availabilit
       if (failures >= 3) update('unavailable');
     } finally {
       clearTimeout(timeout); running=false;
-      if (!stopped && !document.hidden) timer=setTimeout(probe,Math.min(60000,15000*2**Math.max(0,failures-3)));
+      if (!stopped && !document.hidden) timer=setTimeout(probe,Math.min(60000,15000*2**Math.max(0,failures-1)));
     }
   }
   function visibility() { clearTimeout(timer); if (!document.hidden) void probe(); }
